@@ -39,7 +39,7 @@ fn main() {
     }
 
     for n in 0..vec.size() {
-        println!("{}", n);
+        println!("{}", vec[n]);
     }
 
     println!("Hello, world!");
