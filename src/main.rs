@@ -12,6 +12,14 @@ impl Vector {
     pub fn size(&self) -> usize {
         self.data.len()
     }
+
+    pub fn iter(&self) -> std::slice::Iter<'_, i64> {
+        self.data.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, i64> {
+        self.data.iter_mut()
+    }
 }
 
 impl std::ops::Index<usize> for Vector {
@@ -20,26 +28,23 @@ impl std::ops::Index<usize> for Vector {
     fn index(&self, index: usize) -> &i64 {
         &self.data[index]
     }
-
 }
 
 impl std::ops::IndexMut<usize> for Vector {
-
     fn index_mut(&mut self, index: usize) -> &mut i64 {
         &mut self.data[index]
     }
-
 }
 
 fn main() {
     let mut vec: Vector = Vector::new(8);
 
-    for n in 0..vec.size() {
-        vec[n] = (n * n) as i64;
+    for (n, value) in vec.iter_mut().enumerate() {
+        *value = (n * n) as i64;
     }
 
-    for n in 0..vec.size() {
-        println!("{}", vec[n]);
+    for value in vec.iter() {
+        println!("{}", value);
     }
 
     println!("Hello, world!");
