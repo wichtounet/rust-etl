@@ -35,7 +35,7 @@ fn main() {
     let mut vec: Vector = Vector::new(8);
 
     for n in 0..vec.size() {
-        vec[n] = n as i64;
+        vec[n] = (n * n) as i64;
     }
 
     for n in 0..vec.size() {
