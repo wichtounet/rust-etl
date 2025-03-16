@@ -66,3 +66,20 @@ impl<'a, T: Default + Clone> Iterator for VectorIterator<'a, T> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn construct_i64() {
+        let vec: Vector<i64> = Vector::<i64>::new(8);
+        assert_eq!(vec.size() , 8)
+    }
+
+    #[test]
+    fn construct_f64() {
+        let vec: Vector<f64> = Vector::<f64>::new(1023);
+        assert_eq!(vec.size() , 1023)
+    }
+}
