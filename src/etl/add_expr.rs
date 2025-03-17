@@ -15,6 +15,10 @@ pub struct AddExpr<LeftExpr, RightExpr, T> where LeftExpr: EtlExpr<T>, RightExpr
 
 impl<LeftExpr, RightExpr, T> AddExpr<LeftExpr, RightExpr, T> where LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
+        if lhs.size() != rhs.size() {
+            panic!("Cannot add expressions of different sizes ({} + {})", lhs.size(), rhs.size());
+        }
+
         Self { lhs: lhs, rhs: rhs, _marker: std::marker::PhantomData }
     }
 
@@ -46,6 +50,7 @@ impl<LeftExpr, RightExpr, T> EtlExpr<T> for AddExpr<LeftExpr, RightExpr, T> wher
 #[cfg(test)]
 mod tests {
     use crate::etl::vector::Vector;
+    use crate::etl::matrix::Matrix;
     use crate::etl::etl_expr::EtlExpr;
 
     #[test]
@@ -81,6 +86,20 @@ mod tests {
     #[test]
     fn basic_assign_2() {
         let mut a: Vector<i64> = Vector::<i64>::new(8);
+        let mut b: Vector<i64> = Vector::<i64>::new(8);
+        let mut c: Vector<i64> = Vector::<i64>::new(8);
+
+        a[0] = 1;
+        b[0] = 2;
+
+        c.assign(a + b);
+
+        assert_eq!(c.at(0), 3);
+    }
+
+    #[test]
+    fn basic_assign_mixed() {
+        let mut a: Matrix<i64> = Matrix::<i64>::new(4, 2);
         let mut b: Vector<i64> = Vector::<i64>::new(8);
         let mut c: Vector<i64> = Vector::<i64>::new(8);
 
