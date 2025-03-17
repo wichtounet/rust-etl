@@ -1,6 +1,3 @@
-
-
-
 pub trait EtlValueType : Default + Clone + Copy {}
 impl<T: Default + Clone + Copy> EtlValueType for T {}
 

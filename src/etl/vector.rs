@@ -92,10 +92,10 @@ impl<'a, T: EtlValueType> Iterator for VectorIterator<'a, T> {
 // Operations
 
 // TODO Ideally, we should be able to declare that for the trait directly
-impl<T, RightExpr> Add<RightExpr> for Vector<T> where RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
-    type Output = AddExpr<Vector<T>, RightExpr, T>;
+impl<'a, T, RightExpr> Add<&'a RightExpr> for &'a Vector<T> where RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
+    type Output = AddExpr<'a, Vector<T>, RightExpr, T>;
 
-    fn add(self, other: RightExpr) -> Self::Output {
+    fn add(self, other: &'a RightExpr) -> Self::Output {
         Self::Output::new(self, other)
     }
 }

@@ -79,10 +79,10 @@ impl<T: EtlValueType> std::ops::IndexMut<usize> for Matrix<T> {
 // Operations
 
 // TODO Ideally, we should be able to declare that for the trait directly
-impl<T, RightExpr> Add<RightExpr> for Matrix<T> where RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
-    type Output = AddExpr<Matrix<T>, RightExpr, T>;
+impl<'a, T, RightExpr> Add<&'a RightExpr> for &'a Matrix<T> where RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
+    type Output = AddExpr<'a, Matrix<T>, RightExpr, T>;
 
-    fn add(self, other: RightExpr) -> Self::Output {
+    fn add(self, other: &'a RightExpr) -> Self::Output {
         Self::Output::new(self, other)
     }
 }
