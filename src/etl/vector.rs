@@ -20,6 +20,12 @@ impl<T: Default + Clone + Copy> Vector<T> {
         &mut self.data[i]
     }
 
+    pub fn assign<RightExpr: EtlExpr<T>> (&mut self, rhs: RightExpr) {
+        for i in 0..self.size() {
+            self.data[i] = rhs.at(i)
+        }
+    }
+
     pub fn iter(&self) -> VectorIterator<T> {
         VectorIterator::<T> {
             vector: self,
