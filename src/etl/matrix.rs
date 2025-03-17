@@ -1,5 +1,8 @@
 use crate::etl::etl_expr::EtlExpr;
 use crate::etl::etl_expr::EtlValueType;
+use crate::etl::add_expr::AddExpr;
+
+use std::ops::Add;
 
 // The declaration of Matrix<T>
 
@@ -70,6 +73,17 @@ impl<T: EtlValueType> std::ops::Index<usize> for Matrix<T> {
 impl<T: EtlValueType> std::ops::IndexMut<usize> for Matrix<T> {
     fn index_mut(&mut self, index: usize) -> &mut T {
         &mut self.data[index]
+    }
+}
+
+// Operations
+
+// TODO Ideally, we should be able to declare that for the trait directly
+impl<T, RightExpr> Add<RightExpr> for Matrix<T> where RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
+    type Output = AddExpr<Matrix<T>, RightExpr, T>;
+
+    fn add(self, other: RightExpr) -> Self::Output {
+        Self::Output::new(self, other)
     }
 }
 
