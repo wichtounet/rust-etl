@@ -22,10 +22,26 @@ impl<T: Default + Clone + Copy> Matrix<T> {
     }
 
     pub fn at(&self, row: usize, column: usize) -> T {
+        if row >= self.rows {
+            panic!("Row {} is out of bounds!", row);
+        }
+
+        if column >= self.columns {
+            panic!("Column {} is out of bounds!", column);
+        }
+
         self.data[row * self.columns + column]
     }
 
     pub fn at_mut(&mut self, row: usize, column: usize) -> &mut T {
+        if row >= self.rows {
+            panic!("Row {} is out of bounds!", row);
+        }
+
+        if column >= self.columns {
+            panic!("Column {} is out of bounds!", column);
+        }
+
         &mut self.data[row * self.columns + column]
     }
 
