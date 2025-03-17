@@ -75,4 +75,19 @@ mod tests {
         assert_eq!(mat.at(1, 1), 3);
         assert_eq!(mat.at(2, 1), 0);
     }
+
+    #[test]
+    fn row_major() {
+        let mut mat: Matrix<i64> = Matrix::<i64>::new(2, 2);
+
+        mat[0] = 1;
+        mat[1] = 2;
+        mat[2] = 3;
+        mat[3] = 4;
+
+        assert_eq!(mat.at(0, 0), 1);
+        assert_eq!(mat.at(0, 1), 2);
+        assert_eq!(mat.at(1, 0), 3);
+        assert_eq!(mat.at(1, 1), 4);
+    }
 }
