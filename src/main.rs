@@ -1,6 +1,7 @@
 mod etl;
 
 use crate::etl::vector::Vector;
+use crate::etl::etl_expr::EtlExpr;
 
 fn basic<TG: From<i32> + Default + Clone + Copy + std::fmt::Display>(size: usize) {
     let mut vec: Vector<TG> = Vector::<TG>::new(size);

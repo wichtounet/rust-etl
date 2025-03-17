@@ -1,3 +1,8 @@
+use crate::etl::etl_expr::EtlExpr;
+use crate::etl::add_expr::AddExpr;
+
+use std::ops::Add;
+
 // The declaration of Vector<T>
 
 pub struct Vector<T: Default + Clone + Copy> {
@@ -9,14 +14,6 @@ pub struct Vector<T: Default + Clone + Copy> {
 impl<T: Default + Clone + Copy> Vector<T> {
     pub fn new(size: usize) -> Self {
         Self { data: vec![T::default(); size] }
-    }
-
-    pub fn size(&self) -> usize {
-        self.data.len()
-    }
-
-    pub fn at(&self, i: usize) -> T {
-        self.data[i]
     }
 
     pub fn at_mut(&mut self, i: usize) -> &mut T {
@@ -33,6 +30,16 @@ impl<T: Default + Clone + Copy> Vector<T> {
     // Writing my own mutable iterator requires unsafe code (which I should do later)
     pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, T> {
         return self.data.iter_mut();
+    }
+}
+
+impl<T: Default + Clone + Copy> EtlExpr<T> for Vector<T> {
+    fn size(&self) -> usize {
+        self.data.len()
+    }
+
+    fn at(&self, i: usize) -> T {
+        self.data[i]
     }
 }
 
@@ -74,6 +81,18 @@ impl<'a, T: Default + Clone + Copy> Iterator for VectorIterator<'a, T> {
         }
     }
 }
+
+// Operations
+
+impl<T, RightExpr> Add<RightExpr> for Vector<T> where RightExpr: EtlExpr<T>, T: Default + Clone + Copy + Add<Output = T> {
+    type Output = AddExpr<Vector<T>, RightExpr, T>;
+
+    fn add(self, other: RightExpr) -> Self::Output {
+        Self::Output::new(self, other)
+    }
+}
+
+// Tests
 
 #[cfg(test)]
 mod tests {
