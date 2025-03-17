@@ -84,6 +84,7 @@ impl<'a, T: Default + Clone + Copy> Iterator for VectorIterator<'a, T> {
 
 // Operations
 
+// TODO Ideally, we should be able to declare that for the trait directly
 impl<T, RightExpr> Add<RightExpr> for Vector<T> where RightExpr: EtlExpr<T>, T: Default + Clone + Copy + Add<Output = T> {
     type Output = AddExpr<Vector<T>, RightExpr, T>;
 
