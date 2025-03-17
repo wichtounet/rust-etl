@@ -19,6 +19,10 @@ impl<T: Default + Clone + Copy> Vector<T> {
         self.data[i]
     }
 
+    pub fn at_mut(&mut self, i: usize) -> &mut T {
+        &mut self.data[i]
+    }
+
     pub fn iter(&self) -> VectorIterator<T> {
         VectorIterator::<T> {
             vector: self,
@@ -98,5 +102,8 @@ mod tests {
         assert_eq!(vec.at(0), 9);
         assert_eq!(vec.at(1), 3);
         assert_eq!(vec.at(2), 7);
+
+        *vec.at_mut(1) = 77;
+        assert_eq!(vec.at(1), 77);
     }
 }
