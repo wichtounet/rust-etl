@@ -1,8 +1,11 @@
 use crate::etl::etl_expr::EtlExpr;
+use crate::etl::etl_expr::EtlValueType;
+
+use std::ops::Add;
 
 // The declaration of AddExpr<T>
 
-pub struct AddExpr<LeftExpr, RightExpr, T> where LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>, T: std::ops::Add<Output = T> {
+pub struct AddExpr<LeftExpr, RightExpr, T> where LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
     lhs: LeftExpr,
     rhs: RightExpr,
     _marker: std::marker::PhantomData<T>,
@@ -10,7 +13,7 @@ pub struct AddExpr<LeftExpr, RightExpr, T> where LeftExpr: EtlExpr<T>, RightExpr
 
 // The functions of AddExpr<T>
 
-impl<LeftExpr, RightExpr, T> AddExpr<LeftExpr, RightExpr, T> where LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>, T: std::ops::Add<Output = T> {
+impl<LeftExpr, RightExpr, T> AddExpr<LeftExpr, RightExpr, T> where LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
         Self { lhs: lhs, rhs: rhs, _marker: std::marker::PhantomData }
     }
@@ -26,7 +29,7 @@ impl<LeftExpr, RightExpr, T> AddExpr<LeftExpr, RightExpr, T> where LeftExpr: Etl
     }
 }
 
-impl<LeftExpr, RightExpr, T> EtlExpr<T> for AddExpr<LeftExpr, RightExpr, T> where LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>, T: std::ops::Add<Output = T> {
+impl<LeftExpr, RightExpr, T> EtlExpr<T> for AddExpr<LeftExpr, RightExpr, T> where LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
     fn size(&self) -> usize {
         self.lhs.size()
     }

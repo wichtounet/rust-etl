@@ -1,17 +1,18 @@
 use crate::etl::etl_expr::EtlExpr;
+use crate::etl::etl_expr::EtlValueType;
 use crate::etl::add_expr::AddExpr;
 
 use std::ops::Add;
 
 // The declaration of Vector<T>
 
-pub struct Vector<T: Default + Clone + Copy> {
+pub struct Vector<T: EtlValueType> {
     data: Vec<T>
 }
 
 // The functions of Vector<T>
 
-impl<T: Default + Clone + Copy> Vector<T> {
+impl<T: EtlValueType> Vector<T> {
     pub fn new(size: usize) -> Self {
         Self { data: vec![T::default(); size] }
     }
@@ -39,7 +40,7 @@ impl<T: Default + Clone + Copy> Vector<T> {
     }
 }
 
-impl<T: Default + Clone + Copy> EtlExpr<T> for Vector<T> {
+impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
     fn size(&self) -> usize {
         self.data.len()
     }
@@ -51,7 +52,7 @@ impl<T: Default + Clone + Copy> EtlExpr<T> for Vector<T> {
 
 // Operator overloading for Vector<T>
 
-impl<T: Default + Clone + Copy> std::ops::Index<usize> for Vector<T> {
+impl<T: EtlValueType> std::ops::Index<usize> for Vector<T> {
     type Output = T;
 
     fn index(&self, index: usize) -> &T {
@@ -59,7 +60,7 @@ impl<T: Default + Clone + Copy> std::ops::Index<usize> for Vector<T> {
     }
 }
 
-impl<T: Default + Clone + Copy> std::ops::IndexMut<usize> for Vector<T> {
+impl<T: EtlValueType> std::ops::IndexMut<usize> for Vector<T> {
     fn index_mut(&mut self, index: usize) -> &mut T {
         &mut self.data[index]
     }
@@ -67,14 +68,14 @@ impl<T: Default + Clone + Copy> std::ops::IndexMut<usize> for Vector<T> {
 
 // The declaration of VectorIterator<T>
 
-pub struct VectorIterator<'a, T: Default + Clone + Copy> {
+pub struct VectorIterator<'a, T: EtlValueType> {
     vector: &'a Vector<T>,
     index: usize
 }
 
 // The implementation of VectorIterator<T>
 
-impl<'a, T: Default + Clone + Copy> Iterator for VectorIterator<'a, T> {
+impl<'a, T: EtlValueType> Iterator for VectorIterator<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -91,7 +92,7 @@ impl<'a, T: Default + Clone + Copy> Iterator for VectorIterator<'a, T> {
 // Operations
 
 // TODO Ideally, we should be able to declare that for the trait directly
-impl<T, RightExpr> Add<RightExpr> for Vector<T> where RightExpr: EtlExpr<T>, T: Default + Clone + Copy + Add<Output = T> {
+impl<T, RightExpr> Add<RightExpr> for Vector<T> where RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
     type Output = AddExpr<Vector<T>, RightExpr, T>;
 
     fn add(self, other: RightExpr) -> Self::Output {

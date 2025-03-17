@@ -1,6 +1,9 @@
+use crate::etl::etl_expr::EtlExpr;
+use crate::etl::etl_expr::EtlValueType;
+
 // The declaration of Matrix<T>
 
-pub struct Matrix<T: Default + Clone + Copy> {
+pub struct Matrix<T: EtlValueType> {
     data: Vec<T>,
     rows: usize,
     columns: usize,
@@ -8,7 +11,7 @@ pub struct Matrix<T: Default + Clone + Copy> {
 
 // The functions of Matrix<T>
 
-impl<T: Default + Clone + Copy> Matrix<T> {
+impl<T: EtlValueType> Matrix<T> {
     pub fn new(rows: usize, columns: usize) -> Self {
         Self { 
             data: vec![T::default(); rows * columns],
@@ -50,7 +53,7 @@ impl<T: Default + Clone + Copy> Matrix<T> {
 
 // Operator overloading for Matrix<T>
 
-impl<T: Default + Clone + Copy> std::ops::Index<usize> for Matrix<T> {
+impl<T: EtlValueType> std::ops::Index<usize> for Matrix<T> {
     type Output = T;
 
     fn index(&self, index: usize) -> &T {
@@ -58,7 +61,7 @@ impl<T: Default + Clone + Copy> std::ops::Index<usize> for Matrix<T> {
     }
 }
 
-impl<T: Default + Clone + Copy> std::ops::IndexMut<usize> for Matrix<T> {
+impl<T: EtlValueType> std::ops::IndexMut<usize> for Matrix<T> {
     fn index_mut(&mut self, index: usize) -> &mut T {
         &mut self.data[index]
     }
