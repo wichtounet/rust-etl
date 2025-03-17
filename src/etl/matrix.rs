@@ -20,10 +20,6 @@ impl<T: EtlValueType> Matrix<T> {
         }
     }
 
-    pub fn size(&self) -> usize {
-        self.rows * self.columns
-    }
-
     pub fn at(&self, row: usize, column: usize) -> T {
         if row >= self.rows {
             panic!("Row {} is out of bounds!", row);
@@ -49,6 +45,16 @@ impl<T: EtlValueType> Matrix<T> {
     }
 
     // TODO: Add iterators?
+}
+
+impl<T: EtlValueType> EtlExpr<T> for Matrix<T> {
+    fn size(&self) -> usize {
+        self.rows * self.columns
+    }
+
+    fn at(&self, i: usize) -> T {
+        self.data[i]
+    }
 }
 
 // Operator overloading for Matrix<T>
