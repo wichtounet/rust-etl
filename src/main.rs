@@ -2,7 +2,7 @@ mod etl;
 
 use crate::etl::vector::Vector;
 
-fn basic<TG: From<i32> + Default + Clone + std::fmt::Display>(size: usize) {
+fn basic<TG: From<i32> + Default + Clone + Copy + std::fmt::Display>(size: usize) {
     let mut vec: Vector<TG> = Vector::<TG>::new(size);
 
     println!("Hello, world from a Vector<{}>({})!", std::any::type_name::<TG>(), vec.size());
