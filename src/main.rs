@@ -1,6 +1,7 @@
 mod etl;
 
 use crate::etl::vector::Vector;
+
 use crate::etl::etl_expr::EtlExpr;
 use crate::etl::etl_expr::EtlValueType;
 
@@ -20,7 +21,26 @@ fn basic<TG: From<i32> + EtlValueType + std::fmt::Display>(size: usize) {
     }
 }
 
+struct Layer {
+    weights: Vector<f64>,
+    biases: Vector<f64>
+}
+
+impl Layer {
+    fn new() -> Self {
+        Layer { weights: Vector::<f64>::new(1024), biases: Vector::<f64>::new(1024) }
+    }
+
+    fn compute_output(&self, output: &mut Vector::<f64>) {
+        output.assign(&self.weights + &self.biases);
+    }
+}
+
 fn main() {
     basic::<i64>(8);
     basic::<f64>(8);
+
+    let layer = Layer::new();
+    let mut output = Vector::<f64>::new(1024);
+    layer.compute_output(&mut output);
 }
