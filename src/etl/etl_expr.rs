@@ -6,5 +6,5 @@ pub trait EtlExpr<T: EtlValueType> {
     fn at(&self, i: usize) -> T;
 }
 
-// TODO: It does not seem like I can force Index trait because it must return a reference which
-// expressions cannot do
+// It does not seem like I can force Index trait because it must return a reference which
+// expressions cannot do. Therefore, I settled on at instead, which should work fine
