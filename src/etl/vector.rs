@@ -77,6 +77,7 @@ impl<'a, T: EtlValueType> EtlExpr for &'a Vector<T> {
     }
 }
 
+// Vector<T> wraps as reference
 impl<'a, T: EtlValueType> EtlWrappable for &'a Vector<T> {
     type WrappedAs = &'a Vector<T>;
 

@@ -81,6 +81,7 @@ impl<'a, T: EtlValueType> EtlExpr for &'a Matrix<T> {
     }
 }
 
+// Matrix<T> wraps as reference
 impl<'a, T: EtlValueType> EtlWrappable for &'a Matrix<T> {
     type WrappedAs = &'a Matrix<T>;
 
