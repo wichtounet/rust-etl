@@ -48,9 +48,7 @@ impl<T: EtlValueType> Matrix<T> {
         &mut self.data[row * self.columns + column]
     }
 
-    pub fn assign<RightExpr> (&mut self, rhs: RightExpr)
-    where RightExpr: EtlExpr<Type = T>,
-    {
+    pub fn assign<RightExpr: EtlExpr<Type = T>> (&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] = rhs.at(i);
         }
