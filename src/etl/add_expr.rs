@@ -1,13 +1,14 @@
 use crate::etl::etl_expr::EtlExpr;
 use crate::etl::etl_expr::EtlWrapper;
 use crate::etl::etl_expr::EtlWrappable;
+use crate::etl::etl_expr::WrappableExpr;
 
 use std::ops::Add;
 
 // The declaration of AddExpr
 
 pub struct AddExpr<LeftExpr, RightExpr>
-where LeftExpr: EtlExpr + EtlWrappable, RightExpr: EtlExpr + EtlWrappable {
+where LeftExpr: WrappableExpr, RightExpr: WrappableExpr {
     lhs: EtlWrapper<LeftExpr::WrappedAs>,
     rhs: EtlWrapper<RightExpr::WrappedAs>
 }
@@ -15,7 +16,7 @@ where LeftExpr: EtlExpr + EtlWrappable, RightExpr: EtlExpr + EtlWrappable {
 // The functions of AddExpr
 
 impl<'a, LeftExpr, RightExpr> AddExpr<LeftExpr, RightExpr>
-where LeftExpr: EtlExpr + EtlWrappable, RightExpr: EtlExpr + EtlWrappable {
+where LeftExpr: WrappableExpr, RightExpr: WrappableExpr {
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
         if lhs.size() != rhs.size() {
             panic!("Cannot add expressions of different sizes ({} + {})", lhs.size(), rhs.size());
@@ -28,8 +29,8 @@ where LeftExpr: EtlExpr + EtlWrappable, RightExpr: EtlExpr + EtlWrappable {
 // AddExpr is an EtlExpr
 impl<'a, LeftExpr, RightExpr> EtlExpr for AddExpr<LeftExpr, RightExpr>
 where 
-        LeftExpr: EtlExpr + EtlWrappable,
-        RightExpr: EtlExpr + EtlWrappable,
+        LeftExpr: WrappableExpr,
+        RightExpr: WrappableExpr,
         <<LeftExpr as EtlWrappable>::WrappedAs as EtlExpr>::Type: Add<<<RightExpr as EtlWrappable>::WrappedAs as EtlExpr>::Type, Output = <<LeftExpr as EtlWrappable>::WrappedAs as EtlExpr>::Type> {
     type Type = <<LeftExpr as EtlWrappable>::WrappedAs as EtlExpr>::Type;
 
@@ -44,7 +45,7 @@ where
 
 // AddExpr is an EtlWrappable
 impl<LeftExpr, RightExpr> EtlWrappable for AddExpr<LeftExpr, RightExpr>
-where LeftExpr: EtlExpr + EtlWrappable, RightExpr: EtlExpr + EtlWrappable,
+where LeftExpr: WrappableExpr, RightExpr: WrappableExpr,
         <<LeftExpr as EtlWrappable>::WrappedAs as EtlExpr>::Type: Add<<<RightExpr as EtlWrappable>::WrappedAs as EtlExpr>::Type, Output = <<LeftExpr as EtlWrappable>::WrappedAs as EtlExpr>::Type> 
 {
     type WrappedAs = AddExpr<LeftExpr, RightExpr>;
@@ -64,7 +65,7 @@ where LeftExpr: EtlExpr + EtlWrappable, RightExpr: EtlExpr + EtlWrappable,
 macro_rules! impl_add_op_value {
     ($type:ty) => {
         impl<'a, T: EtlValueType, RightExpr> Add<RightExpr> for &'a $type
-        where RightExpr: EtlExpr + EtlWrappable, T: Add<RightExpr::Type, Output = T> {
+        where RightExpr: WrappableExpr, T: Add<RightExpr::Type, Output = T> {
             type Output = AddExpr<&'a $type, RightExpr>;
 
             fn add(self, other: RightExpr) -> Self::Output {
@@ -79,9 +80,9 @@ macro_rules! impl_add_op_binary_expr {
     ($type:ty) => {
         impl<'a, LeftExpr, RightExpr, OuterRightExpr> Add<OuterRightExpr> for $type 
         where 
-            LeftExpr: EtlExpr + EtlWrappable, 
-            RightExpr: EtlExpr + EtlWrappable,
-            OuterRightExpr: EtlExpr + EtlWrappable,
+            LeftExpr: WrappableExpr, 
+            RightExpr: WrappableExpr,
+            OuterRightExpr: WrappableExpr,
             <<LeftExpr as EtlWrappable>::WrappedAs as EtlExpr>::Type: Add<<<RightExpr as EtlWrappable>::WrappedAs as EtlExpr>::Type, Output = <<LeftExpr as EtlWrappable>::WrappedAs as EtlExpr>::Type> 
         {
             type Output = AddExpr<$type, OuterRightExpr>;

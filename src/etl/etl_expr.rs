@@ -18,3 +18,6 @@ pub trait EtlWrappable {
     type WrappedAs: EtlExpr;
     fn wrap(self) -> EtlWrapper<Self::WrappedAs>;
 }
+
+pub trait WrappableExpr : EtlExpr + EtlWrappable {}
+impl<T: EtlExpr + EtlWrappable> WrappableExpr for T {}
