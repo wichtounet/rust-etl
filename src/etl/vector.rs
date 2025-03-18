@@ -2,6 +2,8 @@ use crate::etl::etl_expr::EtlExpr;
 use crate::etl::etl_expr::EtlValueType;
 use crate::etl::add_expr::AddExpr;
 
+use crate::impl_add_op_value;
+
 use std::ops::Add;
 
 // The declaration of Vector<T>
@@ -95,15 +97,7 @@ impl<'a, T: EtlValueType> Iterator for VectorIterator<'a, T> {
 
 // Operations
 
-// TODO.1 Ideally, we should be able to declare that for the trait directly
-impl<'a, T, RightExpr> Add<&'a RightExpr> for &'a Vector<T>
-where RightExpr: EtlExpr, T: EtlValueType + Add<Output = T> {
-    type Output = AddExpr<'a, Vector<T>, RightExpr>;
-
-    fn add(self, other: &'a RightExpr) -> Self::Output {
-        Self::Output::new(self, other)
-    }
-}
+impl_add_op_value!(Vector<T>);
 
 // Tests
 

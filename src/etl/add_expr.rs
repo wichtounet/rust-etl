@@ -41,14 +41,39 @@ where LeftExpr: EtlExpr, RightExpr: EtlExpr, LeftExpr::Type: Add<RightExpr::Type
 
 // Operations
 
-impl<'a, LeftExpr, RightExpr, OuterRightExpr> Add<&'a OuterRightExpr> for &'a AddExpr<'a, LeftExpr, RightExpr> 
-where LeftExpr: EtlExpr, RightExpr: EtlExpr, OuterRightExpr: EtlExpr, LeftExpr::Type: Add<RightExpr::Type, Output = LeftExpr::Type> {
-    type Output = AddExpr<'a, AddExpr<'a, LeftExpr, RightExpr>, OuterRightExpr>;
+// Unfortunately, because of the Orphan rule, we cannot implement this trait for each structure
+// implementing EtlExpr
+// Therefore, we provide macros for other structures and expressions
 
-    fn add(self, other: &'a OuterRightExpr) -> Self::Output {
-        Self::Output::new(self, other)
-    }
+#[macro_export]
+macro_rules! impl_add_op_value {
+    ($type:ty) => {
+        impl<'a, T: EtlValueType, RightExpr: EtlExpr> Add<&'a RightExpr> for &'a $type
+        where T: Add<RightExpr::Type, Output = T> {
+            type Output = AddExpr<'a, $type, RightExpr>;
+
+            fn add(self, other: &'a RightExpr) -> Self::Output {
+                Self::Output::new(self, other)
+            }
+        }
+    };
 }
+
+#[macro_export]
+macro_rules! impl_add_op_binary_expr {
+    ($type:ty) => {
+        impl<'a, LeftExpr, RightExpr, OuterRightExpr> Add<&'a OuterRightExpr> for &'a $type 
+        where LeftExpr: EtlExpr, RightExpr: EtlExpr, OuterRightExpr: EtlExpr, LeftExpr::Type: Add<RightExpr::Type, Output = LeftExpr::Type> {
+            type Output = AddExpr<'a, $type, OuterRightExpr>;
+
+            fn add(self, other: &'a OuterRightExpr) -> Self::Output {
+                Self::Output::new(self, other)
+            }
+        }
+    };
+}
+
+impl_add_op_binary_expr!(AddExpr<'a, LeftExpr, RightExpr>);
 
 // The tests
 
