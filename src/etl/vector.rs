@@ -1,4 +1,6 @@
 use crate::etl::etl_expr::EtlExpr;
+use crate::etl::etl_expr::EtlWrapper;
+use crate::etl::etl_expr::EtlWrappable;
 use crate::etl::etl_expr::EtlValueType;
 use crate::etl::add_expr::AddExpr;
 
@@ -63,6 +65,26 @@ impl<T: EtlValueType> EtlExpr for Vector<T> {
 
     fn at(&self, i: usize) -> Self::Type {
         self.data[i]
+    }
+}
+
+impl<'a, T: EtlValueType> EtlExpr for &'a Vector<T> {
+    type Type = T;
+
+    fn size(&self) -> usize {
+        self.data.len()
+    }
+
+    fn at(&self, i: usize) -> Self::Type {
+        self.data[i]
+    }
+}
+
+impl<'a, T: EtlValueType> EtlWrappable for &'a Vector<T> {
+    type Output = &'a Vector<T>;
+
+    fn wrap(self) -> EtlWrapper<Self::Output> {
+        EtlWrapper { value: &self }
     }
 }
 

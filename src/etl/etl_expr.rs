@@ -9,3 +9,12 @@ pub trait EtlExpr {
 
 // It does not seem like I can force Index trait because it must return a reference which
 // expressions cannot do. Therefore, I settled on at instead, which should work fine
+
+pub struct EtlWrapper<Expr: EtlExpr> {
+    pub value: Expr
+}
+
+pub trait EtlWrappable {
+    type Output: EtlExpr;
+    fn wrap(self) -> EtlWrapper<Self::Output>;
+}

@@ -1,39 +1,56 @@
 use crate::etl::etl_expr::EtlExpr;
+use crate::etl::etl_expr::EtlWrapper;
+use crate::etl::etl_expr::EtlWrappable;
 
 use std::ops::Add;
 
 // The declaration of AddExpr
 
-pub struct AddExpr<'a, LeftExpr, RightExpr>
-where LeftExpr: EtlExpr, RightExpr: EtlExpr {
-    lhs: &'a LeftExpr,
-    rhs: &'a RightExpr
+pub struct AddExpr<LeftExpr, RightExpr>
+where LeftExpr: EtlExpr + EtlWrappable, RightExpr: EtlExpr + EtlWrappable {
+    lhs: EtlWrapper<LeftExpr::Output>,
+    rhs: EtlWrapper<RightExpr::Output>
 }
 
 // The functions of AddExpr
 
-impl<'a, LeftExpr, RightExpr> AddExpr<'a, LeftExpr, RightExpr>
-where LeftExpr: EtlExpr, RightExpr: EtlExpr {
-    pub fn new(lhs: &'a LeftExpr, rhs: &'a RightExpr) -> Self {
+impl<'a, LeftExpr, RightExpr> AddExpr<LeftExpr, RightExpr>
+where LeftExpr: EtlExpr + EtlWrappable, RightExpr: EtlExpr + EtlWrappable {
+    pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
         if lhs.size() != rhs.size() {
             panic!("Cannot add expressions of different sizes ({} + {})", lhs.size(), rhs.size());
         }
 
-        Self { lhs: lhs, rhs: rhs }
+        Self { lhs: lhs.wrap(), rhs: rhs.wrap() }
     }
 }
 
 // AddExpr is an EtlExpr
-impl<'a, LeftExpr, RightExpr> EtlExpr for AddExpr<'a, LeftExpr, RightExpr>
-where LeftExpr: EtlExpr, RightExpr: EtlExpr, LeftExpr::Type: Add<RightExpr::Type, Output = LeftExpr::Type> {
-    type Type = LeftExpr::Type;
+impl<'a, LeftExpr, RightExpr> EtlExpr for AddExpr<LeftExpr, RightExpr>
+where 
+        LeftExpr: EtlExpr + EtlWrappable,
+        RightExpr: EtlExpr + EtlWrappable,
+        <<LeftExpr as EtlWrappable>::Output as EtlExpr>::Type: Add<<<RightExpr as EtlWrappable>::Output as EtlExpr>::Type, Output = <<LeftExpr as EtlWrappable>::Output as EtlExpr>::Type> {
+    type Type = <<LeftExpr as EtlWrappable>::Output as EtlExpr>::Type;
 
     fn size(&self) -> usize {
-        self.lhs.size()
+        self.lhs.value.size()
     }
 
     fn at(&self, i: usize) -> Self::Type {
-        self.lhs.at(i) + self.rhs.at(i)
+        self.lhs.value.at(i) + self.rhs.value.at(i)
+    }
+}
+
+// AddExpr is an EtlWrappable
+impl<LeftExpr, RightExpr> EtlWrappable for AddExpr<LeftExpr, RightExpr>
+where LeftExpr: EtlExpr + EtlWrappable, RightExpr: EtlExpr + EtlWrappable,
+        <<LeftExpr as EtlWrappable>::Output as EtlExpr>::Type: Add<<<RightExpr as EtlWrappable>::Output as EtlExpr>::Type, Output = <<LeftExpr as EtlWrappable>::Output as EtlExpr>::Type> 
+{
+    type Output = AddExpr<LeftExpr, RightExpr>;
+
+    fn wrap(self) -> EtlWrapper<Self::Output> {
+        EtlWrapper { value: self }
     }
 }
 
@@ -46,11 +63,11 @@ where LeftExpr: EtlExpr, RightExpr: EtlExpr, LeftExpr::Type: Add<RightExpr::Type
 #[macro_export]
 macro_rules! impl_add_op_value {
     ($type:ty) => {
-        impl<'a, T: EtlValueType, RightExpr: EtlExpr> Add<&'a RightExpr> for &'a $type
-        where T: Add<RightExpr::Type, Output = T> {
-            type Output = AddExpr<'a, $type, RightExpr>;
+        impl<'a, T: EtlValueType, RightExpr> Add<RightExpr> for &'a $type
+        where RightExpr: EtlExpr + EtlWrappable, T: Add<RightExpr::Type, Output = T> {
+            type Output = AddExpr<&'a $type, RightExpr>;
 
-            fn add(self, other: &'a RightExpr) -> Self::Output {
+            fn add(self, other: RightExpr) -> Self::Output {
                 Self::Output::new(self, other)
             }
         }
@@ -60,18 +77,23 @@ macro_rules! impl_add_op_value {
 #[macro_export]
 macro_rules! impl_add_op_binary_expr {
     ($type:ty) => {
-        impl<'a, LeftExpr, RightExpr, OuterRightExpr> Add<&'a OuterRightExpr> for &'a $type 
-        where LeftExpr: EtlExpr, RightExpr: EtlExpr, OuterRightExpr: EtlExpr, LeftExpr::Type: Add<RightExpr::Type, Output = LeftExpr::Type> {
-            type Output = AddExpr<'a, $type, OuterRightExpr>;
+        impl<'a, LeftExpr, RightExpr, OuterRightExpr> Add<OuterRightExpr> for $type 
+        where 
+            LeftExpr: EtlExpr + EtlWrappable, 
+            RightExpr: EtlExpr + EtlWrappable,
+            OuterRightExpr: EtlExpr + EtlWrappable,
+            <<LeftExpr as EtlWrappable>::Output as EtlExpr>::Type: Add<<<RightExpr as EtlWrappable>::Output as EtlExpr>::Type, Output = <<LeftExpr as EtlWrappable>::Output as EtlExpr>::Type> 
+        {
+            type Output = AddExpr<$type, OuterRightExpr>;
 
-            fn add(self, other: &'a OuterRightExpr) -> Self::Output {
+            fn add(self, other: OuterRightExpr) -> Self::Output {
                 Self::Output::new(self, other)
             }
         }
     };
 }
 
-impl_add_op_binary_expr!(AddExpr<'a, LeftExpr, RightExpr>);
+impl_add_op_binary_expr!(AddExpr<LeftExpr, RightExpr>);
 
 // The tests
 
@@ -140,7 +162,7 @@ mod tests {
     }
 
     #[test]
-    fn basic_assign_deep() {
+    fn basic_assign_deep_1() {
         let mut a: Vector<i64> = Vector::<i64>::new(8);
         let mut b: Vector<i64> = Vector::<i64>::new(8);
         let mut c: Vector<i64> = Vector::<i64>::new(8);
@@ -148,9 +170,22 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        // TODO.2 The sub expression MUST be moved into AddExpr
-        c.assign(&(&a + &b) + &a);
+        c.assign((&a + &b) + &a);
 
         assert_eq!(c.at(0), 4);
+    }
+
+    #[test]
+    fn basic_assign_deep_2() {
+        let mut a: Vector<i64> = Vector::<i64>::new(8);
+        let mut b: Vector<i64> = Vector::<i64>::new(8);
+        let mut c: Vector<i64> = Vector::<i64>::new(8);
+
+        a[0] = 1;
+        b[0] = 2;
+
+        c.assign((&a + &b) + (&a + &b));
+
+        assert_eq!(c.at(0), 6);
     }
 }
