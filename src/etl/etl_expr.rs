@@ -15,6 +15,6 @@ pub struct EtlWrapper<Expr: EtlExpr> {
 }
 
 pub trait EtlWrappable {
-    type Output: EtlExpr;
-    fn wrap(self) -> EtlWrapper<Self::Output>;
+    type WrappedAs: EtlExpr;
+    fn wrap(self) -> EtlWrapper<Self::WrappedAs>;
 }

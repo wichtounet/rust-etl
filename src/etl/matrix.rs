@@ -85,9 +85,9 @@ impl<'a, T: EtlValueType> EtlExpr for &'a Matrix<T> {
 }
 
 impl<'a, T: EtlValueType> EtlWrappable for &'a Matrix<T> {
-    type Output = &'a Matrix<T>;
+    type WrappedAs = &'a Matrix<T>;
 
-    fn wrap(self) -> EtlWrapper<Self::Output> {
+    fn wrap(self) -> EtlWrapper<Self::WrappedAs> {
         EtlWrapper { value: &self }
     }
 }

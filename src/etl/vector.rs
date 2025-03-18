@@ -81,9 +81,9 @@ impl<'a, T: EtlValueType> EtlExpr for &'a Vector<T> {
 }
 
 impl<'a, T: EtlValueType> EtlWrappable for &'a Vector<T> {
-    type Output = &'a Vector<T>;
+    type WrappedAs = &'a Vector<T>;
 
-    fn wrap(self) -> EtlWrapper<Self::Output> {
+    fn wrap(self) -> EtlWrapper<Self::WrappedAs> {
         EtlWrapper { value: &self }
     }
 }
