@@ -1,55 +1,49 @@
 use crate::etl::etl_expr::EtlExpr;
-use crate::etl::etl_expr::EtlValueType;
 
 use std::ops::Add;
 
-// The declaration of AddExpr<T>
+// The declaration of AddExpr
 
-pub struct AddExpr<'a, LeftExpr, RightExpr, T> where LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
+pub struct AddExpr<'a, LeftExpr, RightExpr>
+where LeftExpr: EtlExpr, RightExpr: EtlExpr {
     lhs: &'a LeftExpr,
-    rhs: &'a RightExpr,
-    _marker: std::marker::PhantomData<T>,
+    rhs: &'a RightExpr
 }
 
-// The functions of AddExpr<T>
+// The functions of AddExpr
 
-impl<'a, LeftExpr, RightExpr, T> AddExpr<'a, LeftExpr, RightExpr, T> where LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
+impl<'a, LeftExpr, RightExpr> AddExpr<'a, LeftExpr, RightExpr>
+where LeftExpr: EtlExpr, RightExpr: EtlExpr {
     pub fn new(lhs: &'a LeftExpr, rhs: &'a RightExpr) -> Self {
         if lhs.size() != rhs.size() {
             panic!("Cannot add expressions of different sizes ({} + {})", lhs.size(), rhs.size());
         }
 
-        Self { lhs: lhs, rhs: rhs, _marker: std::marker::PhantomData }
-    }
-
-    pub fn size(&self) -> usize {
-        self.lhs.size()
-    }
-
-    pub fn at(&self, i: usize) -> T {
-        let lhs: T = self.lhs.at(i);
-        let rhs: T = self.rhs.at(i);
-        lhs + rhs
+        Self { lhs: lhs, rhs: rhs }
     }
 }
 
 // AddExpr is an EtlExpr
-impl<'a, LeftExpr, RightExpr, T> EtlExpr<T> for AddExpr<'a, LeftExpr, RightExpr, T> where LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
+impl<'a, LeftExpr, RightExpr> EtlExpr for AddExpr<'a, LeftExpr, RightExpr>
+where LeftExpr: EtlExpr, RightExpr: EtlExpr, LeftExpr::Type: Add<RightExpr::Type, Output = LeftExpr::Type> {
+    type Type = LeftExpr::Type;
+
     fn size(&self) -> usize {
         self.lhs.size()
     }
 
-    fn at(&self, i: usize) -> T {
-        let lhs: T = self.lhs.at(i);
-        let rhs: T = self.rhs.at(i);
+    fn at(&self, i: usize) -> Self::Type {
+        let lhs: LeftExpr::Type = self.lhs.at(i);
+        let rhs: RightExpr::Type = self.rhs.at(i);
         lhs + rhs
     }
 }
 
 // Operations
 
-impl<'a, LeftExpr, RightExpr, T, OuterRightExpr> Add<&'a OuterRightExpr> for &'a AddExpr<'a, LeftExpr, RightExpr, T> where LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T>, OuterRightExpr: EtlExpr<T> {
-    type Output = AddExpr<'a, AddExpr<'a, LeftExpr, RightExpr, T>, OuterRightExpr, T>;
+impl<'a, LeftExpr, RightExpr, OuterRightExpr> Add<&'a OuterRightExpr> for &'a AddExpr<'a, LeftExpr, RightExpr> 
+where LeftExpr: EtlExpr, RightExpr: EtlExpr, OuterRightExpr: EtlExpr, LeftExpr::Type: Add<RightExpr::Type, Output = LeftExpr::Type> {
+    type Output = AddExpr<'a, AddExpr<'a, LeftExpr, RightExpr>, OuterRightExpr>;
 
     fn add(self, other: &'a OuterRightExpr) -> Self::Output {
         Self::Output::new(self, other)

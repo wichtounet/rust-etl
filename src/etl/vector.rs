@@ -21,9 +21,11 @@ impl<T: EtlValueType> Vector<T> {
         &mut self.data[i]
     }
 
-    pub fn assign<RightExpr: EtlExpr<T>> (&mut self, rhs: RightExpr) {
+    pub fn assign<RightExpr> (&mut self, rhs: RightExpr)
+    where RightExpr: EtlExpr<Type = T>,
+    {
         for i in 0..self.size() {
-            self.data[i] = rhs.at(i)
+            self.data[i] = rhs.at(i);
         }
     }
 
@@ -40,12 +42,14 @@ impl<T: EtlValueType> Vector<T> {
     }
 }
 
-impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
+impl<T: EtlValueType> EtlExpr for Vector<T> {
+    type Type = T;
+
     fn size(&self) -> usize {
         self.data.len()
     }
 
-    fn at(&self, i: usize) -> T {
+    fn at(&self, i: usize) -> Self::Type {
         self.data[i]
     }
 }
@@ -92,8 +96,9 @@ impl<'a, T: EtlValueType> Iterator for VectorIterator<'a, T> {
 // Operations
 
 // TODO.1 Ideally, we should be able to declare that for the trait directly
-impl<'a, T, RightExpr> Add<&'a RightExpr> for &'a Vector<T> where RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
-    type Output = AddExpr<'a, Vector<T>, RightExpr, T>;
+impl<'a, T, RightExpr> Add<&'a RightExpr> for &'a Vector<T>
+where RightExpr: EtlExpr, T: EtlValueType + Add<Output = T> {
+    type Output = AddExpr<'a, Vector<T>, RightExpr>;
 
     fn add(self, other: &'a RightExpr) -> Self::Output {
         Self::Output::new(self, other)

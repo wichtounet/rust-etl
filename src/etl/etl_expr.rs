@@ -1,9 +1,10 @@
 pub trait EtlValueType : Default + Clone + Copy {}
 impl<T: Default + Clone + Copy> EtlValueType for T {}
 
-pub trait EtlExpr<T: EtlValueType> {
+pub trait EtlExpr {
+    type Type;
     fn size(&self) -> usize;
-    fn at(&self, i: usize) -> T;
+    fn at(&self, i: usize) -> Self::Type;
 }
 
 // It does not seem like I can force Index trait because it must return a reference which

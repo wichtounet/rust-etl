@@ -46,14 +46,24 @@ impl<T: EtlValueType> Matrix<T> {
 
         &mut self.data[row * self.columns + column]
     }
+
+    pub fn assign<RightExpr> (&mut self, rhs: RightExpr)
+    where RightExpr: EtlExpr<Type = T>,
+    {
+        for i in 0..self.size() {
+            self.data[i] = rhs.at(i);
+        }
+    }
 }
 
-impl<T: EtlValueType> EtlExpr<T> for Matrix<T> {
+impl<T: EtlValueType> EtlExpr for Matrix<T> {
+    type Type = T;
+
     fn size(&self) -> usize {
         self.rows * self.columns
     }
 
-    fn at(&self, i: usize) -> T {
+    fn at(&self, i: usize) -> Self::Type {
         self.data[i]
     }
 }
@@ -77,8 +87,9 @@ impl<T: EtlValueType> std::ops::IndexMut<usize> for Matrix<T> {
 // Operations
 
 // TODO.1 Ideally, we should be able to declare that for the trait directly
-impl<'a, T, RightExpr> Add<&'a RightExpr> for &'a Matrix<T> where RightExpr: EtlExpr<T>, T: EtlValueType + Add<Output = T> {
-    type Output = AddExpr<'a, Matrix<T>, RightExpr, T>;
+impl<'a, T, RightExpr> Add<&'a RightExpr> for &'a Matrix<T>
+where RightExpr: EtlExpr, T: EtlValueType + Add<Output = T> {
+    type Output = AddExpr<'a, Matrix<T>, RightExpr>;
 
     fn add(self, other: &'a RightExpr) -> Self::Output {
         Self::Output::new(self, other)
