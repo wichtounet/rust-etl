@@ -33,9 +33,7 @@ where LeftExpr: EtlExpr, RightExpr: EtlExpr, LeftExpr::Type: Add<RightExpr::Type
     }
 
     fn at(&self, i: usize) -> Self::Type {
-        let lhs: LeftExpr::Type = self.lhs.at(i);
-        let rhs: RightExpr::Type = self.rhs.at(i);
-        lhs + rhs
+        self.lhs.at(i) + self.rhs.at(i)
     }
 }
 
