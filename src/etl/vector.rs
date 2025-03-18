@@ -6,6 +6,8 @@ use crate::impl_add_op_value;
 
 use std::ops::Add;
 
+use rand::Rng;
+
 // The declaration of Vector<T>
 
 pub struct Vector<T: EtlValueType> {
@@ -28,6 +30,14 @@ impl<T: EtlValueType> Vector<T> {
     {
         for i in 0..self.size() {
             self.data[i] = rhs.at(i);
+        }
+    }
+
+    pub fn rand_fill(&mut self) where rand::distr::StandardUniform: rand::distr::Distribution<T> {
+        let mut rng = rand::rng();
+
+        for i in 0..self.size() {
+            self.data[i] = rng.random::<T>();
         }
     }
 
