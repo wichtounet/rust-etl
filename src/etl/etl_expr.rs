@@ -1,6 +1,6 @@
 //TODO.2 Add more constrants to T so that we can simplify traits bounds
-pub trait EtlValueType: Default + Clone + Copy {}
-impl<T: Default + Clone + Copy> EtlValueType for T {}
+pub trait EtlValueType: Default + Clone + Copy + std::ops::Add + std::ops::AddAssign {}
+impl<T: Default + Clone + Copy + std::ops::Add + std::ops::AddAssign> EtlValueType for T {}
 
 pub trait EtlExpr {
     type Type;

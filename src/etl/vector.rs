@@ -44,8 +44,6 @@ impl<T: EtlValueType> Vector<T> {
     }
 
     pub fn add_assign_direct<RightExpr: EtlExpr<Type = T>>(&mut self, rhs: RightExpr)
-    where
-        T: AddAssign<T>,
     {
         for i in 0..self.size() {
             self.data[i] += rhs.at(i);
