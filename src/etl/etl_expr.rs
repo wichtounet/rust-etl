@@ -1,4 +1,4 @@
-pub trait EtlValueType : Default + Clone + Copy {}
+pub trait EtlValueType: Default + Clone + Copy {}
 impl<T: Default + Clone + Copy> EtlValueType for T {}
 
 pub trait EtlExpr {
@@ -11,7 +11,7 @@ pub trait EtlExpr {
 // expressions cannot do. Therefore, I settled on at instead, which should work fine
 
 pub struct EtlWrapper<Expr: EtlExpr> {
-    pub value: Expr
+    pub value: Expr,
 }
 
 pub trait EtlWrappable {
@@ -19,5 +19,5 @@ pub trait EtlWrappable {
     fn wrap(self) -> EtlWrapper<Self::WrappedAs>;
 }
 
-pub trait WrappableExpr : EtlExpr + EtlWrappable {}
+pub trait WrappableExpr: EtlExpr + EtlWrappable {}
 impl<T: EtlExpr + EtlWrappable> WrappableExpr for T {}

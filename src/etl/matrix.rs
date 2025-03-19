@@ -1,5 +1,5 @@
-use crate::etl::etl_expr::*;
 use crate::etl::add_expr::AddExpr;
+use crate::etl::etl_expr::*;
 
 use crate::impl_add_op_value;
 
@@ -21,15 +21,17 @@ pub struct Matrix<T: EtlValueType> {
 
 impl<T: EtlValueType> Matrix<T> {
     pub fn new(rows: usize, columns: usize) -> Self {
-        Self { 
+        Self {
             data: vec![T::default(); rows * columns],
             rows: rows,
-            columns: columns
+            columns: columns,
         }
     }
 
     pub fn new_rand(rows: usize, columns: usize) -> Self
-    where rand::distr::StandardUniform: rand::distr::Distribution<T> {
+    where
+        rand::distr::StandardUniform: rand::distr::Distribution<T>,
+    {
         let mut mat = Self::new(rows, columns);
         mat.rand_fill();
         mat
@@ -59,21 +61,25 @@ impl<T: EtlValueType> Matrix<T> {
         &mut self.data[row * self.columns + column]
     }
 
-    pub fn assign_direct<RightExpr: EtlExpr<Type = T>> (&mut self, rhs: RightExpr) {
+    pub fn assign_direct<RightExpr: EtlExpr<Type = T>>(&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] = rhs.at(i);
         }
     }
 
-    pub fn add_assign_direct<RightExpr: EtlExpr<Type = T>> (&mut self, rhs: RightExpr)
-    where T: AddAssign<T> {
+    pub fn add_assign_direct<RightExpr: EtlExpr<Type = T>>(&mut self, rhs: RightExpr)
+    where
+        T: AddAssign<T>,
+    {
         for i in 0..self.size() {
             self.data[i] += rhs.at(i);
         }
     }
 
     pub fn rand_fill(&mut self)
-    where rand::distr::StandardUniform: rand::distr::Distribution<T> {
+    where
+        rand::distr::StandardUniform: rand::distr::Distribution<T>,
+    {
         let mut rng = rand::rng();
 
         for i in 0..self.size() {
@@ -149,21 +155,21 @@ mod tests {
     #[test]
     fn construct_i64() {
         let mat: Matrix<i64> = Matrix::<i64>::new(4, 2);
-        assert_eq!(mat.size() , 8)
+        assert_eq!(mat.size(), 8)
     }
 
     #[test]
     fn construct_f64() {
         let mat: Matrix<f64> = Matrix::<f64>::new(8, 12);
-        assert_eq!(mat.size() , 96)
+        assert_eq!(mat.size(), 96)
     }
 
     #[test]
     fn at() {
         let mut mat: Matrix<i64> = Matrix::<i64>::new(4, 2);
 
-        *mat.at_mut(0,0) = 9;
-        *mat.at_mut(1,1) = 3;
+        *mat.at_mut(0, 0) = 9;
+        *mat.at_mut(1, 1) = 3;
 
         assert_eq!(mat.at(0, 0), 9);
         assert_eq!(mat.at(1, 1), 3);

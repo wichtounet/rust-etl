@@ -1,6 +1,6 @@
 use crate::etl::etl_expr::EtlExpr;
-use crate::etl::etl_expr::EtlWrapper;
 use crate::etl::etl_expr::EtlWrappable;
+use crate::etl::etl_expr::EtlWrapper;
 use crate::etl::etl_expr::WrappableExpr;
 
 use std::ops::Add;
@@ -9,7 +9,7 @@ use std::ops::Add;
 
 pub struct AddExpr<LeftExpr: WrappableExpr, RightExpr: WrappableExpr> {
     lhs: EtlWrapper<LeftExpr::WrappedAs>,
-    rhs: EtlWrapper<RightExpr::WrappedAs>
+    rhs: EtlWrapper<RightExpr::WrappedAs>,
 }
 
 // The functions of AddExpr
@@ -20,13 +20,18 @@ impl<LeftExpr: WrappableExpr, RightExpr: WrappableExpr> AddExpr<LeftExpr, RightE
             panic!("Cannot add expressions of different sizes ({} + {})", lhs.size(), rhs.size());
         }
 
-        Self { lhs: lhs.wrap(), rhs: rhs.wrap() }
+        Self {
+            lhs: lhs.wrap(),
+            rhs: rhs.wrap(),
+        }
     }
 }
 
 // AddExpr is an EtlExpr
 impl<LeftExpr: WrappableExpr, RightExpr: WrappableExpr> EtlExpr for AddExpr<LeftExpr, RightExpr>
-where <LeftExpr::WrappedAs as EtlExpr>::Type: Add<<RightExpr::WrappedAs as EtlExpr>::Type, Output = <LeftExpr::WrappedAs as EtlExpr>::Type> {
+where
+    <LeftExpr::WrappedAs as EtlExpr>::Type: Add<<RightExpr::WrappedAs as EtlExpr>::Type, Output = <LeftExpr::WrappedAs as EtlExpr>::Type>,
+{
     type Type = <LeftExpr::WrappedAs as EtlExpr>::Type;
 
     fn size(&self) -> usize {
@@ -41,7 +46,9 @@ where <LeftExpr::WrappedAs as EtlExpr>::Type: Add<<RightExpr::WrappedAs as EtlEx
 // AddExpr is an EtlWrappable
 // AddExpr wraps as value
 impl<LeftExpr: WrappableExpr, RightExpr: WrappableExpr> EtlWrappable for AddExpr<LeftExpr, RightExpr>
-where <LeftExpr::WrappedAs as EtlExpr>::Type: Add<<RightExpr::WrappedAs as EtlExpr>::Type, Output = <LeftExpr::WrappedAs as EtlExpr>::Type> {
+where
+    <LeftExpr::WrappedAs as EtlExpr>::Type: Add<<RightExpr::WrappedAs as EtlExpr>::Type, Output = <LeftExpr::WrappedAs as EtlExpr>::Type>,
+{
     type WrappedAs = AddExpr<LeftExpr, RightExpr>;
 
     fn wrap(self) -> EtlWrapper<Self::WrappedAs> {
@@ -59,7 +66,9 @@ where <LeftExpr::WrappedAs as EtlExpr>::Type: Add<<RightExpr::WrappedAs as EtlEx
 macro_rules! impl_add_op_value {
     ($type:ty) => {
         impl<'a, T: EtlValueType, RightExpr: WrappableExpr> std::ops::Add<RightExpr> for &'a $type
-        where T: Add<RightExpr::Type, Output = T> {
+        where
+            T: Add<RightExpr::Type, Output = T>,
+        {
             type Output = AddExpr<&'a $type, RightExpr>;
 
             fn add(self, other: RightExpr) -> Self::Output {
@@ -68,7 +77,9 @@ macro_rules! impl_add_op_value {
         }
 
         impl<T: EtlValueType, RightExpr: EtlExpr<Type = T>> std::ops::AddAssign<RightExpr> for $type
-        where T: AddAssign<RightExpr::Type> {
+        where
+            T: AddAssign<RightExpr::Type>,
+        {
             fn add_assign(&mut self, other: RightExpr) {
                 self.add_assign_direct(other);
             }
@@ -79,8 +90,10 @@ macro_rules! impl_add_op_value {
 #[macro_export]
 macro_rules! impl_add_op_binary_expr {
     ($type:ty) => {
-        impl<LeftExpr: WrappableExpr, RightExpr: WrappableExpr, OuterRightExpr: WrappableExpr> Add<OuterRightExpr> for $type 
-        where <LeftExpr::WrappedAs as EtlExpr>::Type: Add<<RightExpr::WrappedAs as EtlExpr>::Type, Output = <LeftExpr::WrappedAs as EtlExpr>::Type> {
+        impl<LeftExpr: WrappableExpr, RightExpr: WrappableExpr, OuterRightExpr: WrappableExpr> Add<OuterRightExpr> for $type
+        where
+            <LeftExpr::WrappedAs as EtlExpr>::Type: Add<<RightExpr::WrappedAs as EtlExpr>::Type, Output = <LeftExpr::WrappedAs as EtlExpr>::Type>,
+        {
             type Output = AddExpr<$type, OuterRightExpr>;
 
             fn add(self, other: OuterRightExpr) -> Self::Output {
@@ -96,9 +109,9 @@ impl_add_op_binary_expr!(AddExpr<LeftExpr, RightExpr>);
 
 #[cfg(test)]
 mod tests {
-    use crate::etl::vector::Vector;
-    use crate::etl::matrix::Matrix;
     use crate::etl::etl_expr::EtlExpr;
+    use crate::etl::matrix::Matrix;
+    use crate::etl::vector::Vector;
 
     #[test]
     fn basic_one() {

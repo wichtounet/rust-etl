@@ -12,13 +12,11 @@ fn bench_closure<F: FnMut()>(mut closure: F, rep: usize) -> f64 {
     }
 
     match now.elapsed() {
-       Ok(elapsed) => {
-           elapsed.as_millis() as f64 / rep as f64
-       }
-       Err(e) => {
-           panic!("Time Error: {e:?}");
-       }
-   }
+        Ok(elapsed) => elapsed.as_millis() as f64 / rep as f64,
+        Err(e) => {
+            panic!("Time Error: {e:?}");
+        }
+    }
 }
 
 fn bench_basic_a(n: usize, r: usize) {
@@ -26,7 +24,7 @@ fn bench_basic_a(n: usize, r: usize) {
     let b = Vector::<f64>::new_rand(n);
     let mut c = Vector::<f64>::new_rand(n);
 
-    let func = || c|= &a + &b;
+    let func = || c |= &a + &b;
 
     let elapsed = bench_closure(func, r);
     println!("c = a + b ({}) took {}ms", n, elapsed);
@@ -39,7 +37,7 @@ fn bench_basic_b(n: usize, r: usize) {
 
     let mut d = Vector::<f64>::new_rand(n);
 
-    let func = || d|= &a + &b + &c + &a;
+    let func = || d |= &a + &b + &c + &a;
 
     let elapsed = bench_closure(func, r);
     println!("d = a + b + c + a ({}) took {}ms", n, elapsed);

@@ -6,15 +6,18 @@ use crate::etl::etl_expr::EtlExpr;
 
 struct Layer {
     weights: Vector<f64>,
-    biases: Vector<f64>
+    biases: Vector<f64>,
 }
 
 impl Layer {
     fn new() -> Self {
-        Layer { weights: Vector::<f64>::new(1024), biases: Vector::<f64>::new(1024) }
+        Layer {
+            weights: Vector::<f64>::new(1024),
+            biases: Vector::<f64>::new(1024),
+        }
     }
 
-    fn compute_output(&self, output: &mut Vector::<f64>) {
+    fn compute_output(&self, output: &mut Vector<f64>) {
         *output |= &self.weights + &self.biases;
     }
 }

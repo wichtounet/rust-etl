@@ -1,5 +1,5 @@
-use crate::etl::etl_expr::*;
 use crate::etl::add_expr::AddExpr;
+use crate::etl::etl_expr::*;
 
 use crate::impl_add_op_value;
 
@@ -12,18 +12,22 @@ use rand::Rng;
 // The declaration of Vector<T>
 
 pub struct Vector<T: EtlValueType> {
-    data: Vec<T>
+    data: Vec<T>,
 }
 
 // The functions of Vector<T>
 
 impl<T: EtlValueType> Vector<T> {
     pub fn new(size: usize) -> Self {
-        Self { data: vec![T::default(); size] }
+        Self {
+            data: vec![T::default(); size],
+        }
     }
 
     pub fn new_rand(size: usize) -> Self
-    where rand::distr::StandardUniform: rand::distr::Distribution<T> {
+    where
+        rand::distr::StandardUniform: rand::distr::Distribution<T>,
+    {
         let mut vec = Self::new(size);
         vec.rand_fill();
         vec
@@ -33,21 +37,25 @@ impl<T: EtlValueType> Vector<T> {
         &mut self.data[i]
     }
 
-    pub fn assign_direct<RightExpr: EtlExpr<Type = T>> (&mut self, rhs: RightExpr) {
+    pub fn assign_direct<RightExpr: EtlExpr<Type = T>>(&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] = rhs.at(i);
         }
     }
 
-    pub fn add_assign_direct<RightExpr: EtlExpr<Type = T>> (&mut self, rhs: RightExpr) 
-    where T: AddAssign<T> {
+    pub fn add_assign_direct<RightExpr: EtlExpr<Type = T>>(&mut self, rhs: RightExpr)
+    where
+        T: AddAssign<T>,
+    {
         for i in 0..self.size() {
             self.data[i] += rhs.at(i);
         }
     }
 
     pub fn rand_fill(&mut self)
-    where rand::distr::StandardUniform: rand::distr::Distribution<T> {
+    where
+        rand::distr::StandardUniform: rand::distr::Distribution<T>,
+    {
         let mut rng = rand::rng();
 
         for i in 0..self.size() {
@@ -58,7 +66,7 @@ impl<T: EtlValueType> Vector<T> {
     pub fn iter(&self) -> VectorIterator<T> {
         VectorIterator::<T> {
             vector: self,
-            index: 0
+            index: 0,
         }
     }
 
@@ -128,7 +136,7 @@ impl<T: EtlValueType, RightExpr: EtlExpr<Type = T>> BitOrAssign<RightExpr> for V
 
 pub struct VectorIterator<'a, T: EtlValueType> {
     vector: &'a Vector<T>,
-    index: usize
+    index: usize,
 }
 
 // The implementation of VectorIterator<T>
@@ -160,13 +168,13 @@ mod tests {
     #[test]
     fn construct_i64() {
         let vec: Vector<i64> = Vector::<i64>::new(8);
-        assert_eq!(vec.size() , 8)
+        assert_eq!(vec.size(), 8)
     }
 
     #[test]
     fn construct_f64() {
         let vec: Vector<f64> = Vector::<f64>::new(1023);
-        assert_eq!(vec.size() , 1023)
+        assert_eq!(vec.size(), 1023)
     }
 
     #[test]
