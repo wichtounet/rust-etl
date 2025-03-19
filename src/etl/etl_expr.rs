@@ -1,3 +1,4 @@
+//TODO.2 Add more constrants to T so that we can simplify traits bounds
 pub trait EtlValueType: Default + Clone + Copy {}
 impl<T: Default + Clone + Copy> EtlValueType for T {}
 
