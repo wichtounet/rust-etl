@@ -67,7 +67,7 @@ macro_rules! impl_add_op_value {
             }
         }
 
-        impl<'a, T: EtlValueType, RightExpr: EtlExpr<Type = T>> std::ops::AddAssign<RightExpr> for $type
+        impl<T: EtlValueType, RightExpr: EtlExpr<Type = T>> std::ops::AddAssign<RightExpr> for $type
         where T: AddAssign<RightExpr::Type> {
             fn add_assign(&mut self, other: RightExpr) {
                 self.add_assign_direct(other);
@@ -125,7 +125,7 @@ mod tests {
 
         let expr = &a + &b;
 
-        c.assign(expr);
+        c |= expr;
 
         assert_eq!(c.at(0), 3);
     }
@@ -139,7 +139,7 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        c.assign(&a + &b);
+        c |= &a + &b;
 
         assert_eq!(c.at(0), 3);
     }
@@ -153,7 +153,7 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        c.assign(&a + &b);
+        c |= &a + &b;
 
         assert_eq!(c.at(0), 3);
     }
@@ -167,7 +167,7 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        c.assign((&a + &b) + &a);
+        c |= (&a + &b) + &a;
 
         assert_eq!(c.at(0), 4);
     }
@@ -181,7 +181,7 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        c.assign((&a + &b) + (&a + &b));
+        c |= (&a + &b) + (&a + &b);
 
         assert_eq!(c.at(0), 6);
     }

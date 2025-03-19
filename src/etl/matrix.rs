@@ -5,6 +5,7 @@ use crate::impl_add_op_value;
 
 use std::ops::Add;
 use std::ops::AddAssign;
+use std::ops::BitOrAssign;
 
 // The declaration of Matrix<T>
 
@@ -49,7 +50,7 @@ impl<T: EtlValueType> Matrix<T> {
         &mut self.data[row * self.columns + column]
     }
 
-    pub fn assign<RightExpr: EtlExpr<Type = T>> (&mut self, rhs: RightExpr) {
+    pub fn assign_direct<RightExpr: EtlExpr<Type = T>> (&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] = rhs.at(i);
         }
@@ -109,6 +110,13 @@ impl<T: EtlValueType> std::ops::Index<usize> for Matrix<T> {
 impl<T: EtlValueType> std::ops::IndexMut<usize> for Matrix<T> {
     fn index_mut(&mut self, index: usize) -> &mut T {
         &mut self.data[index]
+    }
+}
+
+// Since we can't overload Assign, we settle for BitOrAssign
+impl<T: EtlValueType, RightExpr: EtlExpr<Type = T>> BitOrAssign<RightExpr> for Matrix<T> {
+    fn bitor_assign(&mut self, other: RightExpr) {
+        self.assign_direct(other);
     }
 }
 

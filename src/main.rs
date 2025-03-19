@@ -15,7 +15,7 @@ impl Layer {
     }
 
     fn compute_output(&self, output: &mut Vector::<f64>) {
-        output.assign(&self.weights + &self.biases);
+        *output |= &self.weights + &self.biases;
     }
 }
 
@@ -28,5 +28,7 @@ fn main() {
     let mut output = Vector::<f64>::new(1024);
     layer.compute_output(&mut output);
 
-    println!("{}", output.at(8));
+    println!("weight: {}", layer.weights.at(8));
+    println!("bias:   {}", layer.biases.at(8));
+    println!("output: {}", output.at(8));
 }
