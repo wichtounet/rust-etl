@@ -58,12 +58,19 @@ where <LeftExpr::WrappedAs as EtlExpr>::Type: Add<<RightExpr::WrappedAs as EtlEx
 #[macro_export]
 macro_rules! impl_add_op_value {
     ($type:ty) => {
-        impl<'a, T: EtlValueType, RightExpr: WrappableExpr> Add<RightExpr> for &'a $type
+        impl<'a, T: EtlValueType, RightExpr: WrappableExpr> std::ops::Add<RightExpr> for &'a $type
         where T: Add<RightExpr::Type, Output = T> {
             type Output = AddExpr<&'a $type, RightExpr>;
 
             fn add(self, other: RightExpr) -> Self::Output {
                 Self::Output::new(self, other)
+            }
+        }
+
+        impl<'a, T: EtlValueType, RightExpr: EtlExpr<Type = T>> std::ops::AddAssign<RightExpr> for $type
+        where T: AddAssign<RightExpr::Type> {
+            fn add_assign(&mut self, other: RightExpr) {
+                self.add_assign_direct(other);
             }
         }
     };
@@ -177,5 +184,19 @@ mod tests {
         c.assign((&a + &b) + (&a + &b));
 
         assert_eq!(c.at(0), 6);
+    }
+
+    #[test]
+    fn basic_compound_add() {
+        let mut a: Vector<i64> = Vector::<i64>::new(8);
+        let mut b: Vector<i64> = Vector::<i64>::new(8);
+        let mut c: Vector<i64> = Vector::<i64>::new(8);
+
+        a[0] = 1;
+        b[0] = 2;
+
+        c += &a + &b;
+
+        assert_eq!(c.at(0), 3);
     }
 }

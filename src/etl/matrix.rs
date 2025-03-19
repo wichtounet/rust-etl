@@ -4,6 +4,7 @@ use crate::etl::add_expr::AddExpr;
 use crate::impl_add_op_value;
 
 use std::ops::Add;
+use std::ops::AddAssign;
 
 // The declaration of Matrix<T>
 
@@ -51,6 +52,13 @@ impl<T: EtlValueType> Matrix<T> {
     pub fn assign<RightExpr: EtlExpr<Type = T>> (&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] = rhs.at(i);
+        }
+    }
+
+    pub fn add_assign_direct<RightExpr: EtlExpr<Type = T>> (&mut self, rhs: RightExpr)
+    where T: AddAssign<T> {
+        for i in 0..self.size() {
+            self.data[i] += rhs.at(i);
         }
     }
 }
@@ -149,5 +157,33 @@ mod tests {
         assert_eq!(mat.at(0, 1), 2);
         assert_eq!(mat.at(1, 0), 3);
         assert_eq!(mat.at(1, 1), 4);
+    }
+
+    #[test]
+    fn compound() {
+        let mut a = Matrix::<i64>::new(2, 2);
+        let mut b = Matrix::<i64>::new(2, 2);
+
+        a[0] = 3;
+        a[1] = 9;
+        a[2] = 27;
+        a[3] = 42;
+
+        b[0] = 2;
+        b[1] = 4;
+        b[2] = 16;
+        b[3] = 42;
+
+        a += b;
+
+        assert_eq!(a.at(0, 0), 5);
+        assert_eq!(a.at(0, 1), 13);
+        assert_eq!(a.at(1, 0), 43);
+        assert_eq!(a.at(1, 1), 84);
+
+        assert_eq!(a[0], 5);
+        assert_eq!(a[1], 13);
+        assert_eq!(a[2], 43);
+        assert_eq!(a[3], 84);
     }
 }

@@ -4,6 +4,7 @@ use crate::etl::add_expr::AddExpr;
 use crate::impl_add_op_value;
 
 use std::ops::Add;
+use std::ops::AddAssign;
 
 use rand::Rng;
 
@@ -27,6 +28,13 @@ impl<T: EtlValueType> Vector<T> {
     pub fn assign<RightExpr: EtlExpr<Type = T>> (&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] = rhs.at(i);
+        }
+    }
+
+    pub fn add_assign_direct<RightExpr: EtlExpr<Type = T>> (&mut self, rhs: RightExpr) 
+    where T: AddAssign<T> {
+        for i in 0..self.size() {
+            self.data[i] += rhs.at(i);
         }
     }
 
@@ -160,5 +168,29 @@ mod tests {
 
         *vec.at_mut(1) = 77;
         assert_eq!(vec.at(1), 77);
+    }
+
+    #[test]
+    fn compound() {
+        let mut a: Vector<i64> = Vector::<i64>::new(3);
+        let mut b: Vector<i64> = Vector::<i64>::new(3);
+
+        a[0] = 3;
+        a[1] = 9;
+        a[2] = 27;
+
+        b[0] = 2;
+        b[1] = 4;
+        b[2] = 16;
+
+        a += b;
+
+        assert_eq!(a.at(0), 5);
+        assert_eq!(a.at(1), 13);
+        assert_eq!(a.at(2), 43);
+
+        assert_eq!(a[0], 5);
+        assert_eq!(a[1], 13);
+        assert_eq!(a[2], 43);
     }
 }
