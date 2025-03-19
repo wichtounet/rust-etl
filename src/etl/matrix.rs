@@ -7,6 +7,8 @@ use std::ops::Add;
 use std::ops::AddAssign;
 use std::ops::BitOrAssign;
 
+use rand::Rng;
+
 // The declaration of Matrix<T>
 
 pub struct Matrix<T: EtlValueType> {
@@ -24,6 +26,13 @@ impl<T: EtlValueType> Matrix<T> {
             rows: rows,
             columns: columns
         }
+    }
+
+    pub fn new_rand(rows: usize, columns: usize) -> Self
+    where rand::distr::StandardUniform: rand::distr::Distribution<T> {
+        let mut mat = Self::new(rows, columns);
+        mat.rand_fill();
+        mat
     }
 
     pub fn at(&self, row: usize, column: usize) -> T {
@@ -60,6 +69,15 @@ impl<T: EtlValueType> Matrix<T> {
     where T: AddAssign<T> {
         for i in 0..self.size() {
             self.data[i] += rhs.at(i);
+        }
+    }
+
+    pub fn rand_fill(&mut self)
+    where rand::distr::StandardUniform: rand::distr::Distribution<T> {
+        let mut rng = rand::rng();
+
+        for i in 0..self.size() {
+            self.data[i] = rng.random::<T>();
         }
     }
 }

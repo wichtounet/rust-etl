@@ -22,6 +22,13 @@ impl<T: EtlValueType> Vector<T> {
         Self { data: vec![T::default(); size] }
     }
 
+    pub fn new_rand(size: usize) -> Self
+    where rand::distr::StandardUniform: rand::distr::Distribution<T> {
+        let mut vec = Self::new(size);
+        vec.rand_fill();
+        vec
+    }
+
     pub fn at_mut(&mut self, i: usize) -> &mut T {
         &mut self.data[i]
     }

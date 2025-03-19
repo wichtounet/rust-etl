@@ -21,16 +21,10 @@ fn bench_closure<F: FnMut()>(mut closure: F, rep: usize) -> f64 {
    }
 }
 
-fn rand_vector(n: usize) -> Vector<f64> {
-    let mut a = Vector::<f64>::new(n);
-    a.rand_fill();
-    a
-}
-
 fn bench_basic_a(n: usize, r: usize) {
-    let a = rand_vector(n);
-    let b = rand_vector(n);
-    let mut c = rand_vector(n);
+    let a = Vector::<f64>::new_rand(n);
+    let b = Vector::<f64>::new_rand(n);
+    let mut c = Vector::<f64>::new_rand(n);
 
     let func = || c|= &a + &b;
 
