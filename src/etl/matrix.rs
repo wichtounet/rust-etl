@@ -67,10 +67,7 @@ impl<T: EtlValueType> Matrix<T> {
         }
     }
 
-    pub fn add_assign_direct<RightExpr: EtlExpr<Type = T>>(&mut self, rhs: RightExpr)
-    where
-        T: AddAssign<T>,
-    {
+    pub fn add_assign_direct<RightExpr: EtlExpr<Type = T>>(&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] += rhs.at(i);
         }

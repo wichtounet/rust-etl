@@ -43,8 +43,7 @@ impl<T: EtlValueType> Vector<T> {
         }
     }
 
-    pub fn add_assign_direct<RightExpr: EtlExpr<Type = T>>(&mut self, rhs: RightExpr)
-    {
+    pub fn add_assign_direct<RightExpr: EtlExpr<Type = T>>(&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] += rhs.at(i);
         }
@@ -62,10 +61,7 @@ impl<T: EtlValueType> Vector<T> {
     }
 
     pub fn iter(&self) -> VectorIterator<T> {
-        VectorIterator::<T> {
-            vector: self,
-            index: 0,
-        }
+        VectorIterator::<T> { vector: self, index: 0 }
     }
 
     // Writing my own mutable iterator requires unsafe code (which I should do later)

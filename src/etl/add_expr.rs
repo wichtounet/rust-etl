@@ -1,7 +1,4 @@
-use crate::etl::etl_expr::EtlExpr;
-use crate::etl::etl_expr::EtlWrappable;
-use crate::etl::etl_expr::EtlWrapper;
-use crate::etl::etl_expr::WrappableExpr;
+use crate::etl::etl_expr::*;
 
 use std::ops::Add;
 
@@ -65,10 +62,7 @@ where
 #[macro_export]
 macro_rules! impl_add_op_value {
     ($type:ty) => {
-        impl<'a, T: EtlValueType, RightExpr: WrappableExpr> std::ops::Add<RightExpr> for &'a $type
-        where
-            T: Add<RightExpr::Type, Output = T>,
-        {
+        impl<'a, T: EtlValueType, RightExpr: WrappableExpr> std::ops::Add<RightExpr> for &'a $type {
             type Output = AddExpr<&'a $type, RightExpr>;
 
             fn add(self, other: RightExpr) -> Self::Output {
@@ -76,10 +70,7 @@ macro_rules! impl_add_op_value {
             }
         }
 
-        impl<T: EtlValueType, RightExpr: EtlExpr<Type = T>> std::ops::AddAssign<RightExpr> for $type
-        where
-            T: AddAssign<RightExpr::Type>,
-        {
+        impl<T: EtlValueType, RightExpr: EtlExpr<Type = T>> std::ops::AddAssign<RightExpr> for $type {
             fn add_assign(&mut self, other: RightExpr) {
                 self.add_assign_direct(other);
             }
@@ -90,7 +81,7 @@ macro_rules! impl_add_op_value {
 #[macro_export]
 macro_rules! impl_add_op_binary_expr {
     ($type:ty) => {
-        impl<LeftExpr: WrappableExpr, RightExpr: WrappableExpr, OuterRightExpr: WrappableExpr> Add<OuterRightExpr> for $type
+        impl<T: EtlValueType, LeftExpr: WrappableExpr<Type=T>, RightExpr: WrappableExpr<Type=T>, OuterRightExpr: WrappableExpr<Type=T>> Add<OuterRightExpr> for $type
         where
             <LeftExpr::WrappedAs as EtlExpr>::Type: Add<<RightExpr::WrappedAs as EtlExpr>::Type, Output = <LeftExpr::WrappedAs as EtlExpr>::Type>,
         {
