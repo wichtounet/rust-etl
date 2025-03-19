@@ -27,7 +27,7 @@ impl<LeftExpr: WrappableExpr, RightExpr: WrappableExpr> AddExpr<LeftExpr, RightE
 // AddExpr is an EtlExpr
 impl<LeftExpr: WrappableExpr, RightExpr: WrappableExpr> EtlExpr for AddExpr<LeftExpr, RightExpr>
 where <LeftExpr::WrappedAs as EtlExpr>::Type: Add<<RightExpr::WrappedAs as EtlExpr>::Type, Output = <LeftExpr::WrappedAs as EtlExpr>::Type> {
-    type Type = <<LeftExpr as EtlWrappable>::WrappedAs as EtlExpr>::Type;
+    type Type = <LeftExpr::WrappedAs as EtlExpr>::Type;
 
     fn size(&self) -> usize {
         self.lhs.value.size()
