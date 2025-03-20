@@ -1,19 +1,19 @@
 mod etl;
 
-use crate::etl::matrix_2d::Matrix;
+use crate::etl::matrix_2d::Matrix2d;
 use crate::etl::vector::Vector;
 
 use crate::etl::etl_expr::EtlExpr;
 
 struct DenseLayer {
-    weights: Matrix<f64>,
+    weights: Matrix2d<f64>,
     biases: Vector<f64>,
 }
 
 impl DenseLayer {
     fn new() -> Self {
         Self {
-            weights: Matrix::<f64>::new(28 * 28, 512),
+            weights: Matrix2d::<f64>::new(28 * 28, 512),
             biases: Vector::<f64>::new(512),
         }
     }

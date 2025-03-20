@@ -97,7 +97,7 @@ impl_sub_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
 #[cfg(test)]
 mod tests {
     use crate::etl::etl_expr::EtlExpr;
-    use crate::etl::matrix_2d::Matrix;
+    use crate::etl::matrix_2d::Matrix2d;
     use crate::etl::vector::Vector;
 
     #[test]
@@ -146,7 +146,7 @@ mod tests {
 
     #[test]
     fn basic_assign_mixed() {
-        let mut a: Matrix<i64> = Matrix::<i64>::new(4, 2);
+        let mut a: Matrix2d<i64> = Matrix2d::<i64>::new(4, 2);
         let mut b: Vector<i64> = Vector::<i64>::new(8);
         let mut c: Vector<i64> = Vector::<i64>::new(8);
 

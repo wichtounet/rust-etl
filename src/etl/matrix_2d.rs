@@ -9,17 +9,17 @@ use std::ops::BitOrAssign;
 
 use rand::Rng;
 
-// The declaration of Matrix<T>
+// The declaration of Matrix2d<T>
 
-pub struct Matrix<T: EtlValueType> {
+pub struct Matrix2d<T: EtlValueType> {
     data: Vec<T>,
     rows: usize,
     columns: usize,
 }
 
-// The functions of Matrix<T>
+// The functions of Matrix2d<T>
 
-impl<T: EtlValueType> Matrix<T> {
+impl<T: EtlValueType> Matrix2d<T> {
     pub fn new(rows: usize, columns: usize) -> Self {
         Self {
             data: vec![T::default(); rows * columns],
@@ -91,7 +91,7 @@ impl<T: EtlValueType> Matrix<T> {
     }
 }
 
-impl<T: EtlValueType> EtlExpr<T> for Matrix<T> {
+impl<T: EtlValueType> EtlExpr<T> for Matrix2d<T> {
     fn size(&self) -> usize {
         self.rows * self.columns
     }
@@ -101,7 +101,7 @@ impl<T: EtlValueType> EtlExpr<T> for Matrix<T> {
     }
 }
 
-impl<T: EtlValueType> EtlExpr<T> for &Matrix<T> {
+impl<T: EtlValueType> EtlExpr<T> for &Matrix2d<T> {
     fn size(&self) -> usize {
         self.rows * self.columns
     }
@@ -111,9 +111,9 @@ impl<T: EtlValueType> EtlExpr<T> for &Matrix<T> {
     }
 }
 
-// Matrix<T> wraps as reference
-impl<'a, T: EtlValueType> EtlWrappable<T> for &'a Matrix<T> {
-    type WrappedAs = &'a Matrix<T>;
+// Matrix2d<T> wraps as reference
+impl<'a, T: EtlValueType> EtlWrappable<T> for &'a Matrix2d<T> {
+    type WrappedAs = &'a Matrix2d<T>;
 
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
         EtlWrapper {
@@ -123,9 +123,9 @@ impl<'a, T: EtlValueType> EtlWrappable<T> for &'a Matrix<T> {
     }
 }
 
-// Operator overloading for Matrix<T>
+// Operator overloading for Matrix2d<T>
 
-impl<T: EtlValueType> std::ops::Index<usize> for Matrix<T> {
+impl<T: EtlValueType> std::ops::Index<usize> for Matrix2d<T> {
     type Output = T;
 
     fn index(&self, index: usize) -> &T {
@@ -133,14 +133,14 @@ impl<T: EtlValueType> std::ops::Index<usize> for Matrix<T> {
     }
 }
 
-impl<T: EtlValueType> std::ops::IndexMut<usize> for Matrix<T> {
+impl<T: EtlValueType> std::ops::IndexMut<usize> for Matrix2d<T> {
     fn index_mut(&mut self, index: usize) -> &mut T {
         &mut self.data[index]
     }
 }
 
 // Since we can't overload Assign, we settle for BitOrAssign
-impl<T: EtlValueType, RightExpr: EtlExpr<T>> BitOrAssign<RightExpr> for Matrix<T> {
+impl<T: EtlValueType, RightExpr: EtlExpr<T>> BitOrAssign<RightExpr> for Matrix2d<T> {
     fn bitor_assign(&mut self, other: RightExpr) {
         self.assign_direct(other);
     }
@@ -148,8 +148,8 @@ impl<T: EtlValueType, RightExpr: EtlExpr<T>> BitOrAssign<RightExpr> for Matrix<T
 
 // Operations
 
-impl_add_op_value!(Matrix<T>);
-impl_sub_op_value!(Matrix<T>);
+impl_add_op_value!(Matrix2d<T>);
+impl_sub_op_value!(Matrix2d<T>);
 
 #[cfg(test)]
 mod tests {
@@ -157,19 +157,19 @@ mod tests {
 
     #[test]
     fn construct_i64() {
-        let mat: Matrix<i64> = Matrix::<i64>::new(4, 2);
+        let mat: Matrix2d<i64> = Matrix2d::<i64>::new(4, 2);
         assert_eq!(mat.size(), 8)
     }
 
     #[test]
     fn construct_f64() {
-        let mat: Matrix<f64> = Matrix::<f64>::new(8, 12);
+        let mat: Matrix2d<f64> = Matrix2d::<f64>::new(8, 12);
         assert_eq!(mat.size(), 96)
     }
 
     #[test]
     fn at() {
-        let mut mat: Matrix<i64> = Matrix::<i64>::new(4, 2);
+        let mut mat: Matrix2d<i64> = Matrix2d::<i64>::new(4, 2);
 
         *mat.at_mut(0, 0) = 9;
         *mat.at_mut(1, 1) = 3;
@@ -181,7 +181,7 @@ mod tests {
 
     #[test]
     fn row_major() {
-        let mut mat: Matrix<i64> = Matrix::<i64>::new(2, 2);
+        let mut mat: Matrix2d<i64> = Matrix2d::<i64>::new(2, 2);
 
         mat[0] = 1;
         mat[1] = 2;
@@ -196,8 +196,8 @@ mod tests {
 
     #[test]
     fn compound() {
-        let mut a = Matrix::<i64>::new(2, 2);
-        let mut b = Matrix::<i64>::new(2, 2);
+        let mut a = Matrix2d::<i64>::new(2, 2);
+        let mut b = Matrix2d::<i64>::new(2, 2);
 
         a[0] = 3;
         a[1] = 9;
