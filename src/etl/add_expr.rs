@@ -97,7 +97,7 @@ impl_sub_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
 #[cfg(test)]
 mod tests {
     use crate::etl::etl_expr::EtlExpr;
-    use crate::etl::matrix::Matrix;
+    use crate::etl::matrix_2d::Matrix;
     use crate::etl::vector::Vector;
 
     #[test]
