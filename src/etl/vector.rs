@@ -64,7 +64,7 @@ impl<T: EtlValueType> Vector<T> {
 
     // Writing my own mutable iterator requires unsafe code (which I should do later)
     pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, T> {
-        return self.data.iter_mut();
+        self.data.iter_mut()
     }
 }
 
@@ -78,7 +78,7 @@ impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
     }
 }
 
-impl<'a, T: EtlValueType> EtlExpr<T> for &'a Vector<T> {
+impl<T: EtlValueType> EtlExpr<T> for &Vector<T> {
     fn size(&self) -> usize {
         self.data.len()
     }

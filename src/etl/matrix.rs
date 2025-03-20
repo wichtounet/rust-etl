@@ -21,8 +21,8 @@ impl<T: EtlValueType> Matrix<T> {
     pub fn new(rows: usize, columns: usize) -> Self {
         Self {
             data: vec![T::default(); rows * columns],
-            rows: rows,
-            columns: columns,
+            rows,
+            columns,
         }
     }
 
@@ -93,7 +93,7 @@ impl<T: EtlValueType> EtlExpr<T> for Matrix<T> {
     }
 }
 
-impl<'a, T: EtlValueType> EtlExpr<T> for &'a Matrix<T> {
+impl<T: EtlValueType> EtlExpr<T> for &Matrix<T> {
     fn size(&self) -> usize {
         self.rows * self.columns
     }
