@@ -1,7 +1,9 @@
 use crate::etl::add_expr::AddExpr;
 use crate::etl::etl_expr::*;
+use crate::etl::sub_expr::SubExpr;
 
 use crate::impl_add_op_value;
+use crate::impl_sub_op_value;
 
 use std::ops::BitOrAssign;
 
@@ -44,6 +46,12 @@ impl<T: EtlValueType> Vector<T> {
     pub fn add_assign_direct<RightExpr: EtlExpr<T>>(&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] += rhs.at(i);
+        }
+    }
+
+    pub fn sub_assign_direct<RightExpr: EtlExpr<T>>(&mut self, rhs: RightExpr) {
+        for i in 0..self.size() {
+            self.data[i] -= rhs.at(i);
         }
     }
 
@@ -149,6 +157,7 @@ impl<'a, T: EtlValueType> Iterator for VectorIterator<'a, T> {
 // Operations
 
 impl_add_op_value!(Vector<T>);
+impl_sub_op_value!(Vector<T>);
 
 // Tests
 

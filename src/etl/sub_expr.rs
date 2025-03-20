@@ -1,18 +1,18 @@
+use crate::etl::add_expr::AddExpr;
 use crate::etl::etl_expr::*;
-use crate::etl::sub_expr::SubExpr;
 
-use crate::impl_sub_op_binary_expr;
+use crate::impl_add_op_binary_expr;
 
-// The declaration of AddExpr
+// The declaration of SubExpr
 
-pub struct AddExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
+pub struct SubExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
     lhs: EtlWrapper<T, LeftExpr::WrappedAs>,
     rhs: EtlWrapper<T, RightExpr::WrappedAs>,
 }
 
-// The functions of AddExpr
+// The functions of SubExpr
 
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> AddExpr<T, LeftExpr, RightExpr> {
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> SubExpr<T, LeftExpr, RightExpr> {
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
         if lhs.size() != rhs.size() {
             panic!("Cannot add expressions of different sizes ({} + {})", lhs.size(), rhs.size());
@@ -25,21 +25,21 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> A
     }
 }
 
-// AddExpr is an EtlExpr
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for AddExpr<T, LeftExpr, RightExpr> {
+// SubExpr is an EtlExpr
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for SubExpr<T, LeftExpr, RightExpr> {
     fn size(&self) -> usize {
         self.lhs.value.size()
     }
 
     fn at(&self, i: usize) -> T {
-        self.lhs.value.at(i) + self.rhs.value.at(i)
+        self.lhs.value.at(i) - self.rhs.value.at(i)
     }
 }
 
-// AddExpr is an EtlWrappable
-// AddExpr wraps as value
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for AddExpr<T, LeftExpr, RightExpr> {
-    type WrappedAs = AddExpr<T, LeftExpr, RightExpr>;
+// SubExpr is an EtlWrappable
+// SubExpr wraps as value
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for SubExpr<T, LeftExpr, RightExpr> {
+    type WrappedAs = SubExpr<T, LeftExpr, RightExpr>;
 
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
         EtlWrapper {
@@ -56,41 +56,41 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 // Therefore, we provide macros for other structures and expressions
 
 #[macro_export]
-macro_rules! impl_add_op_value {
+macro_rules! impl_sub_op_value {
     ($type:ty) => {
-        impl<'a, T: EtlValueType, RightExpr: WrappableExpr<T>> std::ops::Add<RightExpr> for &'a $type {
-            type Output = AddExpr<T, &'a $type, RightExpr>;
+        impl<'a, T: EtlValueType, RightExpr: WrappableExpr<T>> std::ops::Sub<RightExpr> for &'a $type {
+            type Output = SubExpr<T, &'a $type, RightExpr>;
 
-            fn add(self, other: RightExpr) -> Self::Output {
+            fn sub(self, other: RightExpr) -> Self::Output {
                 Self::Output::new(self, other)
             }
         }
 
-        impl<T: EtlValueType, RightExpr: EtlExpr<T>> std::ops::AddAssign<RightExpr> for $type {
-            fn add_assign(&mut self, other: RightExpr) {
-                self.add_assign_direct(other);
+        impl<T: EtlValueType, RightExpr: EtlExpr<T>> std::ops::SubAssign<RightExpr> for $type {
+            fn sub_assign(&mut self, other: RightExpr) {
+                self.sub_assign_direct(other);
             }
         }
     };
 }
 
 #[macro_export]
-macro_rules! impl_add_op_binary_expr {
+macro_rules! impl_sub_op_binary_expr {
     ($type:ty) => {
-        impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Add<OuterRightExpr>
+        impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Sub<OuterRightExpr>
             for $type
         {
-            type Output = AddExpr<T, $type, OuterRightExpr>;
+            type Output = SubExpr<T, $type, OuterRightExpr>;
 
-            fn add(self, other: OuterRightExpr) -> Self::Output {
+            fn sub(self, other: OuterRightExpr) -> Self::Output {
                 Self::Output::new(self, other)
             }
         }
     };
 }
 
-impl_add_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
-impl_sub_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
+impl_add_op_binary_expr!(SubExpr<T, LeftExpr, RightExpr>);
+impl_sub_op_binary_expr!(SubExpr<T, LeftExpr, RightExpr>);
 
 // The tests
 
@@ -108,10 +108,10 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        let expr = &a + &b;
+        let expr = &a - &b;
 
         assert_eq!(expr.size(), 8);
-        assert_eq!(expr.at(0), 3);
+        assert_eq!(expr.at(0), -1);
     }
 
     #[test]
@@ -123,11 +123,11 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        let expr = &a + &b;
+        let expr = &a - &b;
 
         c |= expr;
 
-        assert_eq!(c.at(0), 3);
+        assert_eq!(c.at(0), -1);
     }
 
     #[test]
@@ -139,9 +139,9 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        c |= &a + &b;
+        c |= &a - &b;
 
-        assert_eq!(c.at(0), 3);
+        assert_eq!(c.at(0), -1);
     }
 
     #[test]
@@ -153,9 +153,9 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        c |= &a + &b;
+        c |= &a - &b;
 
-        assert_eq!(c.at(0), 3);
+        assert_eq!(c.at(0), -1);
     }
 
     #[test]
@@ -167,9 +167,9 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        c |= (&a + &b) + &a;
+        c |= (&a - &b) - &a;
 
-        assert_eq!(c.at(0), 4);
+        assert_eq!(c.at(0), -2);
     }
 
     #[test]
@@ -181,9 +181,9 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        c |= (&a + &b) + (&a + &b);
+        c |= (&a + &b) - (&a - &b);
 
-        assert_eq!(c.at(0), 6);
+        assert_eq!(c.at(0), 4);
     }
 
     #[test]
@@ -195,8 +195,8 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        c += &a + &b;
+        c -= &a - &b;
 
-        assert_eq!(c.at(0), 3);
+        assert_eq!(c.at(0), 1);
     }
 }
