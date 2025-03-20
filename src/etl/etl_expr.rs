@@ -9,6 +9,7 @@ pub trait EtlExpr<T: EtlValueType> {
 // It does not seem like I can force Index trait because it must return a reference which
 // expressions cannot do. Therefore, I settled on at instead, which should work fine
 
+// TODO: See if there is any way to remove the phantom data here
 pub struct EtlWrapper<T: EtlValueType, SubExpr: EtlExpr<T>> {
     pub value: SubExpr,
     pub _marker: std::marker::PhantomData<T>,
