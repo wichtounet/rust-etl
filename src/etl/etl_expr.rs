@@ -1,24 +1,23 @@
-//TODO.2 Add more constrants to T so that we can simplify traits bounds
 pub trait EtlValueType: Default + Clone + Copy + std::ops::Add + std::ops::AddAssign {}
-impl<T: Default + Clone + Copy + std::ops::Add + std::ops::AddAssign> EtlValueType for T {}
+impl<T: Default + Clone + Copy + std::ops::Add<T, Output = T> + std::ops::AddAssign<T>> EtlValueType for T {}
 
-pub trait EtlExpr {
-    type Type;
+pub trait EtlExpr<T: EtlValueType> {
     fn size(&self) -> usize;
-    fn at(&self, i: usize) -> Self::Type;
+    fn at(&self, i: usize) -> T;
 }
 
 // It does not seem like I can force Index trait because it must return a reference which
 // expressions cannot do. Therefore, I settled on at instead, which should work fine
 
-pub struct EtlWrapper<Expr: EtlExpr> {
+pub struct EtlWrapper<T: EtlValueType, Expr: EtlExpr<T>> {
     pub value: Expr,
+    pub _marker: std::marker::PhantomData<T>,
 }
 
-pub trait EtlWrappable {
-    type WrappedAs: EtlExpr;
-    fn wrap(self) -> EtlWrapper<Self::WrappedAs>;
+pub trait EtlWrappable<T: EtlValueType> {
+    type WrappedAs: EtlExpr<T>;
+    fn wrap(self) -> EtlWrapper<T, Self::WrappedAs>;
 }
 
-pub trait WrappableExpr: EtlExpr + EtlWrappable {}
-impl<T: EtlExpr + EtlWrappable> WrappableExpr for T {}
+pub trait WrappableExpr<T: EtlValueType>: EtlExpr<T> + EtlWrappable<T> {}
+impl<T: EtlValueType, TT: EtlExpr<T> + EtlWrappable<T>> WrappableExpr<T> for TT {}

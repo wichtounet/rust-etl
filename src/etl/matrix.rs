@@ -61,13 +61,13 @@ impl<T: EtlValueType> Matrix<T> {
         &mut self.data[row * self.columns + column]
     }
 
-    pub fn assign_direct<RightExpr: EtlExpr<Type = T>>(&mut self, rhs: RightExpr) {
+    pub fn assign_direct<RightExpr: EtlExpr<T>>(&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] = rhs.at(i);
         }
     }
 
-    pub fn add_assign_direct<RightExpr: EtlExpr<Type = T>>(&mut self, rhs: RightExpr) {
+    pub fn add_assign_direct<RightExpr: EtlExpr<T>>(&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] += rhs.at(i);
         }
@@ -85,36 +85,35 @@ impl<T: EtlValueType> Matrix<T> {
     }
 }
 
-impl<T: EtlValueType> EtlExpr for Matrix<T> {
-    type Type = T;
-
+impl<T: EtlValueType> EtlExpr<T> for Matrix<T> {
     fn size(&self) -> usize {
         self.rows * self.columns
     }
 
-    fn at(&self, i: usize) -> Self::Type {
+    fn at(&self, i: usize) -> T {
         self.data[i]
     }
 }
 
-impl<'a, T: EtlValueType> EtlExpr for &'a Matrix<T> {
-    type Type = T;
-
+impl<'a, T: EtlValueType> EtlExpr<T> for &'a Matrix<T> {
     fn size(&self) -> usize {
         self.rows * self.columns
     }
 
-    fn at(&self, i: usize) -> Self::Type {
+    fn at(&self, i: usize) -> T {
         self.data[i]
     }
 }
 
 // Matrix<T> wraps as reference
-impl<'a, T: EtlValueType> EtlWrappable for &'a Matrix<T> {
+impl<'a, T: EtlValueType> EtlWrappable<T> for &'a Matrix<T> {
     type WrappedAs = &'a Matrix<T>;
 
-    fn wrap(self) -> EtlWrapper<Self::WrappedAs> {
-        EtlWrapper { value: &self }
+    fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
+        EtlWrapper {
+            value: &self,
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 
@@ -135,7 +134,7 @@ impl<T: EtlValueType> std::ops::IndexMut<usize> for Matrix<T> {
 }
 
 // Since we can't overload Assign, we settle for BitOrAssign
-impl<T: EtlValueType, RightExpr: EtlExpr<Type = T>> BitOrAssign<RightExpr> for Matrix<T> {
+impl<T: EtlValueType, RightExpr: EtlExpr<T>> BitOrAssign<RightExpr> for Matrix<T> {
     fn bitor_assign(&mut self, other: RightExpr) {
         self.assign_direct(other);
     }

@@ -4,14 +4,14 @@ use std::ops::Add;
 
 // The declaration of AddExpr
 
-pub struct AddExpr<LeftExpr: WrappableExpr, RightExpr: WrappableExpr> {
-    lhs: EtlWrapper<LeftExpr::WrappedAs>,
-    rhs: EtlWrapper<RightExpr::WrappedAs>,
+pub struct AddExpr<T: EtlValueType<Output = T>, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
+    lhs: EtlWrapper<T, LeftExpr::WrappedAs>,
+    rhs: EtlWrapper<T, RightExpr::WrappedAs>,
 }
 
 // The functions of AddExpr
 
-impl<LeftExpr: WrappableExpr, RightExpr: WrappableExpr> AddExpr<LeftExpr, RightExpr> {
+impl<T: EtlValueType<Output = T>, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> AddExpr<T, LeftExpr, RightExpr> {
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
         if lhs.size() != rhs.size() {
             panic!("Cannot add expressions of different sizes ({} + {})", lhs.size(), rhs.size());
@@ -25,31 +25,26 @@ impl<LeftExpr: WrappableExpr, RightExpr: WrappableExpr> AddExpr<LeftExpr, RightE
 }
 
 // AddExpr is an EtlExpr
-impl<LeftExpr: WrappableExpr, RightExpr: WrappableExpr> EtlExpr for AddExpr<LeftExpr, RightExpr>
-where
-    <LeftExpr::WrappedAs as EtlExpr>::Type: Add<<RightExpr::WrappedAs as EtlExpr>::Type, Output = <LeftExpr::WrappedAs as EtlExpr>::Type>,
-{
-    type Type = <LeftExpr::WrappedAs as EtlExpr>::Type;
-
+impl<T: EtlValueType<Output = T>, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for AddExpr<T, LeftExpr, RightExpr> {
     fn size(&self) -> usize {
         self.lhs.value.size()
     }
 
-    fn at(&self, i: usize) -> Self::Type {
+    fn at(&self, i: usize) -> T {
         self.lhs.value.at(i) + self.rhs.value.at(i)
     }
 }
 
 // AddExpr is an EtlWrappable
 // AddExpr wraps as value
-impl<LeftExpr: WrappableExpr, RightExpr: WrappableExpr> EtlWrappable for AddExpr<LeftExpr, RightExpr>
-where
-    <LeftExpr::WrappedAs as EtlExpr>::Type: Add<<RightExpr::WrappedAs as EtlExpr>::Type, Output = <LeftExpr::WrappedAs as EtlExpr>::Type>,
-{
-    type WrappedAs = AddExpr<LeftExpr, RightExpr>;
+impl<T: EtlValueType<Output = T>, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for AddExpr<T, LeftExpr, RightExpr> {
+    type WrappedAs = AddExpr<T, LeftExpr, RightExpr>;
 
-    fn wrap(self) -> EtlWrapper<Self::WrappedAs> {
-        EtlWrapper { value: self }
+    fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
+        EtlWrapper {
+            value: self,
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 
@@ -62,15 +57,15 @@ where
 #[macro_export]
 macro_rules! impl_add_op_value {
     ($type:ty) => {
-        impl<'a, T: EtlValueType, RightExpr: WrappableExpr> std::ops::Add<RightExpr> for &'a $type {
-            type Output = AddExpr<&'a $type, RightExpr>;
+        impl<'a, T: EtlValueType<Output = T>, RightExpr: WrappableExpr<T>> std::ops::Add<RightExpr> for &'a $type {
+            type Output = AddExpr<T, &'a $type, RightExpr>;
 
             fn add(self, other: RightExpr) -> Self::Output {
                 Self::Output::new(self, other)
             }
         }
 
-        impl<T: EtlValueType, RightExpr: EtlExpr<Type = T>> std::ops::AddAssign<RightExpr> for $type {
+        impl<T: EtlValueType<Output = T>, RightExpr: EtlExpr<T>> std::ops::AddAssign<RightExpr> for $type {
             fn add_assign(&mut self, other: RightExpr) {
                 self.add_assign_direct(other);
             }
@@ -81,11 +76,10 @@ macro_rules! impl_add_op_value {
 #[macro_export]
 macro_rules! impl_add_op_binary_expr {
     ($type:ty) => {
-        impl<T: EtlValueType, LeftExpr: WrappableExpr<Type=T>, RightExpr: WrappableExpr<Type=T>, OuterRightExpr: WrappableExpr<Type=T>> Add<OuterRightExpr> for $type
-        where
-            <LeftExpr::WrappedAs as EtlExpr>::Type: Add<<RightExpr::WrappedAs as EtlExpr>::Type, Output = <LeftExpr::WrappedAs as EtlExpr>::Type>,
+        impl<T: EtlValueType<Output = T>, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> Add<OuterRightExpr>
+            for $type
         {
-            type Output = AddExpr<$type, OuterRightExpr>;
+            type Output = AddExpr<T, $type, OuterRightExpr>;
 
             fn add(self, other: OuterRightExpr) -> Self::Output {
                 Self::Output::new(self, other)
@@ -94,7 +88,7 @@ macro_rules! impl_add_op_binary_expr {
     };
 }
 
-impl_add_op_binary_expr!(AddExpr<LeftExpr, RightExpr>);
+impl_add_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
 
 // The tests
 

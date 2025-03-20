@@ -37,13 +37,13 @@ impl<T: EtlValueType> Vector<T> {
         &mut self.data[i]
     }
 
-    pub fn assign_direct<RightExpr: EtlExpr<Type = T>>(&mut self, rhs: RightExpr) {
+    pub fn assign_direct<RightExpr: EtlExpr<T>>(&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] = rhs.at(i);
         }
     }
 
-    pub fn add_assign_direct<RightExpr: EtlExpr<Type = T>>(&mut self, rhs: RightExpr) {
+    pub fn add_assign_direct<RightExpr: EtlExpr<T>>(&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] += rhs.at(i);
         }
@@ -70,36 +70,35 @@ impl<T: EtlValueType> Vector<T> {
     }
 }
 
-impl<T: EtlValueType> EtlExpr for Vector<T> {
-    type Type = T;
-
+impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
     fn size(&self) -> usize {
         self.data.len()
     }
 
-    fn at(&self, i: usize) -> Self::Type {
+    fn at(&self, i: usize) -> T {
         self.data[i]
     }
 }
 
-impl<'a, T: EtlValueType> EtlExpr for &'a Vector<T> {
-    type Type = T;
-
+impl<'a, T: EtlValueType> EtlExpr<T> for &'a Vector<T> {
     fn size(&self) -> usize {
         self.data.len()
     }
 
-    fn at(&self, i: usize) -> Self::Type {
+    fn at(&self, i: usize) -> T {
         self.data[i]
     }
 }
 
 // Vector<T> wraps as reference
-impl<'a, T: EtlValueType> EtlWrappable for &'a Vector<T> {
+impl<'a, T: EtlValueType> EtlWrappable<T> for &'a Vector<T> {
     type WrappedAs = &'a Vector<T>;
 
-    fn wrap(self) -> EtlWrapper<Self::WrappedAs> {
-        EtlWrapper { value: &self }
+    fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
+        EtlWrapper {
+            value: &self,
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 
@@ -120,7 +119,7 @@ impl<T: EtlValueType> std::ops::IndexMut<usize> for Vector<T> {
 }
 
 // Since we can't overload Assign, we settle for BitOrAssign
-impl<T: EtlValueType, RightExpr: EtlExpr<Type = T>> BitOrAssign<RightExpr> for Vector<T> {
+impl<T: EtlValueType, RightExpr: EtlExpr<T>> BitOrAssign<RightExpr> for Vector<T> {
     fn bitor_assign(&mut self, other: RightExpr) {
         self.assign_direct(other);
     }
