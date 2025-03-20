@@ -1,5 +1,5 @@
-pub trait EtlValueType: Default + Clone + Copy + std::ops::Add + std::ops::AddAssign {}
-impl<T: Default + Clone + Copy + std::ops::Add<T, Output = T> + std::ops::AddAssign<T>> EtlValueType for T {}
+pub trait EtlValueType: Default + Clone + Copy + std::ops::Add<Output=Self> + std::ops::AddAssign {}
+impl<T: Default + Clone + Copy + std::ops::Add<Output = T> + std::ops::AddAssign<T>> EtlValueType for T {}
 
 pub trait EtlExpr<T: EtlValueType> {
     fn size(&self) -> usize;
