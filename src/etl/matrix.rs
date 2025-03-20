@@ -109,7 +109,7 @@ impl<'a, T: EtlValueType> EtlWrappable<T> for &'a Matrix<T> {
 
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
         EtlWrapper {
-            value: &self,
+            value: self,
             _marker: std::marker::PhantomData,
         }
     }
