@@ -27,6 +27,8 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> A
 
 // AddExpr is an EtlExpr
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for AddExpr<T, LeftExpr, RightExpr> {
+    const DIMENSIONS: usize = LeftExpr::DIMENSIONS;
+
     fn size(&self) -> usize {
         self.lhs.value.size()
     }

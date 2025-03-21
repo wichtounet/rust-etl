@@ -77,6 +77,8 @@ impl<T: EtlValueType> Vector<T> {
 }
 
 impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
+    const DIMENSIONS: usize = 1;
+
     fn size(&self) -> usize {
         self.data.len()
     }
@@ -87,6 +89,8 @@ impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
 }
 
 impl<T: EtlValueType> EtlExpr<T> for &Vector<T> {
+    const DIMENSIONS: usize = 1;
+
     fn size(&self) -> usize {
         self.data.len()
     }

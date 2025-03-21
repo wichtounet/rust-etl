@@ -7,6 +7,8 @@ pub trait EtlValueType: Default + Clone + Copy + Add<Output = Self> + AddAssign 
 impl<T: Default + Clone + Copy + Add<Output = T> + AddAssign<T> + Sub<Output = T> + SubAssign<T>> EtlValueType for T {}
 
 pub trait EtlExpr<T: EtlValueType> {
+    const DIMENSIONS: usize;
+
     fn size(&self) -> usize;
     fn at(&self, i: usize) -> T;
 }
