@@ -9,7 +9,14 @@ impl<T: Default + Clone + Copy + Add<Output = T> + AddAssign<T> + Sub<Output = T
 pub trait EtlExpr<T: EtlValueType> {
     const DIMENSIONS: usize;
 
+    /// Return the size of the Expressions.
+    ///
+    /// This is valid for all dimensions
     fn size(&self) -> usize;
+
+    /// Return the element at position `i`
+    ///
+    /// This works for all dimensions and consider a flat structure
     fn at(&self, i: usize) -> T;
 }
 
