@@ -79,6 +79,18 @@ impl<T: EtlValueType> Matrix2d<T> {
         }
     }
 
+    pub fn clear(&mut self) {
+        for i in 0..self.size() {
+            self.data[i] = T::default();
+        }
+    }
+
+    pub fn fill(&mut self, value: T) {
+        for i in 0..self.size() {
+            self.data[i] = value;
+        }
+    }
+
     pub fn rand_fill(&mut self)
     where
         rand::distr::StandardUniform: rand::distr::Distribution<T>,
@@ -172,6 +184,15 @@ mod tests {
     }
 
     #[test]
+    fn default_value() {
+        let mat: Matrix2d<f64> = Matrix2d::<f64>::new(8, 12);
+
+        assert_eq!(mat.at(0, 0), 0.0);
+        assert_eq!(mat.at(1, 1), 0.0);
+        assert_eq!(mat.at(2, 1), 0.0);
+    }
+
+    #[test]
     fn at() {
         let mut mat: Matrix2d<i64> = Matrix2d::<i64>::new(4, 2);
 
@@ -180,6 +201,32 @@ mod tests {
 
         assert_eq!(mat.at(0, 0), 9);
         assert_eq!(mat.at(1, 1), 3);
+        assert_eq!(mat.at(2, 1), 0);
+    }
+
+    #[test]
+    fn fill() {
+        let mut mat: Matrix2d<i64> = Matrix2d::<i64>::new(4, 2);
+        mat.fill(9);
+
+        assert_eq!(mat.at(0, 0), 9);
+        assert_eq!(mat.at(1, 1), 9);
+        assert_eq!(mat.at(2, 1), 9);
+    }
+
+    #[test]
+    fn clear() {
+        let mut mat: Matrix2d<i64> = Matrix2d::<i64>::new(4, 2);
+        mat.fill(9);
+
+        assert_eq!(mat.at(0, 0), 9);
+        assert_eq!(mat.at(1, 1), 9);
+        assert_eq!(mat.at(2, 1), 9);
+
+        mat.clear();
+
+        assert_eq!(mat.at(0, 0), 0);
+        assert_eq!(mat.at(1, 1), 0);
         assert_eq!(mat.at(2, 1), 0);
     }
 

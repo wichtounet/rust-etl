@@ -55,6 +55,18 @@ impl<T: EtlValueType> Vector<T> {
         }
     }
 
+    pub fn clear(&mut self) {
+        for i in 0..self.size() {
+            self.data[i] = T::default();
+        }
+    }
+
+    pub fn fill(&mut self, value: T) {
+        for i in 0..self.size() {
+            self.data[i] = value;
+        }
+    }
+
     pub fn rand_fill(&mut self)
     where
         rand::distr::StandardUniform: rand::distr::Distribution<T>,
@@ -182,6 +194,15 @@ mod tests {
     }
 
     #[test]
+    fn default_value() {
+        let mat = Vector::<f64>::new(8);
+
+        assert_eq!(mat.at(0), 0.0);
+        assert_eq!(mat.at(1), 0.0);
+        assert_eq!(mat.at(2), 0.0);
+    }
+
+    #[test]
     fn at() {
         let mut vec: Vector<i64> = Vector::<i64>::new(3);
 
@@ -195,6 +216,32 @@ mod tests {
 
         *vec.at_mut(1) = 77;
         assert_eq!(vec.at(1), 77);
+    }
+
+    #[test]
+    fn fill() {
+        let mut mat = Vector::<i64>::new(3);
+        mat.fill(9);
+
+        assert_eq!(mat.at(0), 9);
+        assert_eq!(mat.at(1), 9);
+        assert_eq!(mat.at(2), 9);
+    }
+
+    #[test]
+    fn clear() {
+        let mut mat = Vector::<i64>::new(3);
+        mat.fill(9);
+
+        assert_eq!(mat.at(0), 9);
+        assert_eq!(mat.at(1), 9);
+        assert_eq!(mat.at(2), 9);
+
+        mat.clear();
+
+        assert_eq!(mat.at(0), 0);
+        assert_eq!(mat.at(1), 0);
+        assert_eq!(mat.at(2), 0);
     }
 
     #[test]
