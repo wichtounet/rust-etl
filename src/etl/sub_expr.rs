@@ -33,8 +33,20 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
         self.lhs.value.size()
     }
 
+    fn rows(&self) -> usize {
+        self.lhs.value.rows()
+    }
+
+    fn columns(&self) -> usize {
+        self.lhs.value.columns()
+    }
+
     fn at(&self, i: usize) -> T {
         self.lhs.value.at(i) - self.rhs.value.at(i)
+    }
+
+    fn at2(&self, row: usize, column: usize) -> T {
+        self.lhs.value.at2(row, column) - self.rhs.value.at2(row, column)
     }
 }
 

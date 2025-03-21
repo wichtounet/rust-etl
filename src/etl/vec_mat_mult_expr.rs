@@ -37,6 +37,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
         self.lhs.value.size()
     }
 
+    fn rows(&self) -> usize {
+        self.lhs.value.rows()
+    }
+
     fn at(&self, i: usize) -> T {
         // TODO: We need access to the dimensions of Rhs
         self.lhs.value.at(i) + self.rhs.value.at(i)
@@ -49,6 +53,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 
     fn size(&self) -> usize {
         self.lhs.value.size()
+    }
+
+    fn rows(&self) -> usize {
+        self.lhs.value.rows()
     }
 
     fn at(&self, i: usize) -> T {

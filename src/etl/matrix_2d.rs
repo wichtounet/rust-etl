@@ -37,18 +37,6 @@ impl<T: EtlValueType> Matrix2d<T> {
         mat
     }
 
-    pub fn at(&self, row: usize, column: usize) -> T {
-        if row >= self.rows {
-            panic!("Row {} is out of bounds!", row);
-        }
-
-        if column >= self.columns {
-            panic!("Column {} is out of bounds!", column);
-        }
-
-        self.data[row * self.columns + column]
-    }
-
     pub fn at_mut(&mut self, row: usize, column: usize) -> &mut T {
         if row >= self.rows {
             panic!("Row {} is out of bounds!", row);
@@ -110,8 +98,28 @@ impl<T: EtlValueType> EtlExpr<T> for Matrix2d<T> {
         self.rows * self.columns
     }
 
+    fn rows(&self) -> usize {
+        self.rows
+    }
+
+    fn columns(&self) -> usize {
+        self.columns
+    }
+
     fn at(&self, i: usize) -> T {
         self.data[i]
+    }
+
+    fn at2(&self, row: usize, column: usize) -> T {
+        if row >= self.rows {
+            panic!("Row {} is out of bounds!", row);
+        }
+
+        if column >= self.columns {
+            panic!("Column {} is out of bounds!", column);
+        }
+
+        self.data[row * self.columns + column]
     }
 }
 
@@ -122,28 +130,28 @@ impl<T: EtlValueType> EtlExpr<T> for &Matrix2d<T> {
         self.rows * self.columns
     }
 
+    fn rows(&self) -> usize {
+        self.rows
+    }
+
+    fn columns(&self) -> usize {
+        self.columns
+    }
+
     fn at(&self, i: usize) -> T {
         self.data[i]
     }
-}
 
-impl<T: EtlValueType> Etl2DExpr<T> for Matrix2d<T> {
-    fn rows(&self) -> usize {
-        self.rows
-    }
+    fn at2(&self, row: usize, column: usize) -> T {
+        if row >= self.rows {
+            panic!("Row {} is out of bounds!", row);
+        }
 
-    fn columns(&self) -> usize {
-        self.columns
-    }
-}
+        if column >= self.columns {
+            panic!("Column {} is out of bounds!", column);
+        }
 
-impl<T: EtlValueType> Etl2DExpr<T> for &Matrix2d<T> {
-    fn rows(&self) -> usize {
-        self.rows
-    }
-
-    fn columns(&self) -> usize {
-        self.columns
+        self.data[row * self.columns + column]
     }
 }
 
@@ -209,21 +217,21 @@ mod tests {
     fn default_value() {
         let mat = Matrix2d::<f64>::new(8, 12);
 
-        assert_eq!(mat.at(0, 0), 0.0);
-        assert_eq!(mat.at(1, 1), 0.0);
-        assert_eq!(mat.at(2, 1), 0.0);
+        assert_eq!(mat.at2(0, 0), 0.0);
+        assert_eq!(mat.at2(1, 1), 0.0);
+        assert_eq!(mat.at2(2, 1), 0.0);
     }
 
     #[test]
-    fn at() {
+    fn at2() {
         let mut mat = Matrix2d::<i64>::new(4, 2);
 
         *mat.at_mut(0, 0) = 9;
         *mat.at_mut(1, 1) = 3;
 
-        assert_eq!(mat.at(0, 0), 9);
-        assert_eq!(mat.at(1, 1), 3);
-        assert_eq!(mat.at(2, 1), 0);
+        assert_eq!(mat.at2(0, 0), 9);
+        assert_eq!(mat.at2(1, 1), 3);
+        assert_eq!(mat.at2(2, 1), 0);
     }
 
     #[test]
@@ -231,9 +239,9 @@ mod tests {
         let mut mat = Matrix2d::<i64>::new(4, 2);
         mat.fill(9);
 
-        assert_eq!(mat.at(0, 0), 9);
-        assert_eq!(mat.at(1, 1), 9);
-        assert_eq!(mat.at(2, 1), 9);
+        assert_eq!(mat.at2(0, 0), 9);
+        assert_eq!(mat.at2(1, 1), 9);
+        assert_eq!(mat.at2(2, 1), 9);
     }
 
     #[test]
@@ -241,15 +249,15 @@ mod tests {
         let mut mat = Matrix2d::<i64>::new(4, 2);
         mat.fill(9);
 
-        assert_eq!(mat.at(0, 0), 9);
-        assert_eq!(mat.at(1, 1), 9);
-        assert_eq!(mat.at(2, 1), 9);
+        assert_eq!(mat.at2(0, 0), 9);
+        assert_eq!(mat.at2(1, 1), 9);
+        assert_eq!(mat.at2(2, 1), 9);
 
         mat.clear();
 
-        assert_eq!(mat.at(0, 0), 0);
-        assert_eq!(mat.at(1, 1), 0);
-        assert_eq!(mat.at(2, 1), 0);
+        assert_eq!(mat.at2(0, 0), 0);
+        assert_eq!(mat.at2(1, 1), 0);
+        assert_eq!(mat.at2(2, 1), 0);
     }
 
     #[test]
@@ -261,10 +269,10 @@ mod tests {
         mat[2] = 3;
         mat[3] = 4;
 
-        assert_eq!(mat.at(0, 0), 1);
-        assert_eq!(mat.at(0, 1), 2);
-        assert_eq!(mat.at(1, 0), 3);
-        assert_eq!(mat.at(1, 1), 4);
+        assert_eq!(mat.at2(0, 0), 1);
+        assert_eq!(mat.at2(0, 1), 2);
+        assert_eq!(mat.at2(1, 0), 3);
+        assert_eq!(mat.at2(1, 1), 4);
     }
 
     #[test]
@@ -284,10 +292,10 @@ mod tests {
 
         a += b;
 
-        assert_eq!(a.at(0, 0), 5);
-        assert_eq!(a.at(0, 1), 13);
-        assert_eq!(a.at(1, 0), 43);
-        assert_eq!(a.at(1, 1), 84);
+        assert_eq!(a.at2(0, 0), 5);
+        assert_eq!(a.at2(0, 1), 13);
+        assert_eq!(a.at2(1, 0), 43);
+        assert_eq!(a.at2(1, 1), 84);
 
         assert_eq!(a[0], 5);
         assert_eq!(a[1], 13);

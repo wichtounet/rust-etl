@@ -15,15 +15,18 @@ pub trait EtlExpr<T: EtlValueType> {
     ///
     /// This works for all dimensions and consider a flat structure
     fn at(&self, i: usize) -> T;
-}
 
-pub trait Etl1DExpr<T: EtlValueType>: EtlExpr<T> {
     fn rows(&self) -> usize;
-}
 
-pub trait Etl2DExpr<T: EtlValueType>: EtlExpr<T> {
-    fn rows(&self) -> usize;
-    fn columns(&self) -> usize;
+    // TODO I should find a solution to prevent this at compile-time (without combinatorial explosion)
+
+    fn columns(&self) -> usize {
+        panic!("This function is only implemented for 2D containers");
+    }
+
+    fn at2(&self, row: usize, column: usize) -> T {
+        panic!("This function is only implemented for 2D containers");
+    }
 }
 
 // It does not seem like I can force Index trait because it must return a reference which
