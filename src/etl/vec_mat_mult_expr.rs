@@ -42,33 +42,20 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 
     fn at(&self, i: usize) -> T {
-        // TODO: We need access to the dimensions of Rhs
-        self.lhs.value.at(i) + self.rhs.value.at(i)
-    }
-}
+        let mut value = T::default();
 
-// VecMatMultExpr is an EtlExpr
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for &VecMatMultExpr<T, LeftExpr, RightExpr> {
-    const DIMENSIONS: usize = 1;
+        for r in 0..self.rhs.value.rows() {
+            value += self.lhs.value.at(r) * self.rhs.value.at2(r, i)
+        }
 
-    fn size(&self) -> usize {
-        self.lhs.value.size()
-    }
-
-    fn rows(&self) -> usize {
-        self.lhs.value.rows()
-    }
-
-    fn at(&self, i: usize) -> T {
-        // TODO: We need access to the dimensions of Rhs
-        self.lhs.value.at(i) + self.rhs.value.at(i)
+        value
     }
 }
 
 // VecMatMultExpr is an EtlWrappable
-// VecMatMultExpr wraps as reference
-impl<'a, T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for &'a VecMatMultExpr<T, LeftExpr, RightExpr> {
-    type WrappedAs = &'a VecMatMultExpr<T, LeftExpr, RightExpr>;
+// TODO VecMatMultExpr wraps as reference?
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for VecMatMultExpr<T, LeftExpr, RightExpr> {
+    type WrappedAs = VecMatMultExpr<T, LeftExpr, RightExpr>;
 
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
         EtlWrapper {
@@ -90,7 +77,7 @@ macro_rules! impl_vec_mat_mult_op_value {
         impl<'a, T: EtlValueType, RightExpr: WrappableExpr<T>> std::ops::Mul<RightExpr> for &'a $type {
             type Output = VecMatMultExpr<T, &'a $type, RightExpr>;
 
-            fn add(self, other: RightExpr) -> Self::Output {
+            fn mul(self, other: RightExpr) -> Self::Output {
                 Self::Output::new(self, other)
             }
         }
@@ -107,15 +94,15 @@ macro_rules! impl_vec_mat_mult_op_binary_expr {
         {
             type Output = VecMatMultExpr<T, $type, OuterRightExpr>;
 
-            fn add(self, other: OuterRightExpr) -> Self::Output {
+            fn mul(self, other: OuterRightExpr) -> Self::Output {
                 Self::Output::new(self, other)
             }
         }
     };
 }
 
-// TODO impl_add_op_binary_expr!(VecMatMultExpr<T, LeftExpr, RightExpr>);
-// TODO impl_sub_op_binary_expr!(VecMatMultExpr<T, LeftExpr, RightExpr>);
+impl_add_op_binary_expr!(VecMatMultExpr<T, LeftExpr, RightExpr>);
+impl_sub_op_binary_expr!(VecMatMultExpr<T, LeftExpr, RightExpr>);
 
 // The tests
 
@@ -127,101 +114,43 @@ mod tests {
 
     #[test]
     fn basic_one() {
-        let mut a = Vector::<i64>::new(8);
-        let mut b = Vector::<i64>::new(8);
+        let mut a = Vector::<i64>::new(4);
+        let mut b = Matrix2d::<i64>::new(4, 8);
+        let mut c = Vector::<i64>::new(8);
 
-        a[0] = 1;
-        b[0] = 2;
+        a.fill(2);
+        b.fill(3);
 
-        let expr = &a + &b;
+        c |= &a * &b;
 
-        assert_eq!(expr.size(), 8);
-        assert_eq!(expr.at(0), 3);
+        assert_eq!(c.at(0), 24);
     }
 
     #[test]
-    fn basic_assign_1() {
-        let mut a = Vector::<i64>::new(8);
-        let mut b = Vector::<i64>::new(8);
+    fn basic_one_plus() {
+        let mut a = Vector::<i64>::new(4);
+        let mut b = Matrix2d::<i64>::new(4, 8);
         let mut c = Vector::<i64>::new(8);
 
-        a[0] = 1;
-        b[0] = 2;
+        a.fill(2);
+        b.fill(3);
 
-        let expr = &a + &b;
+        c |= (&a * &b) + (&a * &b);
 
-        c |= expr;
-
-        assert_eq!(c.at(0), 3);
+        assert_eq!(c.at(0), 48);
     }
 
     #[test]
-    fn basic_assign_2() {
-        let mut a = Vector::<i64>::new(8);
-        let mut b = Vector::<i64>::new(8);
+    fn basic_one_plus_plus() {
+        let mut a = Vector::<i64>::new(4);
+        let mut b = Matrix2d::<i64>::new(4, 8);
         let mut c = Vector::<i64>::new(8);
 
-        a[0] = 1;
-        b[0] = 2;
+        a.fill(2);
+        b.fill(3);
 
-        c |= &a + &b;
+        c |= (&a + &a) * (&b + &b);
 
-        assert_eq!(c.at(0), 3);
-    }
-
-    #[test]
-    fn basic_assign_mixed() {
-        let mut a = Matrix2d::<i64>::new(4, 2);
-        let mut b = Vector::<i64>::new(8);
-        let mut c = Vector::<i64>::new(8);
-
-        a[0] = 1;
-        b[0] = 2;
-
-        c |= &a + &b;
-
-        assert_eq!(c.at(0), 3);
-    }
-
-    #[test]
-    fn basic_assign_deep_1() {
-        let mut a = Vector::<i64>::new(8);
-        let mut b = Vector::<i64>::new(8);
-        let mut c = Vector::<i64>::new(8);
-
-        a[0] = 1;
-        b[0] = 2;
-
-        c |= (&a + &b) + &a;
-
-        assert_eq!(c.at(0), 4);
-    }
-
-    #[test]
-    fn basic_assign_deep_2() {
-        let mut a = Vector::<i64>::new(8);
-        let mut b = Vector::<i64>::new(8);
-        let mut c = Vector::<i64>::new(8);
-
-        a[0] = 1;
-        b[0] = 2;
-
-        c |= (&a + &b) + (&a + &b);
-
-        assert_eq!(c.at(0), 6);
-    }
-
-    #[test]
-    fn basic_compound_add() {
-        let mut a = Vector::<i64>::new(8);
-        let mut b = Vector::<i64>::new(8);
-        let mut c = Vector::<i64>::new(8);
-
-        a[0] = 1;
-        b[0] = 2;
-
-        c += &a + &b;
-
-        assert_eq!(c.at(0), 3);
+        assert_eq!(c.at(0), 96);
     }
 }
