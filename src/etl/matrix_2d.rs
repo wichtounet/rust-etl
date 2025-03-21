@@ -173,19 +173,19 @@ mod tests {
 
     #[test]
     fn construct_i64() {
-        let mat: Matrix2d<i64> = Matrix2d::<i64>::new(4, 2);
+        let mat = Matrix2d::<i64>::new(4, 2);
         assert_eq!(mat.size(), 8)
     }
 
     #[test]
     fn construct_f64() {
-        let mat: Matrix2d<f64> = Matrix2d::<f64>::new(8, 12);
+        let mat = Matrix2d::<f64>::new(8, 12);
         assert_eq!(mat.size(), 96)
     }
 
     #[test]
     fn default_value() {
-        let mat: Matrix2d<f64> = Matrix2d::<f64>::new(8, 12);
+        let mat = Matrix2d::<f64>::new(8, 12);
 
         assert_eq!(mat.at(0, 0), 0.0);
         assert_eq!(mat.at(1, 1), 0.0);
@@ -194,7 +194,7 @@ mod tests {
 
     #[test]
     fn at() {
-        let mut mat: Matrix2d<i64> = Matrix2d::<i64>::new(4, 2);
+        let mut mat = Matrix2d::<i64>::new(4, 2);
 
         *mat.at_mut(0, 0) = 9;
         *mat.at_mut(1, 1) = 3;
@@ -206,7 +206,7 @@ mod tests {
 
     #[test]
     fn fill() {
-        let mut mat: Matrix2d<i64> = Matrix2d::<i64>::new(4, 2);
+        let mut mat = Matrix2d::<i64>::new(4, 2);
         mat.fill(9);
 
         assert_eq!(mat.at(0, 0), 9);
@@ -216,7 +216,7 @@ mod tests {
 
     #[test]
     fn clear() {
-        let mut mat: Matrix2d<i64> = Matrix2d::<i64>::new(4, 2);
+        let mut mat = Matrix2d::<i64>::new(4, 2);
         mat.fill(9);
 
         assert_eq!(mat.at(0, 0), 9);
@@ -232,7 +232,7 @@ mod tests {
 
     #[test]
     fn row_major() {
-        let mut mat: Matrix2d<i64> = Matrix2d::<i64>::new(2, 2);
+        let mut mat = Matrix2d::<i64>::new(2, 2);
 
         mat[0] = 1;
         mat[1] = 2;

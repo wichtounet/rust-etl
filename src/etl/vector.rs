@@ -183,13 +183,13 @@ mod tests {
 
     #[test]
     fn construct_i64() {
-        let vec: Vector<i64> = Vector::<i64>::new(8);
+        let vec = Vector::<i64>::new(8);
         assert_eq!(vec.size(), 8)
     }
 
     #[test]
     fn construct_f64() {
-        let vec: Vector<f64> = Vector::<f64>::new(1023);
+        let vec = Vector::<f64>::new(1023);
         assert_eq!(vec.size(), 1023)
     }
 
@@ -204,7 +204,7 @@ mod tests {
 
     #[test]
     fn at() {
-        let mut vec: Vector<i64> = Vector::<i64>::new(3);
+        let mut vec = Vector::<i64>::new(3);
 
         vec[0] = 9;
         vec[1] = 3;
@@ -246,8 +246,8 @@ mod tests {
 
     #[test]
     fn compound() {
-        let mut a: Vector<i64> = Vector::<i64>::new(3);
-        let mut b: Vector<i64> = Vector::<i64>::new(3);
+        let mut a = Vector::<i64>::new(3);
+        let mut b = Vector::<i64>::new(3);
 
         a[0] = 3;
         a[1] = 9;

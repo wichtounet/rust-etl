@@ -104,8 +104,8 @@ mod tests {
 
     #[test]
     fn basic_one() {
-        let mut a: Vector<i64> = Vector::<i64>::new(8);
-        let mut b: Vector<i64> = Vector::<i64>::new(8);
+        let mut a = Vector::<i64>::new(8);
+        let mut b = Vector::<i64>::new(8);
 
         a[0] = 1;
         b[0] = 2;
@@ -118,9 +118,9 @@ mod tests {
 
     #[test]
     fn basic_assign_1() {
-        let mut a: Vector<i64> = Vector::<i64>::new(8);
-        let mut b: Vector<i64> = Vector::<i64>::new(8);
-        let mut c: Vector<i64> = Vector::<i64>::new(8);
+        let mut a = Vector::<i64>::new(8);
+        let mut b = Vector::<i64>::new(8);
+        let mut c = Vector::<i64>::new(8);
 
         a[0] = 1;
         b[0] = 2;
@@ -134,9 +134,9 @@ mod tests {
 
     #[test]
     fn basic_assign_2() {
-        let mut a: Vector<i64> = Vector::<i64>::new(8);
-        let mut b: Vector<i64> = Vector::<i64>::new(8);
-        let mut c: Vector<i64> = Vector::<i64>::new(8);
+        let mut a = Vector::<i64>::new(8);
+        let mut b = Vector::<i64>::new(8);
+        let mut c = Vector::<i64>::new(8);
 
         a[0] = 1;
         b[0] = 2;
@@ -148,9 +148,9 @@ mod tests {
 
     #[test]
     fn basic_assign_mixed() {
-        let mut a: Matrix2d<i64> = Matrix2d::<i64>::new(4, 2);
-        let mut b: Vector<i64> = Vector::<i64>::new(8);
-        let mut c: Vector<i64> = Vector::<i64>::new(8);
+        let mut a = Matrix2d::<i64>::new(4, 2);
+        let mut b = Vector::<i64>::new(8);
+        let mut c = Vector::<i64>::new(8);
 
         a[0] = 1;
         b[0] = 2;
@@ -162,9 +162,9 @@ mod tests {
 
     #[test]
     fn basic_assign_deep_1() {
-        let mut a: Vector<i64> = Vector::<i64>::new(8);
-        let mut b: Vector<i64> = Vector::<i64>::new(8);
-        let mut c: Vector<i64> = Vector::<i64>::new(8);
+        let mut a = Vector::<i64>::new(8);
+        let mut b = Vector::<i64>::new(8);
+        let mut c = Vector::<i64>::new(8);
 
         a[0] = 1;
         b[0] = 2;
@@ -176,9 +176,9 @@ mod tests {
 
     #[test]
     fn basic_assign_deep_2() {
-        let mut a: Vector<i64> = Vector::<i64>::new(8);
-        let mut b: Vector<i64> = Vector::<i64>::new(8);
-        let mut c: Vector<i64> = Vector::<i64>::new(8);
+        let mut a = Vector::<i64>::new(8);
+        let mut b = Vector::<i64>::new(8);
+        let mut c = Vector::<i64>::new(8);
 
         a[0] = 1;
         b[0] = 2;
@@ -190,9 +190,9 @@ mod tests {
 
     #[test]
     fn basic_compound_add() {
-        let mut a: Vector<i64> = Vector::<i64>::new(8);
-        let mut b: Vector<i64> = Vector::<i64>::new(8);
-        let mut c: Vector<i64> = Vector::<i64>::new(8);
+        let mut a = Vector::<i64>::new(8);
+        let mut b = Vector::<i64>::new(8);
+        let mut c = Vector::<i64>::new(8);
 
         a[0] = 1;
         b[0] = 2;
