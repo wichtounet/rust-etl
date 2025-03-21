@@ -88,6 +88,18 @@ impl<T: EtlValueType> Vector<T> {
     }
 }
 
+impl<T: EtlValueType> Etl1DExpr<T> for Vector<T> {
+    fn rows(&self) -> usize {
+        self.data.len()
+    }
+}
+
+impl<T: EtlValueType> Etl1DExpr<T> for &Vector<T> {
+    fn rows(&self) -> usize {
+        self.data.len()
+    }
+}
+
 impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
     const DIMENSIONS: usize = 1;
 
@@ -184,13 +196,14 @@ mod tests {
     #[test]
     fn construct_i64() {
         let vec = Vector::<i64>::new(8);
-        assert_eq!(vec.size(), 8)
+        assert_eq!(vec.size(), 8);
+        assert_eq!(vec.rows(), 8);
     }
 
     #[test]
     fn construct_f64() {
         let vec = Vector::<f64>::new(1023);
-        assert_eq!(vec.size(), 1023)
+        assert_eq!(vec.size(), 1023);
     }
 
     #[test]

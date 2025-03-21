@@ -127,6 +127,26 @@ impl<T: EtlValueType> EtlExpr<T> for &Matrix2d<T> {
     }
 }
 
+impl<T: EtlValueType> Etl2DExpr<T> for Matrix2d<T> {
+    fn rows(&self) -> usize {
+        self.rows
+    }
+
+    fn columns(&self) -> usize {
+        self.columns
+    }
+}
+
+impl<T: EtlValueType> Etl2DExpr<T> for &Matrix2d<T> {
+    fn rows(&self) -> usize {
+        self.rows
+    }
+
+    fn columns(&self) -> usize {
+        self.columns
+    }
+}
+
 // Matrix2d<T> wraps as reference
 impl<'a, T: EtlValueType> EtlWrappable<T> for &'a Matrix2d<T> {
     type WrappedAs = &'a Matrix2d<T>;
@@ -174,7 +194,9 @@ mod tests {
     #[test]
     fn construct_i64() {
         let mat = Matrix2d::<i64>::new(4, 2);
-        assert_eq!(mat.size(), 8)
+        assert_eq!(mat.size(), 8);
+        assert_eq!(mat.rows(), 4);
+        assert_eq!(mat.columns(), 2);
     }
 
     #[test]

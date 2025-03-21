@@ -20,6 +20,15 @@ pub trait EtlExpr<T: EtlValueType> {
     fn at(&self, i: usize) -> T;
 }
 
+pub trait Etl1DExpr<T: EtlValueType>: EtlExpr<T> {
+    fn rows(&self) -> usize;
+}
+
+pub trait Etl2DExpr<T: EtlValueType>: EtlExpr<T> {
+    fn rows(&self) -> usize;
+    fn columns(&self) -> usize;
+}
+
 // It does not seem like I can force Index trait because it must return a reference which
 // expressions cannot do. Therefore, I settled on at instead, which should work fine
 
