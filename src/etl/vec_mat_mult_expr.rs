@@ -21,7 +21,15 @@ pub struct VecMatMultExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> VecMatMultExpr<T, LeftExpr, RightExpr> {
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
         // TODO: Validate the dimensions of each side
-        // TODO: Validate each side of the expression
+
+        if lhs.rows() != rhs.rows() {
+            panic!(
+                "Invalid vector matrix multiplication dimensdions ([{}]*[{},{}])",
+                lhs.rows(),
+                rhs.rows(),
+                rhs.columns()
+            );
+        }
 
         Self {
             lhs: lhs.wrap(),
