@@ -1,8 +1,10 @@
 use crate::etl::add_expr::AddExpr;
 use crate::etl::etl_expr::*;
+use crate::etl::mul_expr::MulExpr;
 use crate::etl::sub_expr::SubExpr;
 
 use crate::impl_add_op_value;
+use crate::impl_mul_op_value;
 use crate::impl_sub_op_value;
 
 use std::ops::BitOrAssign;
@@ -194,6 +196,7 @@ impl<T: EtlValueType, RightExpr: EtlExpr<T>> BitOrAssign<RightExpr> for Matrix2d
 
 impl_add_op_value!(Matrix2d<T>);
 impl_sub_op_value!(Matrix2d<T>);
+impl_mul_op_value!(Matrix2d<T>);
 
 #[cfg(test)]
 mod tests {

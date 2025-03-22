@@ -20,20 +20,29 @@ pub struct MulExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: Wrapp
 
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> MulExpr<T, LeftExpr, RightExpr> {
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
-        if LeftExpr::DIMENSIONS != 1 || RightExpr::DIMENSIONS != 2 {
+        if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
+            if lhs.rows() != rhs.rows() {
+                panic!(
+                    "Invalid vector matrix multiplication dimensions ([{}]*[{},{}])",
+                    lhs.rows(),
+                    rhs.rows(),
+                    rhs.columns()
+                );
+            }
+        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
+            if lhs.columns() != rhs.rows() {
+                panic!(
+                    "Invalid matrix vector multiplication dimensions ([{},{}]*[{}])",
+                    lhs.rows(),
+                    rhs.columns(),
+                    rhs.rows()
+                );
+            }
+        } else {
             panic!(
                 "Invalid vector matrix multiplication dimensions ({}D*{}D)",
                 LeftExpr::DIMENSIONS,
                 RightExpr::DIMENSIONS
-            );
-        }
-
-        if lhs.rows() != rhs.rows() {
-            panic!(
-                "Invalid vector matrix multiplication dimensions ([{}]*[{},{}])",
-                lhs.rows(),
-                rhs.rows(),
-                rhs.columns()
             );
         }
 
@@ -58,13 +67,26 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 
     fn at(&self, i: usize) -> T {
         // TODO: Do a lazy computation
-        let mut value = T::default();
 
-        for r in 0..self.rhs.value.rows() {
-            value += self.lhs.value.at(r) * self.rhs.value.at2(r, i)
+        if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
+            let mut value = T::default();
+
+            for r in 0..self.rhs.value.rows() {
+                value += self.lhs.value.at(r) * self.rhs.value.at2(r, i)
+            }
+
+            value
+        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
+            let mut value = T::default();
+
+            for c in 0..self.lhs.value.columns() {
+                value += self.lhs.value.at2(i, c) * self.rhs.value.at(c);
+            }
+
+            value
+        } else {
+            panic!("This code should be unreachable!");
         }
-
-        value
     }
 }
 
@@ -131,8 +153,10 @@ mod tests {
     use crate::etl::matrix_2d::Matrix2d;
     use crate::etl::vector::Vector;
 
+    // TODO These tests are really bad
+
     #[test]
-    fn basic_one() {
+    fn basic_gevm_one() {
         let mut a = Vector::<i64>::new(4);
         let mut b = Matrix2d::<i64>::new(4, 8);
         let mut c = Vector::<i64>::new(8);
@@ -146,7 +170,7 @@ mod tests {
     }
 
     #[test]
-    fn basic_one_plus() {
+    fn basic_gevm_one_plus() {
         let mut a = Vector::<i64>::new(4);
         let mut b = Matrix2d::<i64>::new(4, 8);
         let mut c = Vector::<i64>::new(8);
@@ -160,7 +184,7 @@ mod tests {
     }
 
     #[test]
-    fn basic_one_plus_plus() {
+    fn basic_gevm_one_plus_plus() {
         let mut a = Vector::<i64>::new(4);
         let mut b = Matrix2d::<i64>::new(4, 8);
         let mut c = Vector::<i64>::new(8);
@@ -171,5 +195,47 @@ mod tests {
         c |= (&a + &a) * (&b + &b);
 
         assert_eq!(c.at(0), 96);
+    }
+
+    #[test]
+    fn basic_gemv_one() {
+        let mut a = Matrix2d::<i64>::new(4, 8);
+        let mut b = Vector::<i64>::new(8);
+        let mut c = Vector::<i64>::new(4);
+
+        a.fill(2);
+        b.fill(3);
+
+        c |= &a * &b;
+
+        assert_eq!(c.at(0), 48);
+    }
+
+    #[test]
+    fn basic_gemv_one_plus() {
+        let mut a = Matrix2d::<i64>::new(4, 8);
+        let mut b = Vector::<i64>::new(8);
+        let mut c = Vector::<i64>::new(4);
+
+        a.fill(2);
+        b.fill(3);
+
+        c |= (&a * &b) + (&a * &b);
+
+        assert_eq!(c.at(0), 96);
+    }
+
+    #[test]
+    fn basic_gemv_one_plus_plus() {
+        let mut a = Matrix2d::<i64>::new(4, 8);
+        let mut b = Vector::<i64>::new(8);
+        let mut c = Vector::<i64>::new(4);
+
+        a.fill(2);
+        b.fill(3);
+
+        c |= (&a + &a) * (&b + &b);
+
+        assert_eq!(c.at(0), 192);
     }
 }
