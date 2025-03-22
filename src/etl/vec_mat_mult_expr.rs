@@ -20,11 +20,17 @@ pub struct VecMatMultExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr
 
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> VecMatMultExpr<T, LeftExpr, RightExpr> {
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
-        // TODO: Validate the dimensions of each side
+        if LeftExpr::DIMENSIONS != 1 || RightExpr::DIMENSIONS != 2 {
+            panic!(
+                "Invalid vector matrix multiplication dimensions ({}D*{}D)",
+                LeftExpr::DIMENSIONS,
+                RightExpr::DIMENSIONS
+            );
+        }
 
         if lhs.rows() != rhs.rows() {
             panic!(
-                "Invalid vector matrix multiplication dimensdions ([{}]*[{},{}])",
+                "Invalid vector matrix multiplication dimensions ([{}]*[{},{}])",
                 lhs.rows(),
                 rhs.rows(),
                 rhs.columns()
@@ -81,7 +87,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 // implementing EtlExpr
 // Therefore, we provide macros for other structures and expressions
 
-// TODDO: How will we distinguish between gemv, gevm and gemm
+// Unfortunately, "associated const equality" is an incomplete feature in Rust (issue 92827)
+// Therefore, we need to use the same struct for each multiplication and then use if statements to
+// detect the actual operation (gemm, gemv, gemv)
+
 #[macro_export]
 macro_rules! impl_vec_mat_mult_op_value {
     ($type:ty) => {
@@ -92,8 +101,6 @@ macro_rules! impl_vec_mat_mult_op_value {
                 Self::Output::new(self, other)
             }
         }
-
-        // TODO Any compound assign for that?
     };
 }
 
