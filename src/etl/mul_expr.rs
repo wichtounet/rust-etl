@@ -5,20 +5,20 @@ use crate::etl::sub_expr::SubExpr;
 use crate::impl_add_op_binary_expr;
 use crate::impl_sub_op_binary_expr;
 
-// The declaration of VecMatMultExpr
+// The declaration of MulExpr
 
 /// Expression represneting a vector-matrix-multiplication
 /// LeftExpr is a vector expression
 /// RightExpr is a matrix expression
-/// VecMatMultExpr is a vector expression
-pub struct VecMatMultExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
+/// MulExpr is a vector expression
+pub struct MulExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
     lhs: EtlWrapper<T, LeftExpr::WrappedAs>,
     rhs: EtlWrapper<T, RightExpr::WrappedAs>,
 }
 
-// The functions of VecMatMultExpr
+// The functions of MulExpr
 
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> VecMatMultExpr<T, LeftExpr, RightExpr> {
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> MulExpr<T, LeftExpr, RightExpr> {
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
         if LeftExpr::DIMENSIONS != 1 || RightExpr::DIMENSIONS != 2 {
             panic!(
@@ -44,8 +44,8 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> V
     }
 }
 
-// VecMatMultExpr is an EtlExpr
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for VecMatMultExpr<T, LeftExpr, RightExpr> {
+// MulExpr is an EtlExpr
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for MulExpr<T, LeftExpr, RightExpr> {
     const DIMENSIONS: usize = 1;
 
     fn size(&self) -> usize {
@@ -68,10 +68,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 }
 
-// VecMatMultExpr is an EtlWrappable
-// TODO VecMatMultExpr wraps as reference?
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for VecMatMultExpr<T, LeftExpr, RightExpr> {
-    type WrappedAs = VecMatMultExpr<T, LeftExpr, RightExpr>;
+// MulExpr is an EtlWrappable
+// TODO MulExpr wraps as reference?
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for MulExpr<T, LeftExpr, RightExpr> {
+    type WrappedAs = MulExpr<T, LeftExpr, RightExpr>;
 
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
         EtlWrapper {
@@ -92,10 +92,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 // detect the actual operation (gemm, gemv, gemv)
 
 #[macro_export]
-macro_rules! impl_vec_mat_mult_op_value {
+macro_rules! impl_mul_op_value {
     ($type:ty) => {
         impl<'a, T: EtlValueType, RightExpr: WrappableExpr<T>> std::ops::Mul<RightExpr> for &'a $type {
-            type Output = VecMatMultExpr<T, &'a $type, RightExpr>;
+            type Output = MulExpr<T, &'a $type, RightExpr>;
 
             fn mul(self, other: RightExpr) -> Self::Output {
                 Self::Output::new(self, other)
@@ -105,12 +105,12 @@ macro_rules! impl_vec_mat_mult_op_value {
 }
 
 #[macro_export]
-macro_rules! impl_vec_mat_mult_op_binary_expr {
+macro_rules! impl_mul_op_binary_expr {
     ($type:ty) => {
         impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr>
             for $type
         {
-            type Output = VecMatMultExpr<T, $type, OuterRightExpr>;
+            type Output = MulExpr<T, $type, OuterRightExpr>;
 
             fn mul(self, other: OuterRightExpr) -> Self::Output {
                 Self::Output::new(self, other)
@@ -119,8 +119,9 @@ macro_rules! impl_vec_mat_mult_op_binary_expr {
     };
 }
 
-impl_add_op_binary_expr!(VecMatMultExpr<T, LeftExpr, RightExpr>);
-impl_sub_op_binary_expr!(VecMatMultExpr<T, LeftExpr, RightExpr>);
+impl_add_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
+impl_sub_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
+impl_mul_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
 
 // The tests
 

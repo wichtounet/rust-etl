@@ -1,9 +1,9 @@
 use crate::etl::etl_expr::*;
+use crate::etl::mul_expr::MulExpr;
 use crate::etl::sub_expr::SubExpr;
-use crate::etl::vec_mat_mult_expr::VecMatMultExpr;
 
+use crate::impl_mul_op_binary_expr;
 use crate::impl_sub_op_binary_expr;
-use crate::impl_vec_mat_mult_op_binary_expr;
 
 // The declaration of AddExpr
 
@@ -107,7 +107,7 @@ macro_rules! impl_add_op_binary_expr {
 
 impl_add_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
 impl_sub_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
-impl_vec_mat_mult_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
+impl_mul_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
 
 // The tests
 

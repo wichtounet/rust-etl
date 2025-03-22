@@ -1,11 +1,11 @@
 use crate::etl::add_expr::AddExpr;
 use crate::etl::etl_expr::*;
+use crate::etl::mul_expr::MulExpr;
 use crate::etl::sub_expr::SubExpr;
-use crate::etl::vec_mat_mult_expr::VecMatMultExpr;
 
 use crate::impl_add_op_value;
+use crate::impl_mul_op_value;
 use crate::impl_sub_op_value;
-use crate::impl_vec_mat_mult_op_value;
 
 use std::ops::BitOrAssign;
 
@@ -184,7 +184,7 @@ impl<'a, T: EtlValueType> Iterator for VectorIterator<'a, T> {
 
 impl_add_op_value!(Vector<T>);
 impl_sub_op_value!(Vector<T>);
-impl_vec_mat_mult_op_value!(Vector<T>);
+impl_mul_op_value!(Vector<T>);
 
 // Tests
 
