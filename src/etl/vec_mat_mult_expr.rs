@@ -20,6 +20,7 @@ pub struct VecMatMultExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr
 
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> VecMatMultExpr<T, LeftExpr, RightExpr> {
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
+        // TODO: Validate the dimensions of each side
         // TODO: Validate each side of the expression
 
         Self {
@@ -42,6 +43,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 
     fn at(&self, i: usize) -> T {
+        // TODO: Do a lazy computation
         let mut value = T::default();
 
         for r in 0..self.rhs.value.rows() {
@@ -71,6 +73,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 // implementing EtlExpr
 // Therefore, we provide macros for other structures and expressions
 
+// TODDO: How will we distinguish between gemv, gevm and gemm
 #[macro_export]
 macro_rules! impl_vec_mat_mult_op_value {
     ($type:ty) => {
