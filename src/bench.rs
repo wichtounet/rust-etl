@@ -1,5 +1,6 @@
 mod etl;
 
+use crate::etl::matrix_2d::Matrix2d;
 use crate::etl::vector::Vector;
 
 use std::time::SystemTime;
@@ -43,6 +44,17 @@ fn bench_basic_b(n: usize, r: usize) {
     println!("d = a + b + c + a ({}) took {}ms", n, elapsed);
 }
 
+fn bench_gemv(rows: usize, columns: usize, r: usize) {
+    let a = Matrix2d::<f64>::new_rand(rows, columns);
+    let b = Vector::<f64>::new_rand(columns);
+    let mut c = Vector::<f64>::new_rand(rows);
+
+    let func = || c |= &a * &b;
+
+    let elapsed = bench_closure(func, r);
+    println!("c = M * v ({}:{}) took {}ms", rows, columns, elapsed);
+}
+
 fn main() {
     bench_basic_a(1024, 128);
     bench_basic_a(8 * 1024, 128);
@@ -59,4 +71,12 @@ fn main() {
     bench_basic_b(64 * 1024, 128);
     bench_basic_b(128 * 1024, 128);
     bench_basic_b(1024 * 1024, 64);
+
+    bench_gemv(16, 128, 1024);
+    bench_gemv(32, 128, 1024);
+    bench_gemv(64, 256, 1024);
+    bench_gemv(128, 1024, 512);
+    bench_gemv(256, 1024, 128);
+    bench_gemv(1024, 256, 128);
+    bench_gemv(1024, 1024, 64);
 }
