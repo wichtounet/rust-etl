@@ -82,6 +82,8 @@ fn main() {
     bench_basic_b(128 * 1024, 1024);
     bench_basic_b(1024 * 1024, 512);
 
+    // TODO: Also bench the performanc when combining GEMM and additions or scaling
+
     bench_gemv(16, 128, 65536);
     bench_gemv(32, 128, 32768);
     bench_gemv(64, 256, 16384);
