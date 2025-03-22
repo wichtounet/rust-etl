@@ -24,7 +24,7 @@ pub trait EtlExpr<T: EtlValueType> {
         panic!("This function is only implemented for 2D containers");
     }
 
-    fn at2(&self, row: usize, column: usize) -> T {
+    fn at2(&self, _row: usize, _column: usize) -> T {
         panic!("This function is only implemented for 2D containers");
     }
 }
