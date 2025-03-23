@@ -2,7 +2,6 @@ mod etl;
 
 use crate::etl::matrix_2d::Matrix2d;
 use crate::etl::vector::Vector;
-use std::ops::Add;
 
 use std::time::SystemTime;
 
@@ -158,8 +157,6 @@ fn main() {
     bench_basic_b(64 * 1024);
     bench_basic_b(128 * 1024);
     bench_basic_b(1024 * 1024);
-
-    // TODO: Also bench the performanc when combining GEMM and additions or scaling
 
     bench_gemv(16, 128);
     bench_gemv(32, 128);
