@@ -2,6 +2,7 @@ mod etl;
 
 use crate::etl::matrix_2d::Matrix2d;
 use crate::etl::vector::Vector;
+use std::ops::Add;
 
 use std::time::SystemTime;
 
