@@ -21,6 +21,9 @@ fn choose_repeat<F: FnMut()>(mut closure: F) -> i64 {
     };
 
     let rep = (2000000000.0 / elapsed) as i64;
+    if rep == 0 {
+        return 1;
+    }
     rep
 }
 
@@ -94,7 +97,49 @@ fn bench_gemm(rows: usize, columns: usize, inner: usize) {
     let func = || c |= &a * &b;
 
     let times = bench_closure(func);
-    println!("c = M * v ({}:{}:{}) took {}", rows, inner, columns, choose_time(times));
+    println!("c = A * B ({}:{}:{}) took {}", rows, inner, columns, choose_time(times));
+}
+
+fn bench_gemm_outer(rows: usize, columns: usize, inner: usize) {
+    let a = Matrix2d::<f64>::new_rand(rows, inner);
+    let b = Matrix2d::<f64>::new_rand(inner, columns);
+    let x = Matrix2d::<f64>::new_rand(rows, columns);
+
+    let mut c = Matrix2d::<f64>::new_rand(rows, columns);
+
+    let func = || c |= &x + (&a * &b) + &x;
+
+    let times = bench_closure(func);
+    println!("c = X + (A * B) + X ({}:{}:{}) took {}", rows, inner, columns, choose_time(times));
+}
+
+fn bench_gemm_inner(rows: usize, columns: usize, inner: usize) {
+    let a = Matrix2d::<f64>::new_rand(rows, inner);
+    let x = Matrix2d::<f64>::new_rand(rows, inner);
+
+    let b = Matrix2d::<f64>::new_rand(inner, columns);
+    let y = Matrix2d::<f64>::new_rand(inner, columns);
+
+    let mut c = Matrix2d::<f64>::new_rand(rows, columns);
+
+    let func = || c |= (&a + &x) * (&y + &b);
+
+    let times = bench_closure(func);
+    println!("c = (A + X) * (X + B) ({}:{}:{}) took {}", rows, inner, columns, choose_time(times));
+}
+
+fn bench_gemm_chain(rows: usize) {
+    let a = Matrix2d::<f64>::new_rand(rows, rows);
+    let b = Matrix2d::<f64>::new_rand(rows, rows);
+    let c = Matrix2d::<f64>::new_rand(rows, rows);
+    let d = Matrix2d::<f64>::new_rand(rows, rows);
+
+    let mut y = Matrix2d::<f64>::new_rand(rows, rows);
+
+    let func = || y |= &a * (&b * (&c * &d));
+
+    let times = bench_closure(func);
+    println!("y = A * (B * (C * D)) ({}:{}) took {}", rows, rows, choose_time(times));
 }
 
 fn main() {
@@ -130,5 +175,29 @@ fn main() {
     bench_gemm(128, 1024, 256);
     bench_gemm(256, 1024, 256);
     bench_gemm(1024, 256, 512);
-    bench_gemm(1024, 1024, 1024);
+    bench_gemm(768, 768, 768);
+
+    bench_gemm_outer(16, 128, 128);
+    bench_gemm_outer(32, 128, 128);
+    bench_gemm_outer(64, 256, 128);
+    bench_gemm_outer(128, 1024, 256);
+    bench_gemm_outer(256, 1024, 256);
+    bench_gemm_outer(1024, 256, 512);
+    bench_gemm_outer(768, 768, 768);
+
+    bench_gemm_inner(16, 128, 128);
+    bench_gemm_inner(32, 128, 128);
+    bench_gemm_inner(64, 256, 128);
+    bench_gemm_inner(128, 1024, 256);
+    bench_gemm_inner(256, 1024, 256);
+    bench_gemm_inner(1024, 256, 512);
+    bench_gemm_inner(768, 768, 768);
+
+    bench_gemm_chain(16);
+    bench_gemm_chain(32);
+    bench_gemm_chain(64);
+    bench_gemm_chain(128);
+    //TODO Too Slow bench_gemm_chain(256);
+    //TODO Too Slow bench_gemm_chain(512);
+    //TODO Too Slow bench_gemm_chain(768);
 }
