@@ -90,8 +90,40 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
         self.rhs.value.columns()
     }
 
+    fn compute_into(&self, data: &mut Vec<T>) {
+        if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
+            data.fill(T::default());
+
+            for row in 0..self.rhs.value.rows() {
+                for column in 0..self.rhs.value.columns() {
+                    data[column] += self.lhs.value.at(row) * self.rhs.value.at2(row, column)
+                }
+            }
+        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
+            data.fill(T::default());
+
+            for row in 0..self.lhs.value.rows() {
+                for column in 0..self.lhs.value.columns() {
+                    data[row] += self.rhs.value.at(column) * self.lhs.value.at2(row, column)
+                }
+            }
+        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
+            data.fill(T::default());
+
+            for row in 0..self.lhs.value.rows() {
+                for column in 0..self.lhs.value.columns() {
+                    for outer in 0..self.rhs.value.columns() {
+                        data[row * self.rhs.value.columns() + outer] += self.lhs.value.at2(row, column) * self.rhs.value.at2(column, outer)
+                    }
+                }
+            }
+        } else {
+            panic!("This code should be unreachable!");
+        }
+    }
+
     fn at(&self, i: usize) -> T {
-        // TODO: Do a lazy computation
+        // TODO: Always do a lazy computation
 
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
             let mut value = T::default();

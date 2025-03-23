@@ -39,12 +39,6 @@ impl<T: EtlValueType> Vector<T> {
         &mut self.data[i]
     }
 
-    pub fn assign_direct<RightExpr: EtlExpr<T>>(&mut self, rhs: RightExpr) {
-        for i in 0..self.size() {
-            self.data[i] = rhs.at(i);
-        }
-    }
-
     pub fn add_assign_direct<RightExpr: EtlExpr<T>>(&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] += rhs.at(i);
@@ -155,7 +149,7 @@ impl<T: EtlValueType> std::ops::IndexMut<usize> for Vector<T> {
 // Since we can't overload Assign, we settle for BitOrAssign
 impl<T: EtlValueType, RightExpr: EtlExpr<T>> BitOrAssign<RightExpr> for Vector<T> {
     fn bitor_assign(&mut self, other: RightExpr) {
-        self.assign_direct(other);
+        assign_direct(&mut self.data, other);
     }
 }
 
