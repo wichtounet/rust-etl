@@ -195,7 +195,28 @@ mod tests {
     use crate::etl::matrix_2d::Matrix2d;
     use crate::etl::vector::Vector;
 
-    // TODO These tests are really bad
+    #[test]
+    fn gevm() {
+        let mut a = Vector::<i64>::new(3);
+        let mut b = Matrix2d::<i64>::new(3, 2);
+        let mut c = Vector::<i64>::new(2);
+
+        a[0] = 7;
+        a[1] = 8;
+        a[2] = 9;
+
+        b[0] = 1;
+        b[1] = 2;
+        b[2] = 3;
+        b[3] = 4;
+        b[4] = 5;
+        b[5] = 6;
+
+        c |= &a * &b;
+
+        assert_eq!(c.at(0), 76);
+        assert_eq!(c.at(1), 100);
+    }
 
     #[test]
     fn basic_gevm_one() {
@@ -206,8 +227,11 @@ mod tests {
         a.fill(2);
         b.fill(3);
 
-        c |= &a * &b;
+        let expr = &a * &b;
+        assert_eq!(expr.size(), 8);
+        assert_eq!(expr.rows(), 8);
 
+        c |= expr;
         assert_eq!(c.at(0), 24);
     }
 
@@ -240,6 +264,29 @@ mod tests {
     }
 
     #[test]
+    fn gemv() {
+        let mut a = Matrix2d::<i64>::new(2, 3);
+        let mut b = Vector::<i64>::new(3);
+        let mut c = Vector::<i64>::new(2);
+
+        a[0] = 1;
+        a[1] = 2;
+        a[2] = 3;
+        a[3] = 4;
+        a[4] = 5;
+        a[5] = 6;
+
+        b[0] = 7;
+        b[1] = 8;
+        b[2] = 9;
+
+        c |= &a * &b;
+
+        assert_eq!(c.at(0), 50);
+        assert_eq!(c.at(1), 122);
+    }
+
+    #[test]
     fn basic_gemv_one() {
         let mut a = Matrix2d::<i64>::new(4, 8);
         let mut b = Vector::<i64>::new(8);
@@ -248,8 +295,11 @@ mod tests {
         a.fill(2);
         b.fill(3);
 
-        c |= &a * &b;
+        let expr = &a * &b;
+        assert_eq!(expr.size(), 4);
+        assert_eq!(expr.rows(), 4);
 
+        c |= expr;
         assert_eq!(c.at(0), 48);
     }
 
@@ -282,6 +332,73 @@ mod tests {
     }
 
     #[test]
+    fn gemm_a() {
+        let mut a = Matrix2d::<i64>::new(2, 3);
+        let mut b = Matrix2d::<i64>::new(3, 2);
+        let mut c = Matrix2d::<i64>::new(2, 2);
+
+        a[0] = 1;
+        a[1] = 2;
+        a[2] = 3;
+        a[3] = 4;
+        a[4] = 5;
+        a[5] = 6;
+
+        b[0] = 7;
+        b[1] = 8;
+        b[2] = 9;
+        b[3] = 10;
+        b[4] = 11;
+        b[5] = 12;
+
+        c |= &a * &b;
+
+        assert_eq!(c.at2(0, 0), 58);
+        assert_eq!(c.at2(0, 1), 64);
+        assert_eq!(c.at2(1, 0), 139);
+        assert_eq!(c.at2(1, 1), 154);
+    }
+
+    #[test]
+    fn gemm_b() {
+        let mut a = Matrix2d::<i64>::new(3, 3);
+        let mut b = Matrix2d::<i64>::new(3, 3);
+        let mut c = Matrix2d::<i64>::new(3, 3);
+
+        a[0] = 1;
+        a[1] = 2;
+        a[2] = 3;
+        a[3] = 4;
+        a[4] = 5;
+        a[5] = 6;
+        a[6] = 7;
+        a[7] = 8;
+        a[8] = 9;
+
+        b[0] = 7;
+        b[1] = 8;
+        b[2] = 9;
+        b[3] = 9;
+        b[4] = 10;
+        b[5] = 11;
+        b[6] = 11;
+        b[7] = 12;
+        b[8] = 13;
+
+        c |= &a * &b;
+
+        assert_eq!(c.at2(0, 0), 58);
+        assert_eq!(c.at2(0, 1), 64);
+        assert_eq!(c.at2(0, 2), 70);
+        assert_eq!(c.at2(1, 0), 139);
+        assert_eq!(c.at2(1, 1), 154);
+        assert_eq!(c.at2(1, 2), 169);
+        assert_eq!(c.at2(2, 0), 220);
+        assert_eq!(c.at2(2, 1), 244);
+        assert_eq!(c.at2(2, 2), 268);
+    }
+
+    #[test]
     fn basic_gemm_one() {
         let mut a = Matrix2d::<i64>::new(4, 8);
         let mut b = Matrix2d::<i64>::new(8, 6);
@@ -290,8 +407,12 @@ mod tests {
         a.fill(2);
         b.fill(3);
 
-        c |= &a * &b;
+        let expr = &a * &b;
+        assert_eq!(expr.size(), 24);
+        assert_eq!(expr.rows(), 4);
+        assert_eq!(expr.columns(), 6);
 
+        c |= expr;
         assert_eq!(c.at2(0, 0), 48);
     }
 
