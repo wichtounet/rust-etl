@@ -95,6 +95,7 @@ impl<T: EtlValueType> Matrix2d<T> {
 
 impl<T: EtlValueType> EtlExpr<T> for Matrix2d<T> {
     const DIMENSIONS: usize = 2;
+    const TYPE: EtlType = EtlType::Value;
 
     fn size(&self) -> usize {
         self.rows * self.columns
@@ -127,6 +128,7 @@ impl<T: EtlValueType> EtlExpr<T> for Matrix2d<T> {
 
 impl<T: EtlValueType> EtlExpr<T> for &Matrix2d<T> {
     const DIMENSIONS: usize = 2;
+    const TYPE: EtlType = EtlType::Value;
 
     fn size(&self) -> usize {
         self.rows * self.columns

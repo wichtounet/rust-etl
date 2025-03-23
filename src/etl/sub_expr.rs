@@ -30,6 +30,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> S
 // SubExpr is an EtlExpr
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for SubExpr<T, LeftExpr, RightExpr> {
     const DIMENSIONS: usize = LeftExpr::DIMENSIONS;
+    const TYPE: EtlType = EtlType::Simple;
 
     fn size(&self) -> usize {
         self.lhs.value.size()

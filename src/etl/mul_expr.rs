@@ -66,6 +66,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
 // MulExpr is an EtlExpr
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for MulExpr<T, LeftExpr, RightExpr> {
     const DIMENSIONS: usize = if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 { 2 } else { 1 };
+    const TYPE: EtlType = EtlType::Smart;
 
     fn size(&self) -> usize {
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {

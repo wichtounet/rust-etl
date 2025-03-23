@@ -3,8 +3,15 @@ use std::ops::*;
 pub trait EtlValueType: Default + Clone + Copy + Add<Output = Self> + AddAssign + Sub<Output = Self> + SubAssign + Mul<Output = Self> + MulAssign {}
 impl<T: Default + Clone + Copy + Add<Output = T> + AddAssign<T> + Sub<Output = T> + SubAssign<T> + Mul<Output = T> + MulAssign<T>> EtlValueType for T {}
 
+pub enum EtlType {
+    Simple,
+    Smart,
+    Value,
+}
+
 pub trait EtlExpr<T: EtlValueType> {
     const DIMENSIONS: usize;
+    const TYPE: EtlType;
 
     /// Return the size of the Expressions.
     ///
