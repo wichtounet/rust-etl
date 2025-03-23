@@ -34,8 +34,18 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
                 panic!(
                     "Invalid matrix vector multiplication dimensions ([{},{}]*[{}])",
                     lhs.rows(),
-                    rhs.columns(),
-                    rhs.rows()
+                    rhs.rows(),
+                    rhs.columns()
+                );
+            }
+        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
+            if lhs.columns() != rhs.rows() {
+                panic!(
+                    "Invalid matrix matrix multiplication dimensions ([{},{}]*[{},{}])",
+                    lhs.rows(),
+                    lhs.columns(),
+                    rhs.rows(),
+                    rhs.columns()
                 );
             }
         } else {
@@ -55,14 +65,28 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
 
 // MulExpr is an EtlExpr
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for MulExpr<T, LeftExpr, RightExpr> {
-    const DIMENSIONS: usize = 1;
+    const DIMENSIONS: usize = if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 { 2 } else { 1 };
 
     fn size(&self) -> usize {
-        self.lhs.value.size()
+        if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
+            self.rhs.value.columns()
+        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
+            self.lhs.value.rows()
+        } else {
+            self.lhs.value.rows() * self.rhs.value.columns()
+        }
     }
 
     fn rows(&self) -> usize {
-        self.lhs.value.rows()
+        if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
+            self.rhs.value.columns()
+        } else {
+            self.lhs.value.rows()
+        }
+    }
+
+    fn columns(&self) -> usize {
+        self.rhs.value.columns()
     }
 
     fn at(&self, i: usize) -> T {
@@ -81,6 +105,24 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 
             for c in 0..self.lhs.value.columns() {
                 value += self.lhs.value.at2(i, c) * self.rhs.value.at(c);
+            }
+
+            value
+        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
+            self.at2(i / self.columns(), i % self.columns())
+        } else {
+            panic!("This code should be unreachable!");
+        }
+    }
+
+    fn at2(&self, row: usize, column: usize) -> T {
+        // TODO: Do a lazy computation
+
+        if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
+            let mut value = T::default();
+
+            for inner in 0..self.lhs.value.columns() {
+                value += self.lhs.value.at2(row, inner) * self.rhs.value.at2(inner, column)
             }
 
             value
@@ -237,5 +279,47 @@ mod tests {
         c |= (&a + &a) * (&b + &b);
 
         assert_eq!(c.at(0), 192);
+    }
+
+    #[test]
+    fn basic_gemm_one() {
+        let mut a = Matrix2d::<i64>::new(4, 8);
+        let mut b = Matrix2d::<i64>::new(8, 6);
+        let mut c = Matrix2d::<i64>::new(4, 6);
+
+        a.fill(2);
+        b.fill(3);
+
+        c |= &a * &b;
+
+        assert_eq!(c.at2(0, 0), 48);
+    }
+
+    #[test]
+    fn basic_gemm_one_plus() {
+        let mut a = Matrix2d::<i64>::new(4, 8);
+        let mut b = Matrix2d::<i64>::new(8, 6);
+        let mut c = Matrix2d::<i64>::new(4, 6);
+
+        a.fill(2);
+        b.fill(3);
+
+        c |= (&a * &b) + (&a * &b);
+
+        assert_eq!(c.at2(0, 0), 96);
+    }
+
+    #[test]
+    fn basic_gemm_one_plus_plus() {
+        let mut a = Matrix2d::<i64>::new(4, 8);
+        let mut b = Matrix2d::<i64>::new(8, 6);
+        let mut c = Matrix2d::<i64>::new(4, 6);
+
+        a.fill(2);
+        b.fill(3);
+
+        c |= (&a + &a) * (&b + &b);
+
+        assert_eq!(c.at2(0, 0), 192);
     }
 }
