@@ -194,7 +194,7 @@ fn main() {
     bench_gemm_chain(32);
     bench_gemm_chain(64);
     bench_gemm_chain(128);
-    //TODO Too Slow bench_gemm_chain(256);
-    //TODO Too Slow bench_gemm_chain(512);
-    //TODO Too Slow bench_gemm_chain(768);
+    bench_gemm_chain(256);
+    bench_gemm_chain(512);
+    bench_gemm_chain(768);
 }
