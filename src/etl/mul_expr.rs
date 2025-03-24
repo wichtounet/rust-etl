@@ -70,9 +70,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
     fn compute_gemm(&self, output: &mut Vec<T>) {
         // If we already compute the value at construction, can do a simple copy
         if !self.temp.is_empty() {
-            for i in 0..self.temp.len() {
-                output[i] = self.temp[i]
-            }
+            output[..self.temp.len()].copy_from_slice(&self.temp[..]);
             return;
         }
 
