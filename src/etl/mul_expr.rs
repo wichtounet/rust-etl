@@ -8,6 +8,8 @@ use crate::impl_sub_op_binary_expr;
 use crate::etl::matrix_2d::Matrix2d;
 use crate::etl::vector::Vector;
 
+// TODO Too many things are public (temp, compute_gemm)
+
 // The declaration of MulExpr
 
 /// Expression represneting a vector-matrix-multiplication
@@ -17,6 +19,7 @@ use crate::etl::vector::Vector;
 pub struct MulExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
     lhs: EtlWrapper<T, LeftExpr::WrappedAs>,
     rhs: EtlWrapper<T, RightExpr::WrappedAs>,
+    pub temp: Vec<T>,
 }
 
 // The functions of MulExpr
@@ -62,14 +65,11 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
         Self {
             lhs: lhs.wrap(),
             rhs: rhs.wrap(),
+            temp: Vec::<T>::new(),
         }
     }
 
     fn compute_gemm(&self, output: &mut Vec<T>) {
-        // Need to copy lhs into Vec<T>
-        // Need to copy rhs into Vec<T>
-        // But if lhs/rhs is value, keep it
-
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
             output.fill(T::default());
 
@@ -143,45 +143,11 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 
     fn at(&self, i: usize) -> T {
-        // TODO: Always do a lazy computation
-
-        if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
-            let mut value = T::default();
-
-            for r in 0..self.rhs.value.rows() {
-                value += self.lhs.value.at(r) * self.rhs.value.at2(r, i)
-            }
-
-            value
-        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
-            let mut value = T::default();
-
-            for c in 0..self.lhs.value.columns() {
-                value += self.lhs.value.at2(i, c) * self.rhs.value.at(c);
-            }
-
-            value
-        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
-            self.at2(i / self.columns(), i % self.columns())
-        } else {
-            panic!("This code should be unreachable!");
-        }
+        self.temp[i]
     }
 
     fn at2(&self, row: usize, column: usize) -> T {
-        // TODO: Do a lazy computation
-
-        if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
-            let mut value = T::default();
-
-            for inner in 0..self.lhs.value.columns() {
-                value += self.lhs.value.at2(row, inner) * self.rhs.value.at2(inner, column)
-            }
-
-            value
-        } else {
-            panic!("This code should be unreachable!");
-        }
+        self.temp[row * self.columns() + column]
     }
 }
 
@@ -218,45 +184,11 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 
     fn at(&self, i: usize) -> T {
-        // TODO: Always do a lazy computation
-
-        if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
-            let mut value = T::default();
-
-            for r in 0..self.rhs.value.rows() {
-                value += self.lhs.value.at(r) * self.rhs.value.at2(r, i)
-            }
-
-            value
-        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
-            let mut value = T::default();
-
-            for c in 0..self.lhs.value.columns() {
-                value += self.lhs.value.at2(i, c) * self.rhs.value.at(c);
-            }
-
-            value
-        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
-            self.at2(i / self.columns(), i % self.columns())
-        } else {
-            panic!("This code should be unreachable!");
-        }
+        self.temp[i]
     }
 
     fn at2(&self, row: usize, column: usize) -> T {
-        // TODO: Do a lazy computation
-
-        if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
-            let mut value = T::default();
-
-            for inner in 0..self.lhs.value.columns() {
-                value += self.lhs.value.at2(row, inner) * self.rhs.value.at2(inner, column)
-            }
-
-            value
-        } else {
-            panic!("This code should be unreachable!");
-        }
+        self.temp[row * self.columns() + column]
     }
 }
 
@@ -314,7 +246,17 @@ macro_rules! impl_mul_op_value {
             type Output = MulExpr<T, &'a $type, RightExpr>;
 
             fn mul(self, other: RightExpr) -> Self::Output {
-                Self::Output::new(self, other)
+                let mut expr = Self::Output::new(self, other);
+
+                if Self::Output::DIMENSIONS == 2 {
+                    let temp = expr.to_matrix();
+                    expr.temp = temp.value.data;
+                } else {
+                    let temp = expr.to_vector();
+                    expr.temp = temp.value.data;
+                }
+
+                expr
             }
         }
     };
@@ -329,7 +271,17 @@ macro_rules! impl_mul_op_binary_expr {
             type Output = MulExpr<T, $type, OuterRightExpr>;
 
             fn mul(self, other: OuterRightExpr) -> Self::Output {
-                Self::Output::new(self, other)
+                let mut expr = Self::Output::new(self, other);
+
+                if Self::Output::DIMENSIONS == 2 {
+                    let temp = expr.to_matrix();
+                    expr.temp = temp.value.data;
+                } else {
+                    let temp = expr.to_vector();
+                    expr.temp = temp.value.data;
+                }
+
+                expr
             }
         }
     };
