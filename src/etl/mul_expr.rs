@@ -8,8 +8,6 @@ use crate::impl_sub_op_binary_expr;
 use crate::etl::matrix_2d::Matrix2d;
 use crate::etl::vector::Vector;
 
-// TODO Too many things are public (temp, compute_gemm)
-
 // The declaration of MulExpr
 
 /// Expression represneting a vector-matrix-multiplication
@@ -70,6 +68,14 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
     }
 
     fn compute_gemm(&self, output: &mut Vec<T>) {
+        // If we already compute the value at construction, can do a simple copy
+        if !self.temp.is_empty() {
+            for i in 0..self.temp.len() {
+                output[i] = self.temp[i]
+            }
+            return;
+        }
+
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
             output.fill(T::default());
 
