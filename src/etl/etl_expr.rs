@@ -39,14 +39,6 @@ pub trait EtlExpr<T: EtlValueType> {
     fn compute_into(&self, _lhs: &mut Vec<T>) {
         panic!("This function is only implemented for smart expression");
     }
-
-    fn get_data_mut(&mut self) -> &mut Vec<T> {
-        panic!("The get_data_mut function is only implemented for value expression");
-    }
-
-    fn get_data(&self) -> &Vec<T> {
-        panic!("The get_dat function is only implemented for value expression");
-    }
 }
 
 // It does not seem like I can force Index trait because it must return a reference which
