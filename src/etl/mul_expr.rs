@@ -68,7 +68,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
     }
 
     fn compute_gemm(&self, output: &mut Vec<T>) {
-        // If we already compute the value at construction, can do a simple copy
+        // If we already computed the value at construction, we can do a simple copy
         if !self.temp.is_empty() {
             output[..self.temp.len()].copy_from_slice(&self.temp[..]);
             return;
@@ -77,35 +77,54 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
             // No need to zero the vector since we did that a construction
 
-            let lhs = self.lhs.value.to_vector();
-            let rhs = self.rhs.value.to_matrix();
+            let lhs_cont = self.lhs.value.to_vector();
+            let rhs_cont = self.rhs.value.to_matrix();
 
-            for row in 0..self.rhs.value.rows() {
-                for column in 0..self.rhs.value.columns() {
-                    output[column] += lhs.value.at(row) * rhs.value.at2(row, column)
+            let lhs = lhs_cont.value.get_data();
+            let rhs = rhs_cont.value.get_data();
+
+            let m = self.rhs.value.rows();
+            let n = self.rhs.value.columns();
+
+            for row in 0..m {
+                for column in 0..n {
+                    output[column] += lhs[row] * rhs[row * n + column];
                 }
             }
         } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
             // No need to zero the vector since we did that a construction
 
-            let lhs = self.lhs.value.to_matrix();
-            let rhs = self.rhs.value.to_vector();
+            let lhs_cont = self.lhs.value.to_matrix();
+            let rhs_cont = self.rhs.value.to_vector();
 
-            for row in 0..self.lhs.value.rows() {
-                for column in 0..self.lhs.value.columns() {
-                    output[row] += rhs.value.at(column) * lhs.value.at2(row, column)
+            let lhs = lhs_cont.value.get_data();
+            let rhs = rhs_cont.value.get_data();
+
+            let m = self.lhs.value.rows();
+            let n = self.lhs.value.columns();
+
+            for row in 0..m {
+                for column in 0..n {
+                    output[row] += rhs[column] * lhs[row * n + column];
                 }
             }
         } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
             // No need to zero the vector since we did that a construction
 
-            let lhs = self.lhs.value.to_matrix();
-            let rhs = self.rhs.value.to_matrix();
+            let lhs_cont = self.lhs.value.to_matrix();
+            let rhs_cont = self.rhs.value.to_matrix();
 
-            for row in 0..self.lhs.value.rows() {
-                for column in 0..self.lhs.value.columns() {
-                    for outer in 0..self.rhs.value.columns() {
-                        output[row * self.rhs.value.columns() + outer] += lhs.value.at2(row, column) * rhs.value.at2(column, outer)
+            let lhs = lhs_cont.value.get_data();
+            let rhs = rhs_cont.value.get_data();
+
+            let m = self.lhs.value.rows();
+            let n = self.lhs.value.columns();
+            let k = self.rhs.value.columns();
+
+            for row in 0..m {
+                for column in 0..n {
+                    for outer in 0..k {
+                        output[row * k + outer] += lhs[row * n + column] * rhs[column * k + outer]
                     }
                 }
             }

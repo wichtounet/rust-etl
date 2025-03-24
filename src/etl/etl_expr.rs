@@ -41,6 +41,10 @@ pub trait EtlExpr<T: EtlValueType> {
     }
 }
 
+pub trait EtlContainer<T: EtlValueType>: EtlExpr<T> {
+    fn get_data(&self) -> &Vec<T>;
+}
+
 // It does not seem like I can force Index trait because it must return a reference which
 // expressions cannot do. Therefore, I settled on at instead, which should work fine
 // TODO: See if there is any way to remove the phantom data here
@@ -50,8 +54,8 @@ pub struct EtlWrapper<T: EtlValueType, SubExpr: EtlExpr<T>> {
 }
 
 pub trait EtlComputable<T: EtlValueType> {
-    type ComputedAsVector: EtlExpr<T>;
-    type ComputedAsMatrix: EtlExpr<T>;
+    type ComputedAsVector: EtlContainer<T>;
+    type ComputedAsMatrix: EtlContainer<T>;
     fn to_vector(&self) -> EtlWrapper<T, Self::ComputedAsVector>;
     fn to_matrix(&self) -> EtlWrapper<T, Self::ComputedAsMatrix>;
 }

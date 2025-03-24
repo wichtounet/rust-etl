@@ -155,6 +155,18 @@ impl<T: EtlValueType> EtlExpr<T> for &Matrix2d<T> {
     }
 }
 
+impl<T: EtlValueType> EtlContainer<T> for Matrix2d<T> {
+    fn get_data(&self) -> &Vec<T> {
+        &self.data
+    }
+}
+
+impl<T: EtlValueType> EtlContainer<T> for &Matrix2d<T> {
+    fn get_data(&self) -> &Vec<T> {
+        &self.data
+    }
+}
+
 // Matrix2d<T> wraps as reference
 impl<'a, T: EtlValueType> EtlWrappable<T> for &'a Matrix2d<T> {
     type WrappedAs = &'a Matrix2d<T>;

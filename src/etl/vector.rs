@@ -120,6 +120,18 @@ impl<T: EtlValueType> EtlExpr<T> for &Vector<T> {
     }
 }
 
+impl<T: EtlValueType> EtlContainer<T> for Vector<T> {
+    fn get_data(&self) -> &Vec<T> {
+        &self.data
+    }
+}
+
+impl<T: EtlValueType> EtlContainer<T> for &Vector<T> {
+    fn get_data(&self) -> &Vec<T> {
+        &self.data
+    }
+}
+
 // Vector<T> wraps as reference
 impl<'a, T: EtlValueType> EtlWrappable<T> for &'a Vector<T> {
     type WrappedAs = &'a Vector<T>;
