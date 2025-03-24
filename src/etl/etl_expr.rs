@@ -79,7 +79,7 @@ pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, 
         }*/
 
         // TODO: How can we do a memcpy when we do not know RightExpr?
-        for i in 0..data.len() {
+        for i in 0..rhs.size() {
             data[i] = rhs.at(i);
         }
     } else if RightExpr::TYPE == EtlType::Simple {
@@ -87,7 +87,7 @@ pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, 
             panic!("Cannot assign A=B, dimensions are invalid ({} and {})", lhs.size(), rhs.size());
         }*/
 
-        for i in 0..data.len() {
+        for i in 0..rhs.size() {
             data[i] = rhs.at(i);
         }
     } else if RightExpr::TYPE == EtlType::Smart {

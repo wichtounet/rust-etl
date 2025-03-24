@@ -17,6 +17,7 @@ use crate::etl::matrix_2d::Matrix2d;
 
 pub struct Vector<T: EtlValueType> {
     pub data: Vec<T>,
+    size: usize,
 }
 
 // The functions of Vector<T>
@@ -25,6 +26,7 @@ impl<T: EtlValueType> Vector<T> {
     pub fn new(size: usize) -> Self {
         Self {
             data: vec![T::default(); size],
+            size,
         }
     }
 
@@ -91,11 +93,11 @@ impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
     const TYPE: EtlType = EtlType::Value;
 
     fn size(&self) -> usize {
-        self.data.len()
+        self.size
     }
 
     fn rows(&self) -> usize {
-        self.data.len()
+        self.size
     }
 
     fn at(&self, i: usize) -> T {
@@ -108,11 +110,11 @@ impl<T: EtlValueType> EtlExpr<T> for &Vector<T> {
     const TYPE: EtlType = EtlType::Value;
 
     fn size(&self) -> usize {
-        self.data.len()
+        self.size
     }
 
     fn rows(&self) -> usize {
-        self.data.len()
+        self.size
     }
 
     fn at(&self, i: usize) -> T {
