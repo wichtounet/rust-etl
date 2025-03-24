@@ -77,7 +77,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
         }
 
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
-            output.fill(T::default());
+            // No need to zero the vector since we did that a construction
 
             let lhs = self.lhs.value.to_vector();
             let rhs = self.rhs.value.to_matrix();
@@ -88,7 +88,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
                 }
             }
         } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
-            output.fill(T::default());
+            // No need to zero the vector since we did that a construction
 
             let lhs = self.lhs.value.to_matrix();
             let rhs = self.rhs.value.to_vector();
@@ -99,7 +99,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
                 }
             }
         } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
-            output.fill(T::default());
+            // No need to zero the vector since we did that a construction
 
             let lhs = self.lhs.value.to_matrix();
             let rhs = self.rhs.value.to_matrix();
