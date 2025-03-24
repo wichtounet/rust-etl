@@ -5,6 +5,9 @@ use crate::etl::sub_expr::SubExpr;
 use crate::impl_add_op_binary_expr;
 use crate::impl_sub_op_binary_expr;
 
+use crate::etl::matrix_2d::Matrix2d;
+use crate::etl::vector::Vector;
+
 // The declaration of MulExpr
 
 /// Expression represneting a vector-matrix-multiplication
@@ -61,6 +64,51 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
             rhs: rhs.wrap(),
         }
     }
+
+    fn compute_gemm(&self, output: &mut Vec<T>) {
+        // Need to copy lhs into Vec<T>
+        // Need to copy rhs into Vec<T>
+        // But if lhs/rhs is value, keep it
+
+        if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
+            output.fill(T::default());
+
+            let lhs = self.lhs.value.to_vector();
+            let rhs = self.rhs.value.to_matrix();
+
+            for row in 0..self.rhs.value.rows() {
+                for column in 0..self.rhs.value.columns() {
+                    output[column] += lhs.value.at(row) * rhs.value.at2(row, column)
+                }
+            }
+        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
+            output.fill(T::default());
+
+            let lhs = self.lhs.value.to_matrix();
+            let rhs = self.rhs.value.to_vector();
+
+            for row in 0..self.lhs.value.rows() {
+                for column in 0..self.lhs.value.columns() {
+                    output[row] += rhs.value.at(column) * lhs.value.at2(row, column)
+                }
+            }
+        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
+            output.fill(T::default());
+
+            let lhs = self.lhs.value.to_matrix();
+            let rhs = self.rhs.value.to_matrix();
+
+            for row in 0..self.lhs.value.rows() {
+                for column in 0..self.lhs.value.columns() {
+                    for outer in 0..self.rhs.value.columns() {
+                        output[row * self.rhs.value.columns() + outer] += lhs.value.at2(row, column) * rhs.value.at2(column, outer)
+                    }
+                }
+            }
+        } else {
+            panic!("This code should be unreachable!");
+        }
+    }
 }
 
 // MulExpr is an EtlExpr
@@ -90,36 +138,83 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
         self.rhs.value.columns()
     }
 
-    fn compute_into(&self, data: &mut Vec<T>) {
+    fn compute_into(&self, output: &mut Vec<T>) {
+        self.compute_gemm(output);
+    }
+
+    fn at(&self, i: usize) -> T {
+        // TODO: Always do a lazy computation
+
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
-            data.fill(T::default());
+            let mut value = T::default();
 
-            for row in 0..self.rhs.value.rows() {
-                for column in 0..self.rhs.value.columns() {
-                    data[column] += self.lhs.value.at(row) * self.rhs.value.at2(row, column)
-                }
+            for r in 0..self.rhs.value.rows() {
+                value += self.lhs.value.at(r) * self.rhs.value.at2(r, i)
             }
+
+            value
         } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
-            data.fill(T::default());
+            let mut value = T::default();
 
-            for row in 0..self.lhs.value.rows() {
-                for column in 0..self.lhs.value.columns() {
-                    data[row] += self.rhs.value.at(column) * self.lhs.value.at2(row, column)
-                }
+            for c in 0..self.lhs.value.columns() {
+                value += self.lhs.value.at2(i, c) * self.rhs.value.at(c);
             }
+
+            value
         } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
-            data.fill(T::default());
-
-            for row in 0..self.lhs.value.rows() {
-                for column in 0..self.lhs.value.columns() {
-                    for outer in 0..self.rhs.value.columns() {
-                        data[row * self.rhs.value.columns() + outer] += self.lhs.value.at2(row, column) * self.rhs.value.at2(column, outer)
-                    }
-                }
-            }
+            self.at2(i / self.columns(), i % self.columns())
         } else {
             panic!("This code should be unreachable!");
         }
+    }
+
+    fn at2(&self, row: usize, column: usize) -> T {
+        // TODO: Do a lazy computation
+
+        if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
+            let mut value = T::default();
+
+            for inner in 0..self.lhs.value.columns() {
+                value += self.lhs.value.at2(row, inner) * self.rhs.value.at2(inner, column)
+            }
+
+            value
+        } else {
+            panic!("This code should be unreachable!");
+        }
+    }
+}
+
+// TODO get rid of that
+// MulExpr is an EtlExpr
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for &MulExpr<T, LeftExpr, RightExpr> {
+    const DIMENSIONS: usize = if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 { 2 } else { 1 };
+    const TYPE: EtlType = EtlType::Smart;
+
+    fn size(&self) -> usize {
+        if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
+            self.rhs.value.columns()
+        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
+            self.lhs.value.rows()
+        } else {
+            self.lhs.value.rows() * self.rhs.value.columns()
+        }
+    }
+
+    fn rows(&self) -> usize {
+        if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
+            self.rhs.value.columns()
+        } else {
+            self.lhs.value.rows()
+        }
+    }
+
+    fn columns(&self) -> usize {
+        self.rhs.value.columns()
+    }
+
+    fn compute_into(&self, output: &mut Vec<T>) {
+        self.compute_gemm(output);
     }
 
     fn at(&self, i: usize) -> T {
@@ -173,6 +268,30 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
         EtlWrapper {
             value: self,
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+// MulExpr computes as copy
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlComputable<T> for MulExpr<T, LeftExpr, RightExpr> {
+    type ComputedAsVector = Vector<T>;
+    type ComputedAsMatrix = Matrix2d<T>;
+
+    fn to_vector(&self) -> EtlWrapper<T, Self::ComputedAsVector> {
+        let mut vec = Vector::<T>::new(self.rows());
+        assign_direct(&mut vec.data, self);
+        EtlWrapper {
+            value: vec,
+            _marker: std::marker::PhantomData,
+        }
+    }
+
+    fn to_matrix(&self) -> EtlWrapper<T, Self::ComputedAsMatrix> {
+        let mut vec = Matrix2d::<T>::new(self.rows(), self.columns());
+        assign_direct(&mut vec.data, self);
+        EtlWrapper {
+            value: vec,
             _marker: std::marker::PhantomData,
         }
     }

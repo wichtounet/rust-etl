@@ -5,6 +5,9 @@ use crate::etl::sub_expr::SubExpr;
 use crate::impl_mul_op_binary_expr;
 use crate::impl_sub_op_binary_expr;
 
+use crate::etl::matrix_2d::Matrix2d;
+use crate::etl::vector::Vector;
+
 // The declaration of AddExpr
 
 pub struct AddExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
@@ -53,6 +56,32 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 }
 
+// AddExpr is an EtlExpr
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for &AddExpr<T, LeftExpr, RightExpr> {
+    const DIMENSIONS: usize = LeftExpr::DIMENSIONS;
+    const TYPE: EtlType = EtlType::Simple;
+
+    fn size(&self) -> usize {
+        self.lhs.value.size()
+    }
+
+    fn rows(&self) -> usize {
+        self.lhs.value.rows()
+    }
+
+    fn columns(&self) -> usize {
+        self.lhs.value.columns()
+    }
+
+    fn at(&self, i: usize) -> T {
+        self.lhs.value.at(i) + self.rhs.value.at(i)
+    }
+
+    fn at2(&self, row: usize, column: usize) -> T {
+        self.lhs.value.at2(row, column) + self.rhs.value.at2(row, column)
+    }
+}
+
 // AddExpr is an EtlWrappable
 // AddExpr wraps as value
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for AddExpr<T, LeftExpr, RightExpr> {
@@ -61,6 +90,30 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
         EtlWrapper {
             value: self,
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+// AddExpr computes as copy
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlComputable<T> for AddExpr<T, LeftExpr, RightExpr> {
+    type ComputedAsVector = Vector<T>;
+    type ComputedAsMatrix = Matrix2d<T>;
+
+    fn to_vector(&self) -> EtlWrapper<T, Self::ComputedAsVector> {
+        let mut vec = Vector::<T>::new(self.rows());
+        assign_direct(&mut vec.data, self);
+        EtlWrapper {
+            value: vec,
+            _marker: std::marker::PhantomData,
+        }
+    }
+
+    fn to_matrix(&self) -> EtlWrapper<T, Self::ComputedAsMatrix> {
+        let mut vec = Matrix2d::<T>::new(self.rows(), self.columns());
+        assign_direct(&mut vec.data, self);
+        EtlWrapper {
+            value: vec,
             _marker: std::marker::PhantomData,
         }
     }

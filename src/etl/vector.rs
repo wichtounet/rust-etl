@@ -11,10 +11,12 @@ use std::ops::BitOrAssign;
 
 use rand::Rng;
 
+use crate::etl::matrix_2d::Matrix2d;
+
 // The declaration of Vector<T>
 
 pub struct Vector<T: EtlValueType> {
-    data: Vec<T>,
+    pub data: Vec<T>,
 }
 
 // The functions of Vector<T>
@@ -127,6 +129,23 @@ impl<'a, T: EtlValueType> EtlWrappable<T> for &'a Vector<T> {
             value: &self,
             _marker: std::marker::PhantomData,
         }
+    }
+}
+
+// Vector<T> computes as itself
+impl<'a, T: EtlValueType> EtlComputable<T> for &'a Vector<T> {
+    type ComputedAsVector = &'a Vector<T>;
+    type ComputedAsMatrix = Matrix2d<T>;
+
+    fn to_vector(&self) -> EtlWrapper<T, Self::ComputedAsVector> {
+        EtlWrapper {
+            value: &self,
+            _marker: std::marker::PhantomData,
+        }
+    }
+
+    fn to_matrix(&self) -> EtlWrapper<T, Self::ComputedAsMatrix> {
+        panic!("to_matrix should not be called on a Vector");
     }
 }
 

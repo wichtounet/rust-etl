@@ -57,13 +57,20 @@ pub struct EtlWrapper<T: EtlValueType, SubExpr: EtlExpr<T>> {
     pub _marker: std::marker::PhantomData<T>,
 }
 
+pub trait EtlComputable<T: EtlValueType> {
+    type ComputedAsVector: EtlExpr<T>;
+    type ComputedAsMatrix: EtlExpr<T>;
+    fn to_vector(&self) -> EtlWrapper<T, Self::ComputedAsVector>;
+    fn to_matrix(&self) -> EtlWrapper<T, Self::ComputedAsMatrix>;
+}
+
 pub trait EtlWrappable<T: EtlValueType> {
-    type WrappedAs: EtlExpr<T>;
+    type WrappedAs: EtlExpr<T> + EtlComputable<T>;
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs>;
 }
 
-pub trait WrappableExpr<T: EtlValueType>: EtlExpr<T> + EtlWrappable<T> {}
-impl<T: EtlValueType, TT: EtlExpr<T> + EtlWrappable<T>> WrappableExpr<T> for TT {}
+pub trait WrappableExpr<T: EtlValueType>: EtlExpr<T> + EtlWrappable<T> + EtlComputable<T> {}
+impl<T: EtlValueType, TT: EtlExpr<T> + EtlWrappable<T> + EtlComputable<T>> WrappableExpr<T> for TT {}
 
 // Assignment functions, probably should be moved elsewhere
 
