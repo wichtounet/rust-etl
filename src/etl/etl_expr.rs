@@ -1,7 +1,69 @@
 use std::ops::*;
 
-pub trait EtlValueType: Default + Clone + Copy + Add<Output = Self> + AddAssign + Sub<Output = Self> + SubAssign + Mul<Output = Self> + MulAssign {}
-impl<T: Default + Clone + Copy + Add<Output = T> + AddAssign<T> + Sub<Output = T> + SubAssign<T> + Mul<Output = T> + MulAssign<T>> EtlValueType for T {}
+// Rust is pretty much retarded for getting constants out a generic type
+pub trait Constants {
+    fn one() -> Self;
+}
+
+impl Constants for f64 {
+    fn one() -> Self {
+        1.0
+    }
+}
+
+impl Constants for i64 {
+    fn one() -> Self {
+        1
+    }
+}
+
+pub trait Float {
+    fn exp(self) -> Self;
+}
+
+impl Float for f32 {
+    fn exp(self) -> Self {
+        self.exp()
+    }
+}
+
+impl Float for f64 {
+    fn exp(self) -> Self {
+        self.exp()
+    }
+}
+
+pub trait EtlValueType:
+    Constants
+    + Default
+    + Clone
+    + Copy
+    + Add<Output = Self>
+    + AddAssign
+    + Sub<Output = Self>
+    + SubAssign
+    + Mul<Output = Self>
+    + MulAssign
+    + Div<Output = Self>
+    + DivAssign
+{
+}
+impl<
+        T: Constants
+            + Default
+            + Clone
+            + Copy
+            + Add<Output = T>
+            + AddAssign<T>
+            + Sub<Output = T>
+            + SubAssign<T>
+            + Mul<Output = T>
+            + MulAssign<T>
+            + Div<Output = Self>
+            + DivAssign,
+    > EtlValueType for T
+{
+}
 
 #[derive(PartialEq)]
 pub enum EtlType {
