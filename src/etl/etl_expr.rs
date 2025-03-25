@@ -11,7 +11,19 @@ impl Constants for f64 {
     }
 }
 
+impl Constants for f32 {
+    fn one() -> Self {
+        1.0
+    }
+}
+
 impl Constants for i64 {
+    fn one() -> Self {
+        1
+    }
+}
+
+impl Constants for i32 {
     fn one() -> Self {
         1
     }
