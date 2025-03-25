@@ -20,21 +20,11 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
             if lhs.rows() != rhs.rows() {
-                panic!(
-                    "Invalid vector matrix multiplication dimensions ([{}]*[{},{}])",
-                    lhs.rows(),
-                    rhs.rows(),
-                    rhs.columns()
-                );
+                panic!("Invalid vector matrix multiplication dimensions ([{}]*[{},{}])", lhs.rows(), rhs.rows(), rhs.columns());
             }
         } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
             if lhs.columns() != rhs.rows() {
-                panic!(
-                    "Invalid matrix vector multiplication dimensions ([{},{}]*[{}])",
-                    lhs.rows(),
-                    rhs.rows(),
-                    rhs.columns()
-                );
+                panic!("Invalid matrix vector multiplication dimensions ([{},{}]*[{}])", lhs.rows(), rhs.rows(), rhs.columns());
             }
         } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
             if lhs.columns() != rhs.rows() {
@@ -47,11 +37,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
                 );
             }
         } else {
-            panic!(
-                "Invalid vector matrix multiplication dimensions ({}D*{}D)",
-                LeftExpr::DIMENSIONS,
-                RightExpr::DIMENSIONS
-            );
+            panic!("Invalid vector matrix multiplication dimensions ({}D*{}D)", LeftExpr::DIMENSIONS, RightExpr::DIMENSIONS);
         }
 
         Self {

@@ -26,11 +26,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> A
 
 // AddExpr is an EtlExpr
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for AddExpr<T, LeftExpr, RightExpr> {
-    const DIMENSIONS: usize = if LeftExpr::DIMENSIONS > 0 {
-        LeftExpr::DIMENSIONS
-    } else {
-        RightExpr::DIMENSIONS
-    };
+    const DIMENSIONS: usize = if LeftExpr::DIMENSIONS > 0 { LeftExpr::DIMENSIONS } else { RightExpr::DIMENSIONS };
     const TYPE: EtlType = EtlType::Simple;
 
     fn size(&self) -> usize {
