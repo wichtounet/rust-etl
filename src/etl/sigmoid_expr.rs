@@ -1,9 +1,11 @@
 use crate::etl::add_expr::AddExpr;
 use crate::etl::etl_expr::*;
 use crate::etl::mul_expr::MulExpr;
+use crate::etl::sub_expr::SubExpr;
 
-use crate::impl_add_op_binary_expr;
-use crate::impl_mul_op_binary_expr;
+use crate::impl_add_op_unary_expr_float;
+use crate::impl_mul_op_unary_expr_float;
+use crate::impl_sub_op_unary_expr_float;
 
 use crate::etl::matrix_2d::Matrix2d;
 use crate::etl::vector::Vector;
@@ -116,10 +118,9 @@ pub fn sigmoid<T: EtlValueType + Float, Expr: WrappableExpr<T>>(expr: Expr) -> S
     SigmoidExpr::<T, Expr>::new(expr)
 }
 
-// TODO Allow chaining operators
-//impl_add_op_binary_expr!(SigmoidExpr<T, Expr, RightExpr>);
-//impl_sub_op_binary_expr!(SigmoidExpr<T, Expr, RightExpr>);
-//impl_mul_op_binary_expr!(SigmoidExpr<T, Expr, RightExpr>);
+impl_add_op_unary_expr_float!(SigmoidExpr<T, Expr>);
+impl_sub_op_unary_expr_float!(SigmoidExpr<T, Expr>);
+impl_mul_op_unary_expr_float!(SigmoidExpr<T, Expr>);
 
 // The tests
 
@@ -156,5 +157,25 @@ mod tests {
         assert_relative_eq!(b.at(2), 0.047425872, epsilon = 1e-6);
         assert_relative_eq!(b.at(3), 0.017986209, epsilon = 1e-6);
         assert_relative_eq!(b.at(4), 0.006692850, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn basic_sigmoid_expr() {
+        let mut a = Vector::<f64>::new(5);
+        let mut b = Vector::<f64>::new(5);
+
+        a[0] = 1.0;
+        a[1] = 2.0;
+        a[2] = 3.0;
+        a[3] = 4.0;
+        a[4] = 5.0;
+
+        b |= sigmoid(&a) + sigmoid(&a);
+
+        assert_relative_eq!(b.at(0), 2.0 * 0.268941421, epsilon = 1e-6);
+        assert_relative_eq!(b.at(1), 2.0 * 0.119202922, epsilon = 1e-6);
+        assert_relative_eq!(b.at(2), 2.0 * 0.047425872, epsilon = 1e-6);
+        assert_relative_eq!(b.at(3), 2.0 * 0.017986209, epsilon = 1e-6);
+        assert_relative_eq!(b.at(4), 2.0 * 0.006692850, epsilon = 1e-6);
     }
 }

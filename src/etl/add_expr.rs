@@ -159,6 +159,32 @@ macro_rules! impl_add_op_binary_expr {
     };
 }
 
+#[macro_export]
+macro_rules! impl_add_op_unary_expr {
+    ($type:ty) => {
+        impl<T: EtlValueType, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Add<OuterRightExpr> for $type {
+            type Output = AddExpr<T, $type, OuterRightExpr>;
+
+            fn add(self, other: OuterRightExpr) -> Self::Output {
+                Self::Output::new(self, other)
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! impl_add_op_unary_expr_float {
+    ($type:ty) => {
+        impl<T: EtlValueType + Float, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Add<OuterRightExpr> for $type {
+            type Output = AddExpr<T, $type, OuterRightExpr>;
+
+            fn add(self, other: OuterRightExpr) -> Self::Output {
+                Self::Output::new(self, other)
+            }
+        }
+    };
+}
+
 impl_add_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
 impl_sub_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
 impl_mul_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);

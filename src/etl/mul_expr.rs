@@ -310,6 +310,52 @@ macro_rules! impl_mul_op_binary_expr {
     };
 }
 
+#[macro_export]
+macro_rules! impl_mul_op_unary_expr {
+    ($type:ty) => {
+        impl<T: EtlValueType, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr> for $type {
+            type Output = MulExpr<T, $type, OuterRightExpr>;
+
+            fn mul(self, other: OuterRightExpr) -> Self::Output {
+                let mut expr = Self::Output::new(self, other);
+
+                if Self::Output::DIMENSIONS == 2 {
+                    let temp = expr.to_matrix();
+                    expr.temp = temp.value.data;
+                } else {
+                    let temp = expr.to_vector();
+                    expr.temp = temp.value.data;
+                }
+
+                expr
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! impl_mul_op_unary_expr_float {
+    ($type:ty) => {
+        impl<T: EtlValueType + Float, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr> for $type {
+            type Output = MulExpr<T, $type, OuterRightExpr>;
+
+            fn mul(self, other: OuterRightExpr) -> Self::Output {
+                let mut expr = Self::Output::new(self, other);
+
+                if Self::Output::DIMENSIONS == 2 {
+                    let temp = expr.to_matrix();
+                    expr.temp = temp.value.data;
+                } else {
+                    let temp = expr.to_vector();
+                    expr.temp = temp.value.data;
+                }
+
+                expr
+            }
+        }
+    };
+}
+
 impl_add_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
 impl_sub_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
 impl_mul_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
