@@ -2,9 +2,6 @@ use crate::etl::etl_expr::*;
 use crate::etl::mul_expr::MulExpr;
 use crate::etl::sub_expr::SubExpr;
 
-use crate::impl_mul_op_binary_expr;
-use crate::impl_sub_op_binary_expr;
-
 use crate::etl::matrix_2d::Matrix2d;
 use crate::etl::vector::Vector;
 
@@ -19,7 +16,7 @@ pub struct AddExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: Wrapp
 
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> AddExpr<T, LeftExpr, RightExpr> {
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
-        if lhs.size() != rhs.size() {
+        if LeftExpr::DIMENSIONS > 0 && RightExpr::DIMENSIONS > 0 && lhs.size() != rhs.size() {
             panic!("Cannot add expressions of different sizes ({} + {})", lhs.size(), rhs.size());
         }
 
@@ -32,19 +29,35 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> A
 
 // AddExpr is an EtlExpr
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for AddExpr<T, LeftExpr, RightExpr> {
-    const DIMENSIONS: usize = LeftExpr::DIMENSIONS;
+    const DIMENSIONS: usize = if LeftExpr::DIMENSIONS > 0 {
+        LeftExpr::DIMENSIONS
+    } else {
+        RightExpr::DIMENSIONS
+    };
     const TYPE: EtlType = EtlType::Simple;
 
     fn size(&self) -> usize {
-        self.lhs.value.size()
+        if LeftExpr::DIMENSIONS > 0 {
+            self.lhs.value.size()
+        } else {
+            self.rhs.value.size()
+        }
     }
 
     fn rows(&self) -> usize {
-        self.lhs.value.rows()
+        if LeftExpr::DIMENSIONS > 0 {
+            self.lhs.value.rows()
+        } else {
+            self.rhs.value.rows()
+        }
     }
 
     fn columns(&self) -> usize {
-        self.lhs.value.columns()
+        if LeftExpr::DIMENSIONS > 0 {
+            self.lhs.value.columns()
+        } else {
+            self.rhs.value.columns()
+        }
     }
 
     fn at(&self, i: usize) -> T {
@@ -62,15 +75,27 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     const TYPE: EtlType = EtlType::Simple;
 
     fn size(&self) -> usize {
-        self.lhs.value.size()
+        if LeftExpr::DIMENSIONS > 0 {
+            self.lhs.value.size()
+        } else {
+            self.rhs.value.size()
+        }
     }
 
     fn rows(&self) -> usize {
-        self.lhs.value.rows()
+        if LeftExpr::DIMENSIONS > 0 {
+            self.lhs.value.rows()
+        } else {
+            self.rhs.value.rows()
+        }
     }
 
     fn columns(&self) -> usize {
-        self.lhs.value.columns()
+        if LeftExpr::DIMENSIONS > 0 {
+            self.lhs.value.columns()
+        } else {
+            self.rhs.value.columns()
+        }
     }
 
     fn at(&self, i: usize) -> T {
@@ -145,6 +170,19 @@ macro_rules! impl_add_op_value {
 }
 
 #[macro_export]
+macro_rules! impl_add_op_constant {
+    ($type:ty) => {
+        impl<T: EtlValueType, RightExpr: WrappableExpr<T>> std::ops::Add<RightExpr> for $type {
+            type Output = AddExpr<T, $type, RightExpr>;
+
+            fn add(self, other: RightExpr) -> Self::Output {
+                Self::Output::new(self, other)
+            }
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! impl_add_op_binary_expr {
     ($type:ty) => {
         impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Add<OuterRightExpr>
@@ -185,9 +223,9 @@ macro_rules! impl_add_op_unary_expr_float {
     };
 }
 
-impl_add_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
-impl_sub_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
-impl_mul_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
+crate::impl_add_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
+crate::impl_sub_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
+crate::impl_mul_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
 
 // The tests
 

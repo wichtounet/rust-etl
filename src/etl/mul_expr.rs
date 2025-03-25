@@ -408,6 +408,7 @@ impl_mul_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
 
 #[cfg(test)]
 mod tests {
+    use crate::etl::constant::cst;
     use crate::etl::etl_expr::EtlExpr;
     use crate::etl::matrix_2d::Matrix2d;
     use crate::etl::vector::Vector;
@@ -574,6 +575,20 @@ mod tests {
         assert_eq!(c.at2(0, 1), 64);
         assert_eq!(c.at2(1, 0), 139);
         assert_eq!(c.at2(1, 1), 154);
+
+        c |= cst(1) + (&a * &b);
+
+        assert_eq!(c.at2(0, 0), 59);
+        assert_eq!(c.at2(0, 1), 65);
+        assert_eq!(c.at2(1, 0), 140);
+        assert_eq!(c.at2(1, 1), 155);
+
+        c |= (&a * &b) - cst(1);
+
+        assert_eq!(c.at2(0, 0), 57);
+        assert_eq!(c.at2(0, 1), 63);
+        assert_eq!(c.at2(1, 0), 138);
+        assert_eq!(c.at2(1, 1), 153);
     }
 
     #[test]

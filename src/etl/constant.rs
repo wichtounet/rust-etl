@@ -3,10 +3,6 @@ use crate::etl::etl_expr::*;
 use crate::etl::mul_expr::MulExpr;
 use crate::etl::sub_expr::SubExpr;
 
-use crate::impl_add_op_value;
-use crate::impl_mul_op_value;
-use crate::impl_sub_op_value;
-
 use crate::etl::vector::Vector;
 
 use super::matrix_2d::Matrix2d;
@@ -54,7 +50,7 @@ impl<T: EtlValueType> EtlExpr<T> for Constant<T> {
     }
 }
 
-// Matrix2d<T> computes as itself
+// Constant<T> computes as itself
 impl<T: EtlValueType> EtlComputable<T> for Constant<T> {
     type ComputedAsVector = Vector<T>;
     type ComputedAsMatrix = Matrix2d<T>;
@@ -82,9 +78,8 @@ impl<T: EtlValueType> EtlWrappable<T> for Constant<T> {
 
 // Operations
 
-//impl_add_op_value!(Constant<T>);
-//impl_sub_op_value!(Constant<T>);
-//impl_mul_op_value!(Constant<T>);
+crate::impl_add_op_constant!(Constant<T>);
+crate::impl_sub_op_constant!(Constant<T>);
 
 #[cfg(test)]
 mod tests {
@@ -94,6 +89,18 @@ mod tests {
 
     #[test]
     fn basic() {
+        let mut b = Matrix2d::<i64>::new(2, 2);
+
+        b |= cst(1);
+
+        assert_eq!(b[0], 1);
+        assert_eq!(b[1], 1);
+        assert_eq!(b[2], 1);
+        assert_eq!(b[3], 1);
+    }
+
+    #[test]
+    fn basic_add() {
         let mut a = Matrix2d::<i64>::new(2, 2);
         let mut b = Matrix2d::<i64>::new(2, 2);
 
@@ -102,11 +109,36 @@ mod tests {
         a[2] = 27;
         a[3] = 42;
 
-        b |= cst(1);
+        b |= &a + cst(1);
 
-        assert_eq!(b[0], 1);
-        assert_eq!(b[1], 1);
-        assert_eq!(b[2], 1);
-        assert_eq!(b[3], 1);
+        assert_eq!(b[0], 4);
+        assert_eq!(b[1], 10);
+        assert_eq!(b[2], 28);
+        assert_eq!(b[3], 43);
+
+        b |= cst(11) + &a;
+
+        assert_eq!(b[0], 14);
+        assert_eq!(b[1], 20);
+        assert_eq!(b[2], 38);
+        assert_eq!(b[3], 53);
+    }
+
+    #[test]
+    fn basic_add_mixed() {
+        let mut a = Matrix2d::<i64>::new(2, 2);
+        let mut b = Matrix2d::<i64>::new(2, 2);
+
+        a[0] = 3;
+        a[1] = 9;
+        a[2] = 27;
+        a[3] = 42;
+
+        b |= (cst(11) + &a) + (cst(100) - &a);
+
+        assert_eq!(b[0], 14 + 97);
+        assert_eq!(b[1], 20 + 91);
+        assert_eq!(b[2], 38 + 73);
+        assert_eq!(b[3], 53 + 58);
     }
 }
