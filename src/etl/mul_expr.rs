@@ -74,6 +74,22 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
             return;
         }
 
+        self.compute_gemm_impl(output);
+    }
+
+    fn compute_gemm_add(&self, output: &mut Vec<T>) {
+        // If we already computed the value at construction, we can do a simple copy
+        if !self.temp.is_empty() {
+            for n in 0..self.temp.len() {
+                output[n] += self.temp[n];
+            }
+            return;
+        }
+
+        self.compute_gemm_impl(output);
+    }
+
+    fn compute_gemm_impl(&self, output: &mut Vec<T>) {
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
             // No need to zero the vector since we did that a construction
 
@@ -165,6 +181,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
         self.compute_gemm(output);
     }
 
+    fn compute_into_add(&self, output: &mut Vec<T>) {
+        self.compute_gemm_add(output);
+    }
+
     fn at(&self, i: usize) -> T {
         self.temp[i]
     }
@@ -204,6 +224,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 
     fn compute_into(&self, output: &mut Vec<T>) {
         self.compute_gemm(output);
+    }
+
+    fn compute_into_add(&self, output: &mut Vec<T>) {
+        self.compute_gemm_add(output);
     }
 
     fn at(&self, i: usize) -> T {
@@ -530,6 +554,36 @@ mod tests {
         assert_eq!(c.at2(0, 1), 64);
         assert_eq!(c.at2(1, 0), 139);
         assert_eq!(c.at2(1, 1), 154);
+    }
+
+    #[test]
+    fn gemm_a_compound() {
+        let mut a = Matrix2d::<i64>::new(2, 3);
+        let mut b = Matrix2d::<i64>::new(3, 2);
+        let mut c = Matrix2d::<i64>::new(2, 2);
+
+        c.fill(10);
+
+        a[0] = 1;
+        a[1] = 2;
+        a[2] = 3;
+        a[3] = 4;
+        a[4] = 5;
+        a[5] = 6;
+
+        b[0] = 7;
+        b[1] = 8;
+        b[2] = 9;
+        b[3] = 10;
+        b[4] = 11;
+        b[5] = 12;
+
+        c += &a * &b;
+
+        assert_eq!(c.at2(0, 0), 68);
+        assert_eq!(c.at2(0, 1), 74);
+        assert_eq!(c.at2(1, 0), 149);
+        assert_eq!(c.at2(1, 1), 164);
     }
 
     #[test]

@@ -138,7 +138,7 @@ macro_rules! impl_add_op_value {
 
         impl<T: EtlValueType, RightExpr: EtlExpr<T>> std::ops::AddAssign<RightExpr> for $type {
             fn add_assign(&mut self, other: RightExpr) {
-                self.add_assign_direct(other);
+                add_assign_direct(&mut self.data, other);
             }
         }
     };

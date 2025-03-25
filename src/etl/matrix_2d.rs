@@ -53,12 +53,6 @@ impl<T: EtlValueType> Matrix2d<T> {
         &mut self.data[row * self.columns + column]
     }
 
-    pub fn add_assign_direct<RightExpr: EtlExpr<T>>(&mut self, rhs: RightExpr) {
-        for i in 0..self.size() {
-            self.data[i] += rhs.at(i);
-        }
-    }
-
     pub fn sub_assign_direct<RightExpr: EtlExpr<T>>(&mut self, rhs: RightExpr) {
         for i in 0..self.size() {
             self.data[i] -= rhs.at(i);
