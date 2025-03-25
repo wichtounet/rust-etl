@@ -10,4 +10,4 @@ pub mod matrix_2d;
 pub mod vector;
 
 // The pseudo containers
-// TODO pub mod constant;
+pub mod constant;
