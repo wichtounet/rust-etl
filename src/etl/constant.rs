@@ -1,11 +1,6 @@
-use crate::etl::add_expr::AddExpr;
-use crate::etl::etl_expr::*;
-use crate::etl::mul_expr::MulExpr;
-use crate::etl::sub_expr::SubExpr;
-
-use crate::etl::vector::Vector;
-
+use super::etl_expr::*;
 use super::matrix_2d::Matrix2d;
+use super::vector::Vector;
 
 // The declaration of Constant<T>
 

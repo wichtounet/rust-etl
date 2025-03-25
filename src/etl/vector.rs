@@ -1,17 +1,9 @@
-use crate::etl::add_expr::AddExpr;
-use crate::etl::etl_expr::*;
-use crate::etl::mul_expr::MulExpr;
-use crate::etl::sub_expr::SubExpr;
-
-use crate::impl_add_op_value;
-use crate::impl_mul_op_value;
-use crate::impl_sub_op_value;
+use super::etl_expr::*;
+use super::matrix_2d::Matrix2d;
 
 use std::ops::BitOrAssign;
 
 use rand::Rng;
-
-use crate::etl::matrix_2d::Matrix2d;
 
 // The declaration of Vector<T>
 
@@ -199,9 +191,9 @@ impl<'a, T: EtlValueType> Iterator for VectorIterator<'a, T> {
 
 // Operations
 
-impl_add_op_value!(Vector<T>);
-impl_sub_op_value!(Vector<T>);
-impl_mul_op_value!(Vector<T>);
+crate::impl_add_op_value!(Vector<T>);
+crate::impl_sub_op_value!(Vector<T>);
+crate::impl_mul_op_value!(Vector<T>);
 
 // Tests
 

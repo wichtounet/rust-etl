@@ -1,15 +1,7 @@
-use crate::etl::add_expr::AddExpr;
-use crate::etl::etl_expr::*;
-use crate::etl::mul_expr::MulExpr;
-use crate::etl::sub_expr::SubExpr;
-
-use crate::impl_add_op_value;
-use crate::impl_mul_op_value;
-use crate::impl_sub_op_value;
+use super::etl_expr::*;
+use super::vector::Vector;
 
 use std::ops::BitOrAssign;
-
-use crate::etl::vector::Vector;
 
 use rand::Rng;
 
@@ -209,9 +201,9 @@ impl<T: EtlValueType, RightExpr: EtlExpr<T>> BitOrAssign<RightExpr> for Matrix2d
 
 // Operations
 
-impl_add_op_value!(Matrix2d<T>);
-impl_sub_op_value!(Matrix2d<T>);
-impl_mul_op_value!(Matrix2d<T>);
+crate::impl_add_op_value!(Matrix2d<T>);
+crate::impl_sub_op_value!(Matrix2d<T>);
+crate::impl_mul_op_value!(Matrix2d<T>);
 
 #[cfg(test)]
 mod tests {

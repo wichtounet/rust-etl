@@ -1,12 +1,6 @@
-use crate::etl::add_expr::AddExpr;
-use crate::etl::etl_expr::*;
-use crate::etl::sub_expr::SubExpr;
-
-use crate::impl_add_op_binary_expr;
-use crate::impl_sub_op_binary_expr;
-
-use crate::etl::matrix_2d::Matrix2d;
-use crate::etl::vector::Vector;
+use super::etl_expr::*;
+use super::matrix_2d::Matrix2d;
+use super::vector::Vector;
 
 // The declaration of MulExpr
 
@@ -310,7 +304,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 macro_rules! impl_mul_op_value {
     ($type:ty) => {
         impl<'a, T: EtlValueType, RightExpr: WrappableExpr<T>> std::ops::Mul<RightExpr> for &'a $type {
-            type Output = MulExpr<T, &'a $type, RightExpr>;
+            type Output = $crate::etl::mul_expr::MulExpr<T, &'a $type, RightExpr>;
 
             fn mul(self, other: RightExpr) -> Self::Output {
                 let mut expr = Self::Output::new(self, other);
@@ -335,7 +329,7 @@ macro_rules! impl_mul_op_binary_expr {
         impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr>
             for $type
         {
-            type Output = MulExpr<T, $type, OuterRightExpr>;
+            type Output = $crate::etl::mul_expr::MulExpr<T, $type, OuterRightExpr>;
 
             fn mul(self, other: OuterRightExpr) -> Self::Output {
                 let mut expr = Self::Output::new(self, other);
@@ -358,7 +352,7 @@ macro_rules! impl_mul_op_binary_expr {
 macro_rules! impl_mul_op_unary_expr {
     ($type:ty) => {
         impl<T: EtlValueType, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr> for $type {
-            type Output = MulExpr<T, $type, OuterRightExpr>;
+            type Output = $crate::etl::mul_expr::MulExpr<T, $type, OuterRightExpr>;
 
             fn mul(self, other: OuterRightExpr) -> Self::Output {
                 let mut expr = Self::Output::new(self, other);
@@ -381,7 +375,7 @@ macro_rules! impl_mul_op_unary_expr {
 macro_rules! impl_mul_op_unary_expr_float {
     ($type:ty) => {
         impl<T: EtlValueType + Float, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr> for $type {
-            type Output = MulExpr<T, $type, OuterRightExpr>;
+            type Output = $crate::etl::mul_expr::MulExpr<T, $type, OuterRightExpr>;
 
             fn mul(self, other: OuterRightExpr) -> Self::Output {
                 let mut expr = Self::Output::new(self, other);
@@ -400,9 +394,9 @@ macro_rules! impl_mul_op_unary_expr_float {
     };
 }
 
-impl_add_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
-impl_sub_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
-impl_mul_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
+crate::impl_add_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
+crate::impl_sub_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
+crate::impl_mul_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
 
 // The tests
 
