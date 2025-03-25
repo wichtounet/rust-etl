@@ -1,5 +1,7 @@
 mod etl;
 
+use etl::sigmoid_expr::sigmoid;
+
 use crate::etl::matrix_2d::Matrix2d;
 use crate::etl::vector::Vector;
 
@@ -33,7 +35,7 @@ impl Layer {
     }
 
     fn compute_output(&self, output: &mut Vector<f64>) {
-        *output |= &self.weights + &self.biases;
+        *output |= sigmoid(&self.weights + &self.biases);
     }
 }
 
