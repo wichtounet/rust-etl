@@ -225,6 +225,7 @@ crate::impl_scale_op_binary_expr!(ScaleExpr<T, LeftExpr, RightExpr>);
 
 #[cfg(test)]
 mod tests {
+    use crate::etl::constant::cst;
     use crate::etl::etl_expr::EtlExpr;
     use crate::etl::matrix_2d::Matrix2d;
     use crate::etl::vector::Vector;
@@ -271,6 +272,20 @@ mod tests {
         c |= &a >> &b;
 
         assert_eq!(c.at(0), 2);
+    }
+
+    #[test]
+    fn basic_assign_constant() {
+        let mut a = Vector::<i64>::new(8);
+        let mut b = Vector::<i64>::new(8);
+        let mut c = Vector::<i64>::new(8);
+
+        a[0] = 3;
+        b[0] = 7;
+
+        c |= cst(2) >> (&a >> &b);
+
+        assert_eq!(c.at(0), 42);
     }
 
     #[test]
