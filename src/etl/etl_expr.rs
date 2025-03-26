@@ -121,6 +121,10 @@ pub trait EtlExpr<T: EtlValueType> {
     fn compute_into_sub(&self, _lhs: &mut Vec<T>) {
         panic!("This function is only implemented for smart expression");
     }
+
+    fn compute_into_scale(&self, _lhs: &mut Vec<T>) {
+        panic!("This function is only implemented for smart expression");
+    }
 }
 
 pub trait EtlContainer<T: EtlValueType>: EtlExpr<T> {
@@ -208,6 +212,25 @@ pub fn sub_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
         }
     } else if RightExpr::TYPE == EtlType::Smart {
         rhs.compute_into_sub(data);
+    } else {
+        panic!("Unhandled EtlType");
+    }
+}
+
+pub fn scale_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: RightExpr) {
+    // TODO Validate lhs and rhs
+
+    if RightExpr::DIMENSIONS == 0 {
+        // If the other end is a constant, it's not size and we cannot use rhs.size()
+        for i in 0..data.len() {
+            data[i] *= rhs.at(i);
+        }
+    } else if RightExpr::TYPE == EtlType::Value || RightExpr::TYPE == EtlType::Simple {
+        for i in (0..(rhs.size() + 7) & !7).step_by(1) {
+            data[i] *= rhs.at(i);
+        }
+    } else if RightExpr::TYPE == EtlType::Smart {
+        rhs.compute_into_scale(data);
     } else {
         panic!("Unhandled EtlType");
     }

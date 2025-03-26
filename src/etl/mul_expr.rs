@@ -81,6 +81,18 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
         self.compute_gemm_impl(output);
     }
 
+    fn compute_gemm_scale(&self, output: &mut Vec<T>) {
+        // If we already computed the value at construction, we can do a simple copy
+        if !self.temp.is_empty() {
+            for n in 0..self.temp.len() {
+                output[n] *= self.temp[n];
+            }
+            return;
+        }
+
+        self.compute_gemm_impl(output);
+    }
+
     fn compute_gemm_impl(&self, output: &mut Vec<T>) {
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
             // No need to zero the vector since we did that a construction
@@ -181,6 +193,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
         self.compute_gemm_sub(output);
     }
 
+    fn compute_into_scale(&self, output: &mut Vec<T>) {
+        self.compute_gemm_scale(output);
+    }
+
     fn at(&self, i: usize) -> T {
         self.temp[i]
     }
@@ -228,6 +244,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 
     fn compute_into_sub(&self, output: &mut Vec<T>) {
         self.compute_gemm_sub(output);
+    }
+
+    fn compute_into_scale(&self, output: &mut Vec<T>) {
+        self.compute_gemm_scale(output);
     }
 
     fn at(&self, i: usize) -> T {
@@ -383,6 +403,7 @@ macro_rules! impl_mul_op_unary_expr_float {
 crate::impl_add_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
 crate::impl_sub_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
 crate::impl_mul_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
+crate::impl_scale_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
 
 // The tests
 

@@ -194,6 +194,7 @@ impl<'a, T: EtlValueType> Iterator for VectorIterator<'a, T> {
 crate::impl_add_op_value!(Vector<T>);
 crate::impl_sub_op_value!(Vector<T>);
 crate::impl_mul_op_value!(Vector<T>);
+crate::impl_scale_op_value!(Vector<T>);
 
 // Tests
 
