@@ -1,12 +1,4 @@
-use crate::etl::add_expr::AddExpr;
 use crate::etl::etl_expr::*;
-use crate::etl::mul_expr::MulExpr;
-use crate::etl::sub_expr::SubExpr;
-
-use crate::impl_add_op_unary_expr_float;
-use crate::impl_mul_op_unary_expr_float;
-use crate::impl_sub_op_unary_expr_float;
-
 use crate::etl::matrix_2d::Matrix2d;
 use crate::etl::vector::Vector;
 
@@ -118,9 +110,10 @@ pub fn sigmoid<T: EtlValueType + Float, Expr: WrappableExpr<T>>(expr: Expr) -> S
     SigmoidExpr::<T, Expr>::new(expr)
 }
 
-impl_add_op_unary_expr_float!(SigmoidExpr<T, Expr>);
-impl_sub_op_unary_expr_float!(SigmoidExpr<T, Expr>);
-impl_mul_op_unary_expr_float!(SigmoidExpr<T, Expr>);
+crate::impl_add_op_unary_expr_float!(SigmoidExpr<T, Expr>);
+crate::impl_sub_op_unary_expr_float!(SigmoidExpr<T, Expr>);
+crate::impl_mul_op_unary_expr_float!(SigmoidExpr<T, Expr>);
+crate::impl_scale_op_unary_expr_float!(SigmoidExpr<T, Expr>);
 
 // The tests
 
