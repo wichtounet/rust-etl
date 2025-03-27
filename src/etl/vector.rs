@@ -161,8 +161,9 @@ impl<T: EtlValueType> std::ops::IndexMut<usize> for Vector<T> {
 
 // Since we can't overload Assign, we settle for BitOrAssign
 impl<T: EtlValueType, RightExpr: EtlExpr<T>> BitOrAssign<RightExpr> for Vector<T> {
-    fn bitor_assign(&mut self, other: RightExpr) {
-        assign_direct(&mut self.data, other);
+    fn bitor_assign(&mut self, rhs: RightExpr) {
+        validate_assign(self, &rhs);
+        assign_direct(&mut self.data, rhs);
     }
 }
 

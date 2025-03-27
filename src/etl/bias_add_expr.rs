@@ -99,6 +99,20 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
             panic!("This code should be unreachable!");
         }
     }
+
+    fn validate_bias_add<OutputExpr: EtlExpr<T>>(&self, lhs: &OutputExpr) {
+        if OutputExpr::DIMENSIONS != 2 {
+            panic!("The output of bias_add must be a 2D Matrix");
+        }
+
+        if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
+            if lhs.rows() != self.lhs.value.rows() || lhs.columns() != self.lhs.value.columns() {
+                panic!("Invalid dimensions for assignment of bias_add result");
+            }
+        } else {
+            panic!("This code should be unreachable!");
+        }
+    }
 }
 
 // BiasAddExpr is an EtlExpr
@@ -116,6 +130,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 
     fn columns(&self) -> usize {
         self.lhs.value.columns()
+    }
+
+    fn validate_assign<OutputExpr: EtlExpr<T>>(&self, lhs: &OutputExpr) {
+        self.validate_bias_add(lhs);
     }
 
     fn compute_into(&self, output: &mut Vec<T>) {
@@ -159,6 +177,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 
     fn columns(&self) -> usize {
         self.lhs.value.columns()
+    }
+
+    fn validate_assign<OutputExpr: EtlExpr<T>>(&self, lhs: &OutputExpr) {
+        self.validate_bias_add(lhs);
     }
 
     fn compute_into(&self, output: &mut Vec<T>) {

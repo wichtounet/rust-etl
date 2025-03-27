@@ -155,6 +155,7 @@ macro_rules! impl_sub_op_value {
 
         impl<T: EtlValueType, RightExpr: EtlExpr<T>> std::ops::SubAssign<RightExpr> for $type {
             fn sub_assign(&mut self, other: RightExpr) {
+                validate_assign(self, &other);
                 sub_assign_direct(&mut self.data, other);
             }
         }

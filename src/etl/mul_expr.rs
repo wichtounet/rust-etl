@@ -152,6 +152,24 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
             panic!("This code should be unreachable!");
         }
     }
+
+    fn validate_gemm<OutputExpr: EtlExpr<T>>(&self, lhs: &OutputExpr) {
+        if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
+            if lhs.rows() != self.rhs.value.columns() {
+                panic!("Invalid dimensions for assignment of GEVM result");
+            }
+        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
+            if lhs.rows() != self.lhs.value.rows() {
+                panic!("Invalid dimensions for assignment of GEMV result");
+            }
+        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
+            if lhs.rows() != self.lhs.value.rows() || lhs.columns() != self.rhs.value.columns() {
+                panic!("Invalid dimensions for assignment of GEMM result");
+            }
+        } else {
+            panic!("This code should be unreachable!");
+        }
+    }
 }
 
 // MulExpr is an EtlExpr
@@ -179,6 +197,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 
     fn columns(&self) -> usize {
         self.rhs.value.columns()
+    }
+
+    fn validate_assign<OutputExpr: EtlExpr<T>>(&self, lhs: &OutputExpr) {
+        self.validate_gemm(lhs);
     }
 
     fn compute_into(&self, output: &mut Vec<T>) {
@@ -232,6 +254,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 
     fn columns(&self) -> usize {
         self.rhs.value.columns()
+    }
+
+    fn validate_assign<OutputExpr: EtlExpr<T>>(&self, lhs: &OutputExpr) {
+        self.validate_gemm(lhs);
     }
 
     fn compute_into(&self, output: &mut Vec<T>) {

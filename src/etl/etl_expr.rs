@@ -125,6 +125,10 @@ pub trait EtlExpr<T: EtlValueType> {
     fn compute_into_scale(&self, _lhs: &mut Vec<T>) {
         panic!("This function is only implemented for smart expression");
     }
+
+    fn validate_assign<LeftExpr: EtlExpr<T>>(&self, _lhs: &LeftExpr) {
+        panic!("This function is only implemented for smart expression");
+    }
 }
 
 pub trait EtlContainer<T: EtlValueType>: EtlExpr<T> {
@@ -156,12 +160,27 @@ impl<T: EtlValueType, TT: EtlExpr<T> + EtlWrappable<T> + EtlComputable<T>> Wrapp
 
 // Assignment functions, probably should be moved elsewhere
 
+pub fn validate_assign<T: EtlValueType, LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>>(lhs: &LeftExpr, rhs: &RightExpr) {
+    if RightExpr::DIMENSIONS == 0 {
+        return;
+    }
+
+    if RightExpr::TYPE == EtlType::Value || RightExpr::TYPE == EtlType::Simple {
+        if lhs.size() != rhs.size() {
+            panic!("Incompatible assignment ([{}] = [{}])", lhs.size(), rhs.size());
+        }
+    } else if RightExpr::TYPE == EtlType::Smart {
+        rhs.validate_assign(lhs);
+    } else {
+        panic!("Unhandled EtlType");
+    }
+}
+
 pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: RightExpr) {
-    // TODO Validate lhs and rhs
     // TODO Ideally, a RightExpr::TYPE = Value should be a simple memcpy
 
     if RightExpr::DIMENSIONS == 0 {
-        // If the other end is a constant, it's not size and we cannot use rhs.size()
+        // If the other end is a constant, it's not sized and we cannot use rhs.size()
         for i in 0..data.len() {
             data[i] = rhs.at(i);
         }
@@ -180,10 +199,8 @@ pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, 
 }
 
 pub fn add_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: RightExpr) {
-    // TODO Validate lhs and rhs
-
     if RightExpr::DIMENSIONS == 0 {
-        // If the other end is a constant, it's not size and we cannot use rhs.size()
+        // If the other end is a constant, it's not sized and we cannot use rhs.size()
         for i in 0..data.len() {
             data[i] += rhs.at(i);
         }
@@ -199,10 +216,8 @@ pub fn add_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
 }
 
 pub fn sub_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: RightExpr) {
-    // TODO Validate lhs and rhs
-
     if RightExpr::DIMENSIONS == 0 {
-        // If the other end is a constant, it's not size and we cannot use rhs.size()
+        // If the other end is a constant, it's not sized and we cannot use rhs.size()
         for i in 0..data.len() {
             data[i] -= rhs.at(i);
         }
@@ -218,10 +233,8 @@ pub fn sub_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
 }
 
 pub fn scale_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: RightExpr) {
-    // TODO Validate lhs and rhs
-
     if RightExpr::DIMENSIONS == 0 {
-        // If the other end is a constant, it's not size and we cannot use rhs.size()
+        // If the other end is a constant, it's not sized and we cannot use rhs.size()
         for i in 0..data.len() {
             data[i] *= rhs.at(i);
         }
