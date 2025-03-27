@@ -286,7 +286,6 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 }
 
 // MulExpr is an EtlWrappable
-// TODO MulExpr wraps as reference?
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for MulExpr<T, LeftExpr, RightExpr> {
     type WrappedAs = MulExpr<T, LeftExpr, RightExpr>;
 

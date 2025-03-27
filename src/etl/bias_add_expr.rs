@@ -209,7 +209,6 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 }
 
 // BiasAddExpr is an EtlWrappable
-// TODO BiasAddExpr wraps as reference?
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for BiasAddExpr<T, LeftExpr, RightExpr> {
     type WrappedAs = BiasAddExpr<T, LeftExpr, RightExpr>;
 
