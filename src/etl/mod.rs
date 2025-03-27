@@ -1,5 +1,6 @@
 // The expressions
 pub mod add_expr;
+pub mod batch_outer_expr;
 pub mod bias_add_expr;
 pub mod etl_expr;
 pub mod mul_expr;
