@@ -176,7 +176,7 @@ pub fn validate_assign<T: EtlValueType, LeftExpr: EtlExpr<T>, RightExpr: EtlExpr
     }
 }
 
-pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: RightExpr) {
+pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: &RightExpr) {
     // TODO Ideally, a RightExpr::TYPE = Value should be a simple memcpy
 
     if RightExpr::DIMENSIONS == 0 {

@@ -228,63 +228,6 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 }
 
-// TODO get rid of that
-// MulExpr is an EtlExpr
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for &MulExpr<T, LeftExpr, RightExpr> {
-    const DIMENSIONS: usize = if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 { 2 } else { 1 };
-    const TYPE: EtlType = EtlType::Smart;
-
-    fn size(&self) -> usize {
-        if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
-            self.rhs.value.columns()
-        } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
-            self.lhs.value.rows()
-        } else {
-            self.lhs.value.rows() * self.rhs.value.columns()
-        }
-    }
-
-    fn rows(&self) -> usize {
-        if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
-            self.rhs.value.columns()
-        } else {
-            self.lhs.value.rows()
-        }
-    }
-
-    fn columns(&self) -> usize {
-        self.rhs.value.columns()
-    }
-
-    fn validate_assign<OutputExpr: EtlExpr<T>>(&self, lhs: &OutputExpr) {
-        self.validate_gemm(lhs);
-    }
-
-    fn compute_into(&self, output: &mut Vec<T>) {
-        self.compute_gemm(output);
-    }
-
-    fn compute_into_add(&self, output: &mut Vec<T>) {
-        self.compute_gemm_add(output);
-    }
-
-    fn compute_into_sub(&self, output: &mut Vec<T>) {
-        self.compute_gemm_sub(output);
-    }
-
-    fn compute_into_scale(&self, output: &mut Vec<T>) {
-        self.compute_gemm_scale(output);
-    }
-
-    fn at(&self, i: usize) -> T {
-        self.temp[i]
-    }
-
-    fn at2(&self, row: usize, column: usize) -> T {
-        self.temp[row * self.columns() + column]
-    }
-}
-
 // MulExpr is an EtlWrappable
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for MulExpr<T, LeftExpr, RightExpr> {
     type WrappedAs = MulExpr<T, LeftExpr, RightExpr>;

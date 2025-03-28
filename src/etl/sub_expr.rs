@@ -62,43 +62,6 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 }
 
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for &SubExpr<T, LeftExpr, RightExpr> {
-    const DIMENSIONS: usize = if LeftExpr::DIMENSIONS > 0 { LeftExpr::DIMENSIONS } else { RightExpr::DIMENSIONS };
-    const TYPE: EtlType = EtlType::Simple;
-
-    fn size(&self) -> usize {
-        if LeftExpr::DIMENSIONS > 0 {
-            self.lhs.value.size()
-        } else {
-            self.rhs.value.size()
-        }
-    }
-
-    fn rows(&self) -> usize {
-        if LeftExpr::DIMENSIONS > 0 {
-            self.lhs.value.rows()
-        } else {
-            self.rhs.value.rows()
-        }
-    }
-
-    fn columns(&self) -> usize {
-        if LeftExpr::DIMENSIONS > 0 {
-            self.lhs.value.columns()
-        } else {
-            self.rhs.value.columns()
-        }
-    }
-
-    fn at(&self, i: usize) -> T {
-        self.lhs.value.at(i) - self.rhs.value.at(i)
-    }
-
-    fn at2(&self, row: usize, column: usize) -> T {
-        self.lhs.value.at2(row, column) - self.rhs.value.at2(row, column)
-    }
-}
-
 // SubExpr is an EtlWrappable
 // SubExpr wraps as value
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for SubExpr<T, LeftExpr, RightExpr> {

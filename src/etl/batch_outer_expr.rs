@@ -161,55 +161,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 }
 
-// TODO get rid of that
-// BiasOuterExpr is an EtlExpr
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for &BiasOuterExpr<T, LeftExpr, RightExpr> {
-    const DIMENSIONS: usize = 2;
-    const TYPE: EtlType = EtlType::Smart;
-
-    fn size(&self) -> usize {
-        self.lhs.value.columns() * self.rhs.value.columns()
-    }
-
-    fn rows(&self) -> usize {
-        self.lhs.value.columns()
-    }
-
-    fn columns(&self) -> usize {
-        self.rhs.value.columns()
-    }
-
-    fn validate_assign<OutputExpr: EtlExpr<T>>(&self, lhs: &OutputExpr) {
-        self.validate_batch_outer(lhs);
-    }
-
-    fn compute_into(&self, output: &mut Vec<T>) {
-        self.compute_batch_outer(output);
-    }
-
-    fn compute_into_add(&self, output: &mut Vec<T>) {
-        self.compute_batch_outer_add(output);
-    }
-
-    fn compute_into_sub(&self, output: &mut Vec<T>) {
-        self.compute_batch_outer_sub(output);
-    }
-
-    fn compute_into_scale(&self, output: &mut Vec<T>) {
-        self.compute_batch_outer_scale(output);
-    }
-
-    fn at(&self, i: usize) -> T {
-        self.temp[i]
-    }
-
-    fn at2(&self, row: usize, column: usize) -> T {
-        self.temp[row * self.columns() + column]
-    }
-}
-
 // BiasOuterExpr is an EtlWrappable
-// TODO BiasOuterExpr wraps as reference?
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for BiasOuterExpr<T, LeftExpr, RightExpr> {
     type WrappedAs = BiasOuterExpr<T, LeftExpr, RightExpr>;
 

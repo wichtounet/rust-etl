@@ -42,31 +42,6 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SigmoidDeri
     }
 }
 
-impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for &SigmoidDerivativeExpr<T, Expr> {
-    const DIMENSIONS: usize = Expr::DIMENSIONS;
-    const TYPE: EtlType = EtlType::Simple;
-
-    fn size(&self) -> usize {
-        self.expr.value.size()
-    }
-
-    fn rows(&self) -> usize {
-        self.expr.value.rows()
-    }
-
-    fn columns(&self) -> usize {
-        self.expr.value.columns()
-    }
-
-    fn at(&self, i: usize) -> T {
-        self.expr.value.at(i) * (T::one() - self.expr.value.at(i))
-    }
-
-    fn at2(&self, row: usize, column: usize) -> T {
-        self.expr.value.at2(row, column) * (T::one() - self.expr.value.at2(row, column))
-    }
-}
-
 // SigmoidDerivativeExpr is an EtlWrappable
 // SigmoidDerivativeExpr wraps as value
 impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlWrappable<T> for SigmoidDerivativeExpr<T, Expr> {
