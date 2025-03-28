@@ -81,6 +81,9 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlComputable<T> for Sigmo
 
 // Operations
 
+// Note: Since Rust does not allow function return type inference, it is simpler to build an
+// expression type than to return the expression itself
+
 pub fn sigmoid<T: EtlValueType + Float, Expr: WrappableExpr<T>>(expr: Expr) -> SigmoidExpr<T, Expr> {
     SigmoidExpr::<T, Expr>::new(expr)
 }
