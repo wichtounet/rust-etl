@@ -119,7 +119,7 @@ macro_rules! impl_scale_op_value {
         impl<T: EtlValueType, RightExpr: EtlExpr<T>> std::ops::ShrAssign<RightExpr> for $type {
             fn shr_assign(&mut self, other: RightExpr) {
                 validate_assign(self, &other);
-                scale_assign_direct(&mut self.data, other);
+                scale_assign_direct(&mut self.data, &other);
             }
         }
     };

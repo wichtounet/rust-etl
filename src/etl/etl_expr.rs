@@ -198,7 +198,7 @@ pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, 
     }
 }
 
-pub fn add_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: RightExpr) {
+pub fn add_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: &RightExpr) {
     if RightExpr::DIMENSIONS == 0 {
         // If the other end is a constant, it's not sized and we cannot use rhs.size()
         for i in 0..data.len() {
@@ -215,7 +215,7 @@ pub fn add_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
     }
 }
 
-pub fn sub_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: RightExpr) {
+pub fn sub_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: &RightExpr) {
     if RightExpr::DIMENSIONS == 0 {
         // If the other end is a constant, it's not sized and we cannot use rhs.size()
         for i in 0..data.len() {
@@ -232,7 +232,7 @@ pub fn sub_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
     }
 }
 
-pub fn scale_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: RightExpr) {
+pub fn scale_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: &RightExpr) {
     if RightExpr::DIMENSIONS == 0 {
         // If the other end is a constant, it's not sized and we cannot use rhs.size()
         for i in 0..data.len() {
