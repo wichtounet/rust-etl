@@ -50,6 +50,8 @@ pub trait EtlValueType:
     + Default
     + Clone
     + Copy
+    + PartialOrd
+    + Neg<Output = Self>
     + Add<Output = Self>
     + AddAssign
     + Sub<Output = Self>
@@ -65,6 +67,8 @@ impl<
             + Default
             + Clone
             + Copy
+            + PartialOrd
+            + Neg<Output = T>
             + Add<Output = T>
             + AddAssign<T>
             + Sub<Output = T>

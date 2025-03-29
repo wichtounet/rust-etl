@@ -16,3 +16,6 @@ pub mod vector;
 
 // The pseudo containers
 pub mod constant;
+
+// Free functions
+pub mod reductions;
