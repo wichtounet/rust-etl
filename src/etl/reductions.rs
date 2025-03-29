@@ -45,6 +45,38 @@ pub fn amean<T: EtlValueType + From<u32>, Expr: EtlExpr<T>>(expr: &Expr) -> Resu
     Ok(asum(expr) / From::from(expr.size() as u32))
 }
 
+pub fn max<T: EtlValueType, Expr: EtlExpr<T>>(expr: &Expr) -> Result<T, &'static str> {
+    if expr.size() == 0 {
+        return Err("Cannot get max of empty collection");
+    }
+
+    let mut max_value = expr.at(0);
+
+    for i in 1..expr.size() {
+        if expr.at(i) > max_value {
+            max_value = expr.at(i)
+        }
+    }
+
+    Ok(max_value)
+}
+
+pub fn min<T: EtlValueType, Expr: EtlExpr<T>>(expr: &Expr) -> Result<T, &'static str> {
+    if expr.size() == 0 {
+        return Err("Cannot get min of empty collection");
+    }
+
+    let mut min_value = expr.at(0);
+
+    for i in 1..expr.size() {
+        if expr.at(i) < min_value {
+            min_value = expr.at(i)
+        }
+    }
+
+    Ok(min_value)
+}
+
 // The tests
 
 #[cfg(test)]
@@ -124,6 +156,38 @@ mod tests {
         match amean(&a) {
             Ok(v) => assert_relative_eq!(v, 3.0, epsilon = 1e-6),
             Err(e) => panic!("Error on amean: {e:?}"),
+        }
+    }
+
+    #[test]
+    fn basic_max() {
+        let mut a = Vector::<f64>::new(5);
+
+        a[0] = 1.0;
+        a[1] = 2.0;
+        a[2] = 3.0;
+        a[3] = 4.0;
+        a[4] = -5.0;
+
+        match max(&a) {
+            Ok(v) => assert_relative_eq!(v, 4.0, epsilon = 1e-6),
+            Err(e) => panic!("Error on max: {e:?}"),
+        }
+    }
+
+    #[test]
+    fn basic_min() {
+        let mut a = Vector::<f64>::new(5);
+
+        a[0] = 1.0;
+        a[1] = 2.0;
+        a[2] = 3.0;
+        a[3] = 4.0;
+        a[4] = -5.0;
+
+        match min(&a) {
+            Ok(v) => assert_relative_eq!(v, -5.0, epsilon = 1e-6),
+            Err(e) => panic!("Error on min: {e:?}"),
         }
     }
 }
