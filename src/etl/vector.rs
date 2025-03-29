@@ -120,7 +120,7 @@ impl<'a, T: EtlValueType> EtlWrappable<T> for &'a Vector<T> {
 
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
         EtlWrapper {
-            value: &self,
+            value: self,
             _marker: std::marker::PhantomData,
         }
     }
@@ -133,7 +133,7 @@ impl<'a, T: EtlValueType> EtlComputable<T> for &'a Vector<T> {
 
     fn to_vector(&self) -> EtlWrapper<T, Self::ComputedAsVector> {
         EtlWrapper {
-            value: &self,
+            value: self,
             _marker: std::marker::PhantomData,
         }
     }
