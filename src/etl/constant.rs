@@ -118,6 +118,13 @@ mod tests {
         assert_eq!(b[1], 20);
         assert_eq!(b[2], 38);
         assert_eq!(b[3], 53);
+
+        b |= &a - cst(1);
+
+        assert_eq!(b[0], 2);
+        assert_eq!(b[1], 8);
+        assert_eq!(b[2], 26);
+        assert_eq!(b[3], 41);
     }
 
     #[test]

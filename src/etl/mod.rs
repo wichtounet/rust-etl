@@ -8,6 +8,7 @@ pub mod mul_expr;
 pub mod scale_expr;
 pub mod sigmoid_derivative_expr;
 pub mod sigmoid_expr;
+pub mod softmax_expr;
 pub mod sub_expr;
 
 // The containers
