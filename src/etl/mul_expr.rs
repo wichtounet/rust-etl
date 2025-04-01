@@ -361,15 +361,7 @@ macro_rules! impl_mul_op_unary_expr {
 
             fn mul(self, other: OuterRightExpr) -> Self::Output {
                 let mut expr = Self::Output::new(self, other);
-
-                if Self::Output::DIMENSIONS == 2 {
-                    let temp = expr.to_matrix();
-                    expr.temp = temp.value.data;
-                } else {
-                    let temp = expr.to_vector();
-                    expr.temp = temp.value.data;
-                }
-
+                expr.temp = expr.to_data();
                 expr
             }
         }
@@ -384,15 +376,7 @@ macro_rules! impl_mul_op_unary_expr_float {
 
             fn mul(self, other: OuterRightExpr) -> Self::Output {
                 let mut expr = Self::Output::new(self, other);
-
-                if Self::Output::DIMENSIONS == 2 {
-                    let temp = expr.to_matrix();
-                    expr.temp = temp.value.data;
-                } else {
-                    let temp = expr.to_vector();
-                    expr.temp = temp.value.data;
-                }
-
+                expr.temp = expr.to_data();
                 expr
             }
         }
