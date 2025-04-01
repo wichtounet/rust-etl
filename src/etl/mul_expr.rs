@@ -719,4 +719,20 @@ mod tests {
 
         assert_eq!(c.at2(0, 0), 192);
     }
+
+    #[test]
+    fn basic_gemm_chain() {
+        let mut a = Matrix2d::<i64>::new(3, 3);
+        let mut b = Matrix2d::<i64>::new(3, 3);
+        let mut c = Matrix2d::<i64>::new(3, 3);
+        let mut d = Matrix2d::<i64>::new(3, 3);
+
+        a.fill(2);
+        b.fill(3);
+        c.fill(4);
+
+        d |= &a * &b * &c;
+
+        assert_eq!(d.at2(0, 0), 216);
+    }
 }
