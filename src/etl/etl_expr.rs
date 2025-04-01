@@ -290,3 +290,12 @@ pub fn forward_data_binary<
         functor(output, &lhs_data, &rhs_data);
     }
 }
+
+pub fn forward_data_unary<T: EtlValueType, F: Fn(&mut Vec<T>, &Vec<T>), Expr: EtlComputable<T> + EtlExpr<T>>(output: &mut Vec<T>, expr: &Expr, functor: F) {
+    if Expr::TYPE.direct() {
+        functor(output, expr.get_data());
+    } else {
+        let data = expr.to_data();
+        functor(output, &data);
+    }
+}
