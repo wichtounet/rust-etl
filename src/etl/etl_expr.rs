@@ -263,3 +263,34 @@ pub fn scale_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Ve
         panic!("Unhandled EtlType");
     }
 }
+
+// Helpers
+
+pub fn forward_data_binary<
+    T: EtlValueType,
+    F: Fn(&mut Vec<T>, &Vec<T>, &Vec<T>),
+    LeftExpr: EtlComputable<T> + EtlExpr<T>,
+    RightExpr: EtlComputable<T> + EtlExpr<T>,
+>(
+    output: &mut Vec<T>,
+    lhs: &LeftExpr,
+    rhs: &RightExpr,
+    functor: F,
+) {
+    if LeftExpr::TYPE.direct() && RightExpr::TYPE.direct() {
+        functor(output, lhs.get_data(), rhs.get_data());
+    } else if LeftExpr::TYPE.direct() && !RightExpr::TYPE.direct() {
+        let rhs_data = rhs.to_data();
+
+        functor(output, lhs.get_data(), &rhs_data);
+    } else if !LeftExpr::TYPE.direct() && RightExpr::TYPE.direct() {
+        let lhs_data = lhs.to_data();
+
+        functor(output, &lhs_data, rhs.get_data());
+    } else {
+        let lhs_data = lhs.to_data();
+        let rhs_data = rhs.to_data();
+
+        functor(output, &lhs_data, &rhs_data);
+    }
+}

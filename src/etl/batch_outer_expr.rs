@@ -23,11 +23,17 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
             panic!("Invalid batch_outer dimensions ({}D*{}D)", LeftExpr::DIMENSIONS, RightExpr::DIMENSIONS);
         }
 
-        Self {
+        let mut expr = Self {
             lhs: lhs.wrap(),
             rhs: rhs.wrap(),
             temp: Vec::<T>::new(),
-        }
+        };
+
+        let mut temp = vec![T::default(); padded_size(expr.size())];
+        expr.compute_batch_outer_impl(&mut temp);
+        expr.temp = temp;
+
+        expr
     }
 
     fn compute_batch_outer(&self, output: &mut Vec<T>) {
@@ -78,23 +84,21 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
 
     fn compute_batch_outer_impl(&self, output: &mut Vec<T>) {
         if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
-            let lhs_cont = self.lhs.value.to_matrix();
-            let rhs_cont = self.rhs.value.to_matrix();
-
-            let lhs = lhs_cont.value.get_data();
-            let rhs = rhs_cont.value.get_data();
-
             let m = self.lhs.value.columns();
             let n = self.rhs.value.columns();
             let b = self.lhs.value.rows();
 
-            for batch in 0..b {
-                for row in 0..m {
-                    for column in 0..n {
-                        output[row * n + column] += lhs[batch * m + row] + rhs[batch * n + column];
+            let functor = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+                for batch in 0..b {
+                    for row in 0..m {
+                        for column in 0..n {
+                            out[row * n + column] += lhs[batch * m + row] + rhs[batch * n + column];
+                        }
                     }
                 }
-            }
+            };
+
+            forward_data_binary(output, &self.lhs.value, &self.rhs.value, functor);
         } else {
             panic!("This code should be unreachable!");
         }
@@ -211,12 +215,7 @@ pub fn batch_outer<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: Wrapp
     lhs: LeftExpr,
     rhs: RightExpr,
 ) -> BiasOuterExpr<T, LeftExpr, RightExpr> {
-    let mut expr = BiasOuterExpr::<T, LeftExpr, RightExpr>::new(lhs, rhs);
-
-    let temp = expr.to_matrix();
-    expr.temp = temp.value.data;
-
-    expr
+    BiasOuterExpr::<T, LeftExpr, RightExpr>::new(lhs, rhs)
 }
 
 crate::impl_add_op_binary_expr!(BiasOuterExpr<T, LeftExpr, RightExpr>);

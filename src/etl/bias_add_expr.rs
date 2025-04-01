@@ -26,11 +26,17 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
             panic!("Invalid bias_add dimensions ({}D*{}D)", LeftExpr::DIMENSIONS, RightExpr::DIMENSIONS);
         }
 
-        Self {
+        let mut expr = Self {
             lhs: lhs.wrap(),
             rhs: rhs.wrap(),
             temp: Vec::<T>::new(),
-        }
+        };
+
+        let mut temp = vec![T::default(); padded_size(expr.size())];
+        expr.compute_bias_add_impl(&mut temp);
+        expr.temp = temp;
+
+        expr
     }
 
     fn compute_bias_add(&self, output: &mut Vec<T>) {
@@ -81,20 +87,18 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
 
     fn compute_bias_add_impl(&self, output: &mut Vec<T>) {
         if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
-            let lhs_cont = self.lhs.value.to_matrix();
-            let rhs_cont = self.rhs.value.to_vector();
-
-            let lhs = lhs_cont.value.get_data();
-            let rhs = rhs_cont.value.get_data();
-
             let m = self.lhs.value.rows();
             let n = self.lhs.value.columns();
 
-            for row in 0..m {
-                for column in 0..n {
-                    output[row * n + column] = lhs[row * n + column] + rhs[column];
+            let functor = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+                for row in 0..m {
+                    for column in 0..n {
+                        out[row * n + column] = lhs[row * n + column] + rhs[column];
+                    }
                 }
-            }
+            };
+
+            forward_data_binary(output, &self.lhs.value, &self.rhs.value, functor);
         } else {
             panic!("This code should be unreachable!");
         }
@@ -211,12 +215,7 @@ pub fn bias_add<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: Wrappabl
     lhs: LeftExpr,
     rhs: RightExpr,
 ) -> BiasAddExpr<T, LeftExpr, RightExpr> {
-    let mut expr = BiasAddExpr::<T, LeftExpr, RightExpr>::new(lhs, rhs);
-
-    let temp = expr.to_matrix();
-    expr.temp = temp.value.data;
-
-    expr
+    BiasAddExpr::<T, LeftExpr, RightExpr>::new(lhs, rhs)
 }
 
 crate::impl_add_op_binary_expr!(BiasAddExpr<T, LeftExpr, RightExpr>);

@@ -5,35 +5,6 @@ use super::vector::Vector;
 // TODO: Generalize everywhere
 // TODO: Try to get rid of to_vector/to_matrix
 
-fn forward_data_binary<
-    T: EtlValueType,
-    F: Fn(&mut Vec<T>, &Vec<T>, &Vec<T>),
-    LeftExpr: EtlComputable<T> + EtlExpr<T>,
-    RightExpr: EtlComputable<T> + EtlExpr<T>,
->(
-    output: &mut Vec<T>,
-    lhs: &LeftExpr,
-    rhs: &RightExpr,
-    functor: F,
-) {
-    if LeftExpr::TYPE.direct() && RightExpr::TYPE.direct() {
-        functor(output, lhs.get_data(), rhs.get_data());
-    } else if LeftExpr::TYPE.direct() && !RightExpr::TYPE.direct() {
-        let rhs_data = rhs.to_data();
-
-        functor(output, lhs.get_data(), &rhs_data);
-    } else if !LeftExpr::TYPE.direct() && RightExpr::TYPE.direct() {
-        let lhs_data = lhs.to_data();
-
-        functor(output, &lhs_data, rhs.get_data());
-    } else {
-        let lhs_data = lhs.to_data();
-        let rhs_data = rhs.to_data();
-
-        functor(output, &lhs_data, &rhs_data);
-    }
-}
-
 // The declaration of MulExpr
 
 /// Expression represneting a vector-matrix-multiplication
@@ -72,11 +43,17 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
             panic!("Invalid vector matrix multiplication dimensions ({}D*{}D)", LeftExpr::DIMENSIONS, RightExpr::DIMENSIONS);
         }
 
-        Self {
+        let mut expr = Self {
             lhs: lhs.wrap(),
             rhs: rhs.wrap(),
             temp: Vec::<T>::new(),
-        }
+        };
+
+        let mut temp = vec![T::default(); padded_size(expr.size())];
+        expr.compute_gemm_impl(&mut temp);
+        expr.temp = temp;
+
+        expr
     }
 
     fn compute_gemm(&self, output: &mut Vec<T>) {
@@ -315,17 +292,7 @@ macro_rules! impl_mul_op_value {
             type Output = $crate::etl::mul_expr::MulExpr<T, &'a $type, RightExpr>;
 
             fn mul(self, other: RightExpr) -> Self::Output {
-                let mut expr = Self::Output::new(self, other);
-
-                if Self::Output::DIMENSIONS == 2 {
-                    let temp = expr.to_matrix();
-                    expr.temp = temp.value.data;
-                } else {
-                    let temp = expr.to_vector();
-                    expr.temp = temp.value.data;
-                }
-
-                expr
+                Self::Output::new(self, other)
             }
         }
     };
@@ -340,17 +307,7 @@ macro_rules! impl_mul_op_binary_expr {
             type Output = $crate::etl::mul_expr::MulExpr<T, $type, OuterRightExpr>;
 
             fn mul(self, other: OuterRightExpr) -> Self::Output {
-                let mut expr = Self::Output::new(self, other);
-
-                if Self::Output::DIMENSIONS == 2 {
-                    let temp = expr.to_matrix();
-                    expr.temp = temp.value.data;
-                } else {
-                    let temp = expr.to_vector();
-                    expr.temp = temp.value.data;
-                }
-
-                expr
+                Self::Output::new(self, other)
             }
         }
     };
@@ -363,9 +320,7 @@ macro_rules! impl_mul_op_unary_expr {
             type Output = $crate::etl::mul_expr::MulExpr<T, $type, OuterRightExpr>;
 
             fn mul(self, other: OuterRightExpr) -> Self::Output {
-                let mut expr = Self::Output::new(self, other);
-                expr.temp = expr.to_data();
-                expr
+                Self::Output::new(self, other)
             }
         }
     };
@@ -378,9 +333,7 @@ macro_rules! impl_mul_op_unary_expr_float {
             type Output = $crate::etl::mul_expr::MulExpr<T, $type, OuterRightExpr>;
 
             fn mul(self, other: OuterRightExpr) -> Self::Output {
-                let mut expr = Self::Output::new(self, other);
-                expr.temp = expr.to_data();
-                expr
+                Self::Output::new(self, other)
             }
         }
     };
