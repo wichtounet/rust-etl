@@ -133,10 +133,10 @@ pub trait EtlExpr<T: EtlValueType> {
     fn validate_assign<LeftExpr: EtlExpr<T>>(&self, _lhs: &LeftExpr) {
         panic!("This function is only implemented for smart expression");
     }
-}
 
-pub trait EtlContainer<T: EtlValueType>: EtlExpr<T> {
-    fn get_data(&self) -> &Vec<T>;
+    fn get_data(&self) -> &Vec<T> {
+        panic!("This function is only implemented for value expression");
+    }
 }
 
 // It does not seem like I can force Index trait because it must return a reference which
@@ -148,8 +148,8 @@ pub struct EtlWrapper<T: EtlValueType, SubExpr: EtlExpr<T>> {
 }
 
 pub trait EtlComputable<T: EtlValueType> {
-    type ComputedAsVector: EtlContainer<T>;
-    type ComputedAsMatrix: EtlContainer<T>;
+    type ComputedAsVector: EtlExpr<T>;
+    type ComputedAsMatrix: EtlExpr<T>;
     fn to_vector(&self) -> EtlWrapper<T, Self::ComputedAsVector>;
     fn to_matrix(&self) -> EtlWrapper<T, Self::ComputedAsMatrix>;
     fn to_data(&self) -> Vec<T>;

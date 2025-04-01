@@ -2,6 +2,35 @@ use super::etl_expr::*;
 use super::matrix_2d::Matrix2d;
 use super::vector::Vector;
 
+fn forward_data_binary<
+    T: EtlValueType,
+    F: Fn(&mut Vec<T>, &Vec<T>, &Vec<T>),
+    LeftExpr: EtlComputable<T> + EtlExpr<T>,
+    RightExpr: EtlComputable<T> + EtlExpr<T>,
+>(
+    output: &mut Vec<T>,
+    lhs: &LeftExpr,
+    rhs: &RightExpr,
+    functor: F,
+) {
+    if LeftExpr::TYPE == EtlType::Value && RightExpr::TYPE == EtlType::Value {
+        functor(output, lhs.get_data(), rhs.get_data());
+    } else if LeftExpr::TYPE == EtlType::Value && RightExpr::TYPE != EtlType::Value {
+        let rhs_data = rhs.to_data();
+
+        functor(output, lhs.get_data(), &rhs_data);
+    } else if LeftExpr::TYPE != EtlType::Value && RightExpr::TYPE == EtlType::Value {
+        let lhs_data = lhs.to_data();
+
+        functor(output, &lhs_data, rhs.get_data());
+    } else {
+        let lhs_data = lhs.to_data();
+        let rhs_data = rhs.to_data();
+
+        functor(output, &lhs_data, &rhs_data);
+    }
+}
+
 // The declaration of MulExpr
 
 /// Expression represneting a vector-matrix-multiplication
@@ -97,57 +126,51 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
             // No need to zero the vector since we did that a construction
 
-            let lhs_cont = self.lhs.value.to_vector();
-            let rhs_cont = self.rhs.value.to_matrix();
-
-            let lhs = lhs_cont.value.get_data();
-            let rhs = rhs_cont.value.get_data();
-
             let m = self.rhs.value.rows();
             let n = self.rhs.value.columns();
 
-            for row in 0..m {
-                for column in 0..n {
-                    output[column] += lhs[row] * rhs[row * n + column];
+            let functor = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+                for row in 0..m {
+                    for column in 0..n {
+                        out[column] += lhs[row] * rhs[row * n + column];
+                    }
                 }
-            }
+            };
+
+            forward_data_binary(output, &self.lhs.value, &self.rhs.value, functor);
         } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 1 {
             // No need to zero the vector since we did that a construction
-
-            let lhs_cont = self.lhs.value.to_matrix();
-            let rhs_cont = self.rhs.value.to_vector();
-
-            let lhs = lhs_cont.value.get_data();
-            let rhs = rhs_cont.value.get_data();
 
             let m = self.lhs.value.rows();
             let n = self.lhs.value.columns();
 
-            for row in 0..m {
-                for column in 0..n {
-                    output[row] += rhs[column] * lhs[row * n + column];
+            let functor = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+                for row in 0..m {
+                    for column in 0..n {
+                        out[row] += rhs[column] * lhs[row * n + column];
+                    }
                 }
-            }
+            };
+
+            forward_data_binary(output, &self.lhs.value, &self.rhs.value, functor);
         } else if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
             // No need to zero the vector since we did that a construction
-
-            let lhs_cont = self.lhs.value.to_matrix();
-            let rhs_cont = self.rhs.value.to_matrix();
-
-            let lhs = lhs_cont.value.get_data();
-            let rhs = rhs_cont.value.get_data();
 
             let m = self.lhs.value.rows();
             let n = self.lhs.value.columns();
             let k = self.rhs.value.columns();
 
-            for row in 0..m {
-                for column in 0..n {
-                    for outer in 0..k {
-                        output[row * k + outer] += lhs[row * n + column] * rhs[column * k + outer]
+            let functor = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+                for row in 0..m {
+                    for column in 0..n {
+                        for outer in 0..k {
+                            out[row * k + outer] += lhs[row * n + column] * rhs[column * k + outer]
+                        }
                     }
                 }
-            }
+            };
+
+            forward_data_binary(output, &self.lhs.value, &self.rhs.value, functor);
         } else {
             panic!("This code should be unreachable!");
         }

@@ -83,6 +83,10 @@ impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
     fn at(&self, i: usize) -> T {
         self.data[i]
     }
+
+    fn get_data(&self) -> &Vec<T> {
+        &self.data
+    }
 }
 
 impl<T: EtlValueType> EtlExpr<T> for &Vector<T> {
@@ -100,15 +104,7 @@ impl<T: EtlValueType> EtlExpr<T> for &Vector<T> {
     fn at(&self, i: usize) -> T {
         self.data[i]
     }
-}
 
-impl<T: EtlValueType> EtlContainer<T> for Vector<T> {
-    fn get_data(&self) -> &Vec<T> {
-        &self.data
-    }
-}
-
-impl<T: EtlValueType> EtlContainer<T> for &Vector<T> {
     fn get_data(&self) -> &Vec<T> {
         &self.data
     }
