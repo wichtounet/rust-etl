@@ -2,6 +2,10 @@ use super::etl_expr::*;
 use super::matrix_2d::Matrix2d;
 use super::vector::Vector;
 
+// TODO: Propagate get_data on smart expression
+// TODO: Generalize everywhere
+// TODO: Try to get rid of to_vector/to_matrix
+
 fn forward_data_binary<
     T: EtlValueType,
     F: Fn(&mut Vec<T>, &Vec<T>, &Vec<T>),
