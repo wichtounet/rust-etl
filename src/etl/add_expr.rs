@@ -99,7 +99,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 
     fn to_data(&self) -> Vec<T> {
-        let mut vec = vec![T::default(); self.size()];
+        let mut vec = vec![T::default(); padded_size(self.size())];
         assign_direct(&mut vec, self);
         vec
     }

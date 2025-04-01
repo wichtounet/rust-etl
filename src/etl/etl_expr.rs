@@ -45,6 +45,10 @@ impl Float for f64 {
     }
 }
 
+pub fn padded_size(size: usize) -> usize {
+    (size + 7) & !7
+}
+
 pub trait EtlValueType:
     Constants
     + Default

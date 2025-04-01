@@ -17,7 +17,7 @@ pub struct Vector<T: EtlValueType> {
 impl<T: EtlValueType> Vector<T> {
     pub fn new(size: usize) -> Self {
         Self {
-            data: vec![T::default(); (size + 7) & !7],
+            data: vec![T::default(); padded_size(size)],
             size,
         }
     }

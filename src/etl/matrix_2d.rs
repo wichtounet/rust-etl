@@ -18,7 +18,7 @@ pub struct Matrix2d<T: EtlValueType> {
 impl<T: EtlValueType> Matrix2d<T> {
     pub fn new(rows: usize, columns: usize) -> Self {
         Self {
-            data: vec![T::default(); ((rows * columns) + 7) & !7],
+            data: vec![T::default(); padded_size(rows * columns)],
             rows,
             columns,
         }
