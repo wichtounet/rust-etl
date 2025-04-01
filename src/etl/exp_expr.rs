@@ -1,6 +1,4 @@
 use crate::etl::etl_expr::*;
-use crate::etl::matrix_2d::Matrix2d;
-use crate::etl::vector::Vector;
 
 // The declaration of ExprExpr
 

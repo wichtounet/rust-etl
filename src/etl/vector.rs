@@ -1,5 +1,4 @@
 use super::etl_expr::*;
-use super::matrix_2d::Matrix2d;
 
 use std::ops::BitOrAssign;
 

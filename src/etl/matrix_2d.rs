@@ -1,5 +1,4 @@
 use super::etl_expr::*;
-use super::vector::Vector;
 
 use std::ops::BitOrAssign;
 
