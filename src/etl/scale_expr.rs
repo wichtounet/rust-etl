@@ -77,27 +77,6 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 
 // ScaleExpr computes as copy
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlComputable<T> for ScaleExpr<T, LeftExpr, RightExpr> {
-    type ComputedAsVector = Vector<T>;
-    type ComputedAsMatrix = Matrix2d<T>;
-
-    fn to_vector(&self) -> EtlWrapper<T, Self::ComputedAsVector> {
-        let mut vec = Vector::<T>::new(self.rows());
-        assign_direct(&mut vec.data, self);
-        EtlWrapper {
-            value: vec,
-            _marker: std::marker::PhantomData,
-        }
-    }
-
-    fn to_matrix(&self) -> EtlWrapper<T, Self::ComputedAsMatrix> {
-        let mut vec = Matrix2d::<T>::new(self.rows(), self.columns());
-        assign_direct(&mut vec.data, self);
-        EtlWrapper {
-            value: vec,
-            _marker: std::marker::PhantomData,
-        }
-    }
-
     fn to_data(&self) -> Vec<T> {
         let mut vec = vec![T::default(); padded_size(self.size())];
         assign_direct(&mut vec, self);

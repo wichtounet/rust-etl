@@ -47,17 +47,6 @@ impl<T: EtlValueType> EtlExpr<T> for Constant<T> {
 
 // Constant<T> computes as itself
 impl<T: EtlValueType> EtlComputable<T> for Constant<T> {
-    type ComputedAsVector = Vector<T>;
-    type ComputedAsMatrix = Matrix2d<T>;
-
-    fn to_vector(&self) -> EtlWrapper<T, Self::ComputedAsVector> {
-        panic!("to_vector should not be called on Constant");
-    }
-
-    fn to_matrix(&self) -> EtlWrapper<T, Self::ComputedAsMatrix> {
-        panic!("to_matrix should not be called on Constant");
-    }
-
     fn to_data(&self) -> Vec<T> {
         panic!("to_data should not be called on Constant");
     }

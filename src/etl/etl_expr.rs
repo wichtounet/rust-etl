@@ -158,10 +158,6 @@ pub struct EtlWrapper<T: EtlValueType, SubExpr: EtlExpr<T>> {
 }
 
 pub trait EtlComputable<T: EtlValueType> {
-    type ComputedAsVector: EtlExpr<T>;
-    type ComputedAsMatrix: EtlExpr<T>;
-    fn to_vector(&self) -> EtlWrapper<T, Self::ComputedAsVector>;
-    fn to_matrix(&self) -> EtlWrapper<T, Self::ComputedAsMatrix>;
     fn to_data(&self) -> Vec<T>;
 }
 

@@ -137,20 +137,6 @@ impl<'a, T: EtlValueType> EtlWrappable<T> for &'a Vector<T> {
 
 // Vector<T> computes as itself
 impl<'a, T: EtlValueType> EtlComputable<T> for &'a Vector<T> {
-    type ComputedAsVector = &'a Vector<T>;
-    type ComputedAsMatrix = Matrix2d<T>;
-
-    fn to_vector(&self) -> EtlWrapper<T, Self::ComputedAsVector> {
-        EtlWrapper {
-            value: self,
-            _marker: std::marker::PhantomData,
-        }
-    }
-
-    fn to_matrix(&self) -> EtlWrapper<T, Self::ComputedAsMatrix> {
-        panic!("to_matrix should not be called on a Vector");
-    }
-
     fn to_data(&self) -> Vec<T> {
         self.data.clone()
     }
