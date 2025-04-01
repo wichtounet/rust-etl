@@ -93,10 +93,10 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlComputable<T> for Softm
 // Note: Since Rust does not allow function return type inference, it is simpler to build an
 // expression type than to return the expression itself
 
-pub fn softmax<T: EtlValueType + Float, Expr: WrappableExpr<T> + EtlComputable<T, ComputedAsVector = Vector<T>>>(expr: Expr) -> SoftmaxExpr<T, Expr> {
+pub fn softmax<T: EtlValueType + Float, Expr: WrappableExpr<T>>(expr: Expr) -> SoftmaxExpr<T, Expr> {
     // We need a  concrete type because we have no traits implementing X - constant
 
-    let vec: Vector<T> = expr.to_vector().value;
+    let vec = Vector::<T>::new_from_expr(&expr);
     let m = max(&vec).expect("Invalid expression for softmax");
     let s = sum(&exp(&vec - cst(m)));
 
@@ -120,5 +120,23 @@ mod tests {
 
     use approx::assert_relative_eq;
 
-    // TODO Add Tests
+    #[test]
+    fn basic_sigmoid() {
+        let mut a = Vector::<f64>::new(5);
+        let mut b = Vector::<f64>::new(5);
+
+        a[0] = 1.0;
+        a[1] = 2.0;
+        a[2] = 3.0;
+        a[3] = 4.0;
+        a[4] = 5.0;
+
+        b |= softmax(&a);
+
+        assert_relative_eq!(b.at(0), -2.545634, epsilon = 1e-6);
+        assert_relative_eq!(b.at(1), -1.909225, epsilon = 1e-6);
+        assert_relative_eq!(b.at(2), -1.272817, epsilon = 1e-6);
+        assert_relative_eq!(b.at(3), -0.636408, epsilon = 1e-6);
+        assert_relative_eq!(b.at(4), 0.0, epsilon = 1e-6);
+    }
 }

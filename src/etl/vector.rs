@@ -22,6 +22,19 @@ impl<T: EtlValueType> Vector<T> {
         }
     }
 
+    pub fn new_from_expr<Expr: EtlExpr<T>>(expr: &Expr) -> Self {
+        let mut vec = Self {
+            data: vec![T::default(); padded_size(expr.size())],
+            size: expr.size(),
+        };
+
+        for i in 0..vec.size() {
+            vec.data[i] = expr.at(i);
+        }
+
+        vec
+    }
+
     pub fn new_rand(size: usize) -> Self
     where
         rand::distr::StandardUniform: rand::distr::Distribution<T>,
