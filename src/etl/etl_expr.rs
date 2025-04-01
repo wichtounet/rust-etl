@@ -92,6 +92,12 @@ pub enum EtlType {
     Value,
 }
 
+impl EtlType {
+    pub fn direct(self) -> bool {
+        self == EtlType::Value || self == EtlType::Smart
+    }
+}
+
 pub trait EtlExpr<T: EtlValueType> {
     const DIMENSIONS: usize;
     const TYPE: EtlType;
@@ -139,7 +145,7 @@ pub trait EtlExpr<T: EtlValueType> {
     }
 
     fn get_data(&self) -> &Vec<T> {
-        panic!("This function is only implemented for value expression");
+        panic!("This function is only implemented for direct expression");
     }
 }
 

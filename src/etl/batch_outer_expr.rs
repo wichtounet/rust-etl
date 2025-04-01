@@ -159,6 +159,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     fn at2(&self, row: usize, column: usize) -> T {
         self.temp[row * self.columns() + column]
     }
+
+    fn get_data(&self) -> &Vec<T> {
+        &self.temp
+    }
 }
 
 // BiasOuterExpr is an EtlWrappable

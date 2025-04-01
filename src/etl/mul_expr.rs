@@ -2,7 +2,6 @@ use super::etl_expr::*;
 use super::matrix_2d::Matrix2d;
 use super::vector::Vector;
 
-// TODO: Propagate get_data on smart expression
 // TODO: Generalize everywhere
 // TODO: Try to get rid of to_vector/to_matrix
 
@@ -17,13 +16,13 @@ fn forward_data_binary<
     rhs: &RightExpr,
     functor: F,
 ) {
-    if LeftExpr::TYPE == EtlType::Value && RightExpr::TYPE == EtlType::Value {
+    if LeftExpr::TYPE.direct() && RightExpr::TYPE.direct() {
         functor(output, lhs.get_data(), rhs.get_data());
-    } else if LeftExpr::TYPE == EtlType::Value && RightExpr::TYPE != EtlType::Value {
+    } else if LeftExpr::TYPE.direct() && !RightExpr::TYPE.direct() {
         let rhs_data = rhs.to_data();
 
         functor(output, lhs.get_data(), &rhs_data);
-    } else if LeftExpr::TYPE != EtlType::Value && RightExpr::TYPE == EtlType::Value {
+    } else if !LeftExpr::TYPE.direct() && RightExpr::TYPE.direct() {
         let lhs_data = lhs.to_data();
 
         functor(output, &lhs_data, rhs.get_data());
@@ -252,6 +251,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 
     fn at2(&self, row: usize, column: usize) -> T {
         self.temp[row * self.columns() + column]
+    }
+
+    fn get_data(&self) -> &Vec<T> {
+        &self.temp
     }
 }
 
