@@ -141,6 +141,10 @@ impl<'a, T: EtlValueType> EtlComputable<T> for &'a Vector<T> {
     fn to_matrix(&self) -> EtlWrapper<T, Self::ComputedAsMatrix> {
         panic!("to_matrix should not be called on a Vector");
     }
+
+    fn to_data(&self) -> Vec<T> {
+        self.data.clone()
+    }
 }
 
 // Operator overloading for Vector<T>

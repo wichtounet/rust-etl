@@ -57,6 +57,10 @@ impl<T: EtlValueType> EtlComputable<T> for Constant<T> {
     fn to_matrix(&self) -> EtlWrapper<T, Self::ComputedAsMatrix> {
         panic!("to_matrix should not be called on Constant");
     }
+
+    fn to_data(&self) -> Vec<T> {
+        panic!("to_data should not be called on Constant");
+    }
 }
 
 // Constant<T> wraps as value

@@ -174,6 +174,10 @@ impl<'a, T: EtlValueType> EtlComputable<T> for &'a Matrix2d<T> {
             _marker: std::marker::PhantomData,
         }
     }
+
+    fn to_data(&self) -> Vec<T> {
+        self.data.clone()
+    }
 }
 
 // Operator overloading for Matrix2d<T>

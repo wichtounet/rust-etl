@@ -152,6 +152,7 @@ pub trait EtlComputable<T: EtlValueType> {
     type ComputedAsMatrix: EtlContainer<T>;
     fn to_vector(&self) -> EtlWrapper<T, Self::ComputedAsVector>;
     fn to_matrix(&self) -> EtlWrapper<T, Self::ComputedAsMatrix>;
+    fn to_data(&self) -> Vec<T>;
 }
 
 pub trait EtlWrappable<T: EtlValueType> {

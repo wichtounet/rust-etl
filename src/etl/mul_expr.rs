@@ -262,6 +262,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
             _marker: std::marker::PhantomData,
         }
     }
+
+    fn to_data(&self) -> Vec<T> {
+        self.temp.clone()
+    }
 }
 
 // Operations
