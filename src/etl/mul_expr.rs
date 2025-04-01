@@ -2,7 +2,6 @@ use super::etl_expr::*;
 use super::matrix_2d::Matrix2d;
 use super::vector::Vector;
 
-// TODO: Generalize everywhere
 // TODO: Try to get rid of to_vector/to_matrix
 
 // The declaration of MulExpr
