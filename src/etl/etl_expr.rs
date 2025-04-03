@@ -1,4 +1,4 @@
-use std::ops::*;
+use std::{ops::*, thread};
 
 // Rust is pretty much retarded for getting constants out a generic type
 pub trait Constants {
@@ -64,6 +64,8 @@ pub trait EtlValueType:
     + MulAssign
     + Div<Output = Self>
     + DivAssign
+    + std::marker::Sync
+    + std::marker::Send
 {
 }
 impl<
@@ -80,7 +82,9 @@ impl<
             + Mul<Output = T>
             + MulAssign<T>
             + Div<Output = Self>
-            + DivAssign,
+            + DivAssign
+            + std::marker::Sync
+            + std::marker::Send,
     > EtlValueType for T
 {
 }
@@ -98,7 +102,7 @@ impl EtlType {
     }
 }
 
-pub trait EtlExpr<T: EtlValueType> {
+pub trait EtlExpr<T: EtlValueType>: std::marker::Sync {
     const DIMENSIONS: usize;
     const TYPE: EtlType;
 
