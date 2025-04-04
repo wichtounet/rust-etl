@@ -191,6 +191,10 @@ pub fn validate_assign<T: EtlValueType, LeftExpr: EtlExpr<T>, RightExpr: EtlExpr
     }
 }
 
+// TODO Do Compound operations in parallel as well
+// TODO Use a thread pool
+// TODO See if I need the scope
+
 pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: &RightExpr) {
     // TODO Ideally, a RightExpr::TYPE = Value should be a simple memcpy
 
