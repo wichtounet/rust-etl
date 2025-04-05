@@ -11,6 +11,7 @@ pub mod sigmoid_derivative_expr;
 pub mod sigmoid_expr;
 pub mod softmax_expr;
 pub mod sub_expr;
+pub mod transpose_expr;
 
 // The containers
 pub mod matrix_2d;
