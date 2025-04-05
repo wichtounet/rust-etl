@@ -1,3 +1,4 @@
+use rayon;
 use std::{ops::*, thread};
 
 // Rust is pretty much retarded for getting constants out a generic type
@@ -192,8 +193,12 @@ pub fn validate_assign<T: EtlValueType, LeftExpr: EtlExpr<T>, RightExpr: EtlExpr
 }
 
 // TODO Do Compound operations in parallel as well
-// TODO Use a thread pool
-// TODO See if I need the scope
+
+// We must use a scope for threads because our data does not have ´static lifetime which would be
+// required otherwise
+// Ideally, we would uses std::thread::scope, but it does not use a thread pool
+// rayon setups the thread pool with max number of CPUs on the machine, so we use that as our
+// threads
 
 pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: &RightExpr) {
     // TODO Ideally, a RightExpr::TYPE = Value should be a simple memcpy
@@ -205,20 +210,20 @@ pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, 
         }
     } else if RightExpr::TYPE == EtlType::Value || RightExpr::TYPE == EtlType::Simple {
         let padded_size = (rhs.size() + 7) & !7;
-        if padded_size > 16384 {
-            let n = 16;
-            let block_size = padded_size / n;
+        if padded_size > 32768 {
+            rayon::scope(|s| {
+                let n = rayon::current_num_threads();
+                let block_size = padded_size / n;
 
-            let ptr = data.as_mut_ptr();
+                let ptr = data.as_mut_ptr();
 
-            thread::scope(|s| {
                 for t in 0..n {
                     let start = t * block_size;
                     let end = if t < n { (t + 1) * block_size } else { padded_size };
 
                     let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
 
-                    s.spawn(|| {
+                    s.spawn(|_| {
                         for (i, x) in slice.iter_mut().enumerate() {
                             *x = rhs.at(i);
                         }

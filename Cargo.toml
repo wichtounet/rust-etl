@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 rand = "0.9.0"
 approx = "0.5.1"
+rayon = "1.10.0"
 
 [[bin]]
 name = "rust-etl"
