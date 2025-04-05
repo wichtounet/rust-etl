@@ -1,5 +1,5 @@
 use rayon;
-use std::{ops::*, thread};
+use std::ops::*;
 
 // Rust is pretty much retarded for getting constants out a generic type
 pub trait Constants {
@@ -192,13 +192,13 @@ pub fn validate_assign<T: EtlValueType, LeftExpr: EtlExpr<T>, RightExpr: EtlExpr
     }
 }
 
-// TODO Do Compound operations in parallel as well
-
 // We must use a scope for threads because our data does not have ´static lifetime which would be
 // required otherwise
 // Ideally, we would uses std::thread::scope, but it does not use a thread pool
 // rayon setups the thread pool with max number of CPUs on the machine, so we use that as our
 // threads
+
+const PARALLEL_THRESHOLD: usize = 32768;
 
 pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: &RightExpr) {
     // TODO Ideally, a RightExpr::TYPE = Value should be a simple memcpy
@@ -210,7 +210,7 @@ pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, 
         }
     } else if RightExpr::TYPE == EtlType::Value || RightExpr::TYPE == EtlType::Simple {
         let padded_size = (rhs.size() + 7) & !7;
-        if padded_size > 32768 {
+        if padded_size > PARALLEL_THRESHOLD {
             rayon::scope(|s| {
                 let n = rayon::current_num_threads();
                 let block_size = padded_size / n;
@@ -252,8 +252,31 @@ pub fn add_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
             data[i] += rhs.at(i);
         }
     } else if RightExpr::TYPE == EtlType::Value || RightExpr::TYPE == EtlType::Simple {
-        for i in (0..(rhs.size() + 7) & !7).step_by(1) {
-            data[i] += rhs.at(i);
+        let padded_size = (rhs.size() + 7) & !7;
+        if padded_size > PARALLEL_THRESHOLD {
+            rayon::scope(|s| {
+                let n = rayon::current_num_threads();
+                let block_size = padded_size / n;
+
+                let ptr = data.as_mut_ptr();
+
+                for t in 0..n {
+                    let start = t * block_size;
+                    let end = if t < n { (t + 1) * block_size } else { padded_size };
+
+                    let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
+
+                    s.spawn(|_| {
+                        for (i, x) in slice.iter_mut().enumerate() {
+                            *x += rhs.at(i);
+                        }
+                    });
+                }
+            });
+        } else {
+            for i in (0..(rhs.size() + 7) & !7).step_by(1) {
+                data[i] += rhs.at(i);
+            }
         }
     } else if RightExpr::TYPE == EtlType::Smart {
         rhs.compute_into_add(data);
@@ -270,8 +293,30 @@ pub fn sub_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
         }
     } else if RightExpr::TYPE == EtlType::Value || RightExpr::TYPE == EtlType::Simple {
         let padded_size = (rhs.size() + 7) & !7;
-        for i in (0..padded_size).step_by(1) {
-            data[i] -= rhs.at(i);
+        if padded_size > PARALLEL_THRESHOLD {
+            rayon::scope(|s| {
+                let n = rayon::current_num_threads();
+                let block_size = padded_size / n;
+
+                let ptr = data.as_mut_ptr();
+
+                for t in 0..n {
+                    let start = t * block_size;
+                    let end = if t < n { (t + 1) * block_size } else { padded_size };
+
+                    let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
+
+                    s.spawn(|_| {
+                        for (i, x) in slice.iter_mut().enumerate() {
+                            *x -= rhs.at(i);
+                        }
+                    });
+                }
+            });
+        } else {
+            for i in (0..padded_size).step_by(1) {
+                data[i] -= rhs.at(i);
+            }
         }
     } else if RightExpr::TYPE == EtlType::Smart {
         rhs.compute_into_sub(data);
@@ -287,8 +332,31 @@ pub fn scale_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Ve
             data[i] *= rhs.at(i);
         }
     } else if RightExpr::TYPE == EtlType::Value || RightExpr::TYPE == EtlType::Simple {
-        for i in (0..(rhs.size() + 7) & !7).step_by(1) {
-            data[i] *= rhs.at(i);
+        let padded_size = (rhs.size() + 7) & !7;
+        if padded_size > PARALLEL_THRESHOLD {
+            rayon::scope(|s| {
+                let n = rayon::current_num_threads();
+                let block_size = padded_size / n;
+
+                let ptr = data.as_mut_ptr();
+
+                for t in 0..n {
+                    let start = t * block_size;
+                    let end = if t < n { (t + 1) * block_size } else { padded_size };
+
+                    let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
+
+                    s.spawn(|_| {
+                        for (i, x) in slice.iter_mut().enumerate() {
+                            *x *= rhs.at(i);
+                        }
+                    });
+                }
+            });
+        } else {
+            for i in (0..(rhs.size() + 7) & !7).step_by(1) {
+                data[i] *= rhs.at(i);
+            }
         }
     } else if RightExpr::TYPE == EtlType::Smart {
         rhs.compute_into_scale(data);
