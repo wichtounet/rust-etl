@@ -1,4 +1,4 @@
-use super::etl_expr::*;
+use crate::etl_expr::*;
 
 // The declaration of AddExpr
 
@@ -92,7 +92,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 macro_rules! impl_add_op_value {
     ($type:ty) => {
         impl<'a, T: EtlValueType, RightExpr: WrappableExpr<T>> std::ops::Add<RightExpr> for &'a $type {
-            type Output = $crate::etl::add_expr::AddExpr<T, &'a $type, RightExpr>;
+            type Output = $crate::add_expr::AddExpr<T, &'a $type, RightExpr>;
 
             fn add(self, other: RightExpr) -> Self::Output {
                 Self::Output::new(self, other)
@@ -112,7 +112,7 @@ macro_rules! impl_add_op_value {
 macro_rules! impl_add_op_constant {
     ($type:ty) => {
         impl<T: EtlValueType, RightExpr: WrappableExpr<T>> std::ops::Add<RightExpr> for $type {
-            type Output = $crate::etl::add_expr::AddExpr<T, $type, RightExpr>;
+            type Output = $crate::add_expr::AddExpr<T, $type, RightExpr>;
 
             fn add(self, other: RightExpr) -> Self::Output {
                 Self::Output::new(self, other)
@@ -127,7 +127,7 @@ macro_rules! impl_add_op_binary_expr {
         impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Add<OuterRightExpr>
             for $type
         {
-            type Output = $crate::etl::add_expr::AddExpr<T, $type, OuterRightExpr>;
+            type Output = $crate::add_expr::AddExpr<T, $type, OuterRightExpr>;
 
             fn add(self, other: OuterRightExpr) -> Self::Output {
                 Self::Output::new(self, other)
@@ -140,7 +140,7 @@ macro_rules! impl_add_op_binary_expr {
 macro_rules! impl_add_op_unary_expr {
     ($type:ty) => {
         impl<T: EtlValueType, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Add<OuterRightExpr> for $type {
-            type Output = $crate::etl::add_expr::AddExpr<T, $type, OuterRightExpr>;
+            type Output = $crate::add_expr::AddExpr<T, $type, OuterRightExpr>;
 
             fn add(self, other: OuterRightExpr) -> Self::Output {
                 Self::Output::new(self, other)
@@ -153,7 +153,7 @@ macro_rules! impl_add_op_unary_expr {
 macro_rules! impl_add_op_unary_expr_float {
     ($type:ty) => {
         impl<T: EtlValueType + Float, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Add<OuterRightExpr> for $type {
-            type Output = $crate::etl::add_expr::AddExpr<T, $type, OuterRightExpr>;
+            type Output = $crate::add_expr::AddExpr<T, $type, OuterRightExpr>;
 
             fn add(self, other: OuterRightExpr) -> Self::Output {
                 Self::Output::new(self, other)
@@ -171,9 +171,9 @@ crate::impl_scale_op_binary_expr!(AddExpr<T, LeftExpr, RightExpr>);
 
 #[cfg(test)]
 mod tests {
-    use crate::etl::etl_expr::EtlExpr;
-    use crate::etl::matrix_2d::Matrix2d;
-    use crate::etl::vector::Vector;
+    use crate::etl_expr::EtlExpr;
+    use crate::matrix_2d::Matrix2d;
+    use crate::vector::Vector;
 
     #[test]
     fn basic_one() {

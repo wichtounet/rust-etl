@@ -1,4 +1,4 @@
-use crate::etl::etl_expr::*;
+use crate::etl_expr::*;
 
 // The declaration of SigmoidExpr
 
@@ -82,9 +82,9 @@ crate::impl_scale_op_unary_expr_float!(SigmoidExpr<T, Expr>);
 mod tests {
     use core::f64;
 
-    use crate::etl::etl_expr::EtlExpr;
-    use crate::etl::sigmoid_expr::sigmoid;
-    use crate::etl::vector::Vector;
+    use crate::etl_expr::EtlExpr;
+    use crate::sigmoid_expr::sigmoid;
+    use crate::vector::Vector;
 
     use approx::assert_relative_eq;
 

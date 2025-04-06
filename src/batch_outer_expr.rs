@@ -1,4 +1,4 @@
-use super::etl_expr::*;
+use crate::etl_expr::*;
 
 // The declaration of BiasOuterExpr
 
@@ -204,9 +204,9 @@ crate::impl_scale_op_binary_expr!(BiasOuterExpr<T, LeftExpr, RightExpr>);
 
 #[cfg(test)]
 mod tests {
-    use crate::etl::batch_outer_expr::batch_outer;
-    use crate::etl::etl_expr::EtlExpr;
-    use crate::etl::matrix_2d::Matrix2d;
+    use crate::batch_outer_expr::batch_outer;
+    use crate::etl_expr::EtlExpr;
+    use crate::matrix_2d::Matrix2d;
 
     #[test]
     fn batch_outer_simple() {

@@ -1,4 +1,4 @@
-use crate::etl::etl_expr::*;
+use crate::etl_expr::*;
 
 // Reduction Operations
 
@@ -83,8 +83,8 @@ pub fn min<T: EtlValueType, Expr: EtlExpr<T>>(expr: &Expr) -> Result<T, &'static
 mod tests {
     use core::f64;
 
-    use crate::etl::reductions::*;
-    use crate::etl::vector::Vector;
+    use crate::reductions::*;
+    use crate::vector::Vector;
 
     use approx::assert_relative_eq;
 

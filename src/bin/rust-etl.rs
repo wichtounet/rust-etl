@@ -1,11 +1,9 @@
-mod etl;
-
 use etl::sigmoid_expr::sigmoid;
 
-use crate::etl::matrix_2d::Matrix2d;
-use crate::etl::vector::Vector;
+use etl::matrix_2d::Matrix2d;
+use etl::vector::Vector;
 
-use crate::etl::etl_expr::EtlExpr;
+use etl::etl_expr::EtlExpr;
 
 struct DenseLayer {
     weights: Matrix2d<f64>,

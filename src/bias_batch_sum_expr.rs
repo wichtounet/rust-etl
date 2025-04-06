@@ -1,4 +1,4 @@
-use super::etl_expr::*;
+use crate::etl_expr::*;
 
 // The declaration of BiasBatchSumExpr
 
@@ -184,10 +184,10 @@ crate::impl_scale_op_unary_expr!(BiasBatchSumExpr<T, Expr>);
 
 #[cfg(test)]
 mod tests {
-    use crate::etl::bias_batch_sum_expr::bias_batch_sum;
-    use crate::etl::etl_expr::EtlExpr;
-    use crate::etl::matrix_2d::Matrix2d;
-    use crate::etl::vector::Vector;
+    use crate::bias_batch_sum_expr::bias_batch_sum;
+    use crate::etl_expr::EtlExpr;
+    use crate::matrix_2d::Matrix2d;
+    use crate::vector::Vector;
 
     #[test]
     fn bias_batch_sum_simple() {

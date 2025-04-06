@@ -1,4 +1,4 @@
-use super::etl_expr::*;
+use crate::etl_expr::*;
 
 // The declaration of TransposeExpr
 
@@ -187,9 +187,9 @@ pub fn transpose<T: EtlValueType, Expr: WrappableExpr<T>>(expr: Expr) -> Transpo
 
 #[cfg(test)]
 mod tests {
-    use crate::etl::etl_expr::EtlExpr;
-    use crate::etl::matrix_2d::Matrix2d;
-    use crate::etl::transpose_expr::transpose;
+    use crate::etl_expr::EtlExpr;
+    use crate::matrix_2d::Matrix2d;
+    use crate::transpose_expr::transpose;
 
     #[test]
     fn transpose_a() {

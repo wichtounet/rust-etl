@@ -1,4 +1,4 @@
-use super::etl_expr::*;
+use crate::etl_expr::*;
 
 // The declaration of BiasAddExpr
 
@@ -204,10 +204,10 @@ crate::impl_scale_op_binary_expr!(BiasAddExpr<T, LeftExpr, RightExpr>);
 
 #[cfg(test)]
 mod tests {
-    use crate::etl::bias_add_expr::bias_add;
-    use crate::etl::etl_expr::EtlExpr;
-    use crate::etl::matrix_2d::Matrix2d;
-    use crate::etl::vector::Vector;
+    use crate::bias_add_expr::bias_add;
+    use crate::etl_expr::EtlExpr;
+    use crate::matrix_2d::Matrix2d;
+    use crate::vector::Vector;
 
     #[test]
     fn bias_add_simple() {

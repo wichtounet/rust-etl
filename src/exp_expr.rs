@@ -1,4 +1,4 @@
-use crate::etl::etl_expr::*;
+use crate::etl_expr::*;
 
 // The declaration of ExprExpr
 
@@ -82,9 +82,9 @@ crate::impl_scale_op_unary_expr_float!(ExprExpr<T, Expr>);
 mod tests {
     use core::f64;
 
-    use crate::etl::etl_expr::EtlExpr;
-    use crate::etl::exp_expr::exp;
-    use crate::etl::vector::Vector;
+    use crate::etl_expr::EtlExpr;
+    use crate::exp_expr::exp;
+    use crate::vector::Vector;
 
     use approx::assert_relative_eq;
 

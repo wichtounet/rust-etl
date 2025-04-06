@@ -1,10 +1,10 @@
-use crate::etl::etl_expr::*;
-use crate::etl::reductions::max;
-use crate::etl::reductions::sum;
-use crate::etl::vector::Vector;
+use crate::etl_expr::*;
+use crate::reductions::max;
+use crate::reductions::sum;
+use crate::vector::Vector;
 
-use super::constant::cst;
-use super::exp_expr::exp;
+use crate::constant::cst;
+use crate::exp_expr::exp;
 
 // The declaration of SoftmaxExpr
 
@@ -92,9 +92,9 @@ crate::impl_scale_op_unary_expr_float!(SoftmaxExpr<T, Expr>);
 mod tests {
     use core::f64;
 
-    use crate::etl::etl_expr::EtlExpr;
-    use crate::etl::softmax_expr::softmax;
-    use crate::etl::vector::Vector;
+    use crate::etl_expr::EtlExpr;
+    use crate::softmax_expr::softmax;
+    use crate::vector::Vector;
 
     use approx::assert_relative_eq;
 

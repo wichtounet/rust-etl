@@ -1,4 +1,4 @@
-use super::etl_expr::*;
+use crate::etl_expr::*;
 
 // The declaration of Constant<T>
 
@@ -70,7 +70,7 @@ crate::impl_scale_op_constant!(Constant<T>);
 
 #[cfg(test)]
 mod tests {
-    use crate::etl::matrix_2d::Matrix2d;
+    use crate::matrix_2d::Matrix2d;
 
     use super::*;
 

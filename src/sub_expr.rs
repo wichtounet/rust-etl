@@ -1,15 +1,15 @@
-use super::etl_expr::*;
+use crate::etl_expr::*;
 
-// The declaration of ScaleExpr
+// The declaration of SubExpr
 
-pub struct ScaleExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
+pub struct SubExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
     lhs: EtlWrapper<T, LeftExpr::WrappedAs>,
     rhs: EtlWrapper<T, RightExpr::WrappedAs>,
 }
 
-// The functions of ScaleExpr
+// The functions of SubExpr
 
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> ScaleExpr<T, LeftExpr, RightExpr> {
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> SubExpr<T, LeftExpr, RightExpr> {
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
         if LeftExpr::DIMENSIONS > 0 && RightExpr::DIMENSIONS > 0 && lhs.size() != rhs.size() {
             panic!("Cannot add expressions of different sizes ({} + {})", lhs.size(), rhs.size());
@@ -22,8 +22,8 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> S
     }
 }
 
-// ScaleExpr is an EtlExpr
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for ScaleExpr<T, LeftExpr, RightExpr> {
+// SubExpr is an EtlExpr
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for SubExpr<T, LeftExpr, RightExpr> {
     const DIMENSIONS: usize = if LeftExpr::DIMENSIONS > 0 { LeftExpr::DIMENSIONS } else { RightExpr::DIMENSIONS };
     const TYPE: EtlType = EtlType::Simple;
 
@@ -52,18 +52,18 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 
     fn at(&self, i: usize) -> T {
-        self.lhs.value.at(i) * self.rhs.value.at(i)
+        self.lhs.value.at(i) - self.rhs.value.at(i)
     }
 
     fn at2(&self, row: usize, column: usize) -> T {
-        self.lhs.value.at2(row, column) * self.rhs.value.at2(row, column)
+        self.lhs.value.at2(row, column) - self.rhs.value.at2(row, column)
     }
 }
 
-// ScaleExpr is an EtlWrappable
-// ScaleExpr wraps as value
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for ScaleExpr<T, LeftExpr, RightExpr> {
-    type WrappedAs = ScaleExpr<T, LeftExpr, RightExpr>;
+// SubExpr is an EtlWrappable
+// SubExpr wraps as value
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for SubExpr<T, LeftExpr, RightExpr> {
+    type WrappedAs = SubExpr<T, LeftExpr, RightExpr>;
 
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
         EtlWrapper {
@@ -73,8 +73,8 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 }
 
-// ScaleExpr computes as copy
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlComputable<T> for ScaleExpr<T, LeftExpr, RightExpr> {
+// SubExpr computes as copy
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlComputable<T> for SubExpr<T, LeftExpr, RightExpr> {
     fn to_data(&self) -> Vec<T> {
         let mut vec = vec![T::default(); padded_size(self.size())];
         assign_direct(&mut vec, self);
@@ -89,32 +89,32 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 // Therefore, we provide macros for other structures and expressions
 
 #[macro_export]
-macro_rules! impl_scale_op_value {
+macro_rules! impl_sub_op_value {
     ($type:ty) => {
-        impl<'a, T: EtlValueType, RightExpr: WrappableExpr<T>> std::ops::Shr<RightExpr> for &'a $type {
-            type Output = $crate::etl::scale_expr::ScaleExpr<T, &'a $type, RightExpr>;
+        impl<'a, T: EtlValueType, RightExpr: WrappableExpr<T>> std::ops::Sub<RightExpr> for &'a $type {
+            type Output = $crate::sub_expr::SubExpr<T, &'a $type, RightExpr>;
 
-            fn shr(self, other: RightExpr) -> Self::Output {
+            fn sub(self, other: RightExpr) -> Self::Output {
                 Self::Output::new(self, other)
             }
         }
 
-        impl<T: EtlValueType, RightExpr: EtlExpr<T>> std::ops::ShrAssign<RightExpr> for $type {
-            fn shr_assign(&mut self, other: RightExpr) {
+        impl<T: EtlValueType, RightExpr: EtlExpr<T>> std::ops::SubAssign<RightExpr> for $type {
+            fn sub_assign(&mut self, other: RightExpr) {
                 validate_assign(self, &other);
-                scale_assign_direct(&mut self.data, &other);
+                sub_assign_direct(&mut self.data, &other);
             }
         }
     };
 }
 
 #[macro_export]
-macro_rules! impl_scale_op_constant {
+macro_rules! impl_sub_op_constant {
     ($type:ty) => {
-        impl<T: EtlValueType, RightExpr: WrappableExpr<T>> std::ops::Shr<RightExpr> for $type {
-            type Output = $crate::etl::scale_expr::ScaleExpr<T, $type, RightExpr>;
+        impl<T: EtlValueType, RightExpr: WrappableExpr<T>> std::ops::Sub<RightExpr> for $type {
+            type Output = $crate::sub_expr::SubExpr<T, $type, RightExpr>;
 
-            fn shr(self, other: RightExpr) -> Self::Output {
+            fn sub(self, other: RightExpr) -> Self::Output {
                 Self::Output::new(self, other)
             }
         }
@@ -122,14 +122,14 @@ macro_rules! impl_scale_op_constant {
 }
 
 #[macro_export]
-macro_rules! impl_scale_op_binary_expr {
+macro_rules! impl_sub_op_binary_expr {
     ($type:ty) => {
-        impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Shr<OuterRightExpr>
+        impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Sub<OuterRightExpr>
             for $type
         {
-            type Output = $crate::etl::scale_expr::ScaleExpr<T, $type, OuterRightExpr>;
+            type Output = $crate::sub_expr::SubExpr<T, $type, OuterRightExpr>;
 
-            fn shr(self, other: OuterRightExpr) -> Self::Output {
+            fn sub(self, other: OuterRightExpr) -> Self::Output {
                 Self::Output::new(self, other)
             }
         }
@@ -137,12 +137,12 @@ macro_rules! impl_scale_op_binary_expr {
 }
 
 #[macro_export]
-macro_rules! impl_scale_op_unary_expr {
+macro_rules! impl_sub_op_unary_expr {
     ($type:ty) => {
-        impl<T: EtlValueType, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Shr<OuterRightExpr> for $type {
-            type Output = $crate::etl::scale_expr::ScaleExpr<T, $type, OuterRightExpr>;
+        impl<T: EtlValueType, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Sub<OuterRightExpr> for $type {
+            type Output = $crate::sub_expr::SubExpr<T, $type, OuterRightExpr>;
 
-            fn shr(self, other: OuterRightExpr) -> Self::Output {
+            fn sub(self, other: OuterRightExpr) -> Self::Output {
                 Self::Output::new(self, other)
             }
         }
@@ -150,31 +150,30 @@ macro_rules! impl_scale_op_unary_expr {
 }
 
 #[macro_export]
-macro_rules! impl_scale_op_unary_expr_float {
+macro_rules! impl_sub_op_unary_expr_float {
     ($type:ty) => {
-        impl<T: EtlValueType + Float, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Shr<OuterRightExpr> for $type {
-            type Output = $crate::etl::scale_expr::ScaleExpr<T, $type, OuterRightExpr>;
+        impl<T: EtlValueType + Float, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Sub<OuterRightExpr> for $type {
+            type Output = $crate::sub_expr::SubExpr<T, $type, OuterRightExpr>;
 
-            fn shr(self, other: OuterRightExpr) -> Self::Output {
+            fn sub(self, other: OuterRightExpr) -> Self::Output {
                 Self::Output::new(self, other)
             }
         }
     };
 }
 
-crate::impl_add_op_binary_expr!(ScaleExpr<T, LeftExpr, RightExpr>);
-crate::impl_sub_op_binary_expr!(ScaleExpr<T, LeftExpr, RightExpr>);
-crate::impl_mul_op_binary_expr!(ScaleExpr<T, LeftExpr, RightExpr>);
-crate::impl_scale_op_binary_expr!(ScaleExpr<T, LeftExpr, RightExpr>);
+crate::impl_add_op_binary_expr!(SubExpr<T, LeftExpr, RightExpr>);
+crate::impl_sub_op_binary_expr!(SubExpr<T, LeftExpr, RightExpr>);
+crate::impl_mul_op_binary_expr!(SubExpr<T, LeftExpr, RightExpr>);
+crate::impl_scale_op_binary_expr!(SubExpr<T, LeftExpr, RightExpr>);
 
 // The tests
 
 #[cfg(test)]
 mod tests {
-    use crate::etl::constant::cst;
-    use crate::etl::etl_expr::EtlExpr;
-    use crate::etl::matrix_2d::Matrix2d;
-    use crate::etl::vector::Vector;
+    use crate::etl_expr::EtlExpr;
+    use crate::matrix_2d::Matrix2d;
+    use crate::vector::Vector;
 
     #[test]
     fn basic_one() {
@@ -184,10 +183,10 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        let expr = &a >> &b;
+        let expr = &a - &b;
 
         assert_eq!(expr.size(), 8);
-        assert_eq!(expr.at(0), 2);
+        assert_eq!(expr.at(0), -1);
     }
 
     #[test]
@@ -199,11 +198,11 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        let expr = &a >> &b;
+        let expr = &a - &b;
 
         c |= expr;
 
-        assert_eq!(c.at(0), 2);
+        assert_eq!(c.at(0), -1);
     }
 
     #[test]
@@ -215,23 +214,9 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        c |= &a >> &b;
+        c |= &a - &b;
 
-        assert_eq!(c.at(0), 2);
-    }
-
-    #[test]
-    fn basic_assign_constant() {
-        let mut a = Vector::<i64>::new(8);
-        let mut b = Vector::<i64>::new(8);
-        let mut c = Vector::<i64>::new(8);
-
-        a[0] = 3;
-        b[0] = 7;
-
-        c |= cst(2) >> (&a >> &b);
-
-        assert_eq!(c.at(0), 42);
+        assert_eq!(c.at(0), -1);
     }
 
     #[test]
@@ -243,9 +228,9 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        c |= &a >> &b;
+        c |= &a - &b;
 
-        assert_eq!(c.at(0), 2);
+        assert_eq!(c.at(0), -1);
     }
 
     #[test]
@@ -257,9 +242,9 @@ mod tests {
         a[0] = 1;
         b[0] = 2;
 
-        c |= (&a >> &b) >> &b;
+        c |= (&a - &b) - &a;
 
-        assert_eq!(c.at(0), 4);
+        assert_eq!(c.at(0), -2);
     }
 
     #[test]
@@ -268,12 +253,12 @@ mod tests {
         let mut b = Vector::<i64>::new(8);
         let mut c = Vector::<i64>::new(8);
 
-        a[0] = 3;
+        a[0] = 1;
         b[0] = 2;
 
-        c |= (&a >> &b) + (&a >> &b);
+        c |= (&a + &b) - (&a - &b);
 
-        assert_eq!(c.at(0), 12);
+        assert_eq!(c.at(0), 4);
     }
 
     #[test]
@@ -282,13 +267,11 @@ mod tests {
         let mut b = Vector::<i64>::new(8);
         let mut c = Vector::<i64>::new(8);
 
-        c.fill(10);
-
         a[0] = 1;
         b[0] = 2;
 
-        c >>= &a + &b;
+        c -= &a - &b;
 
-        assert_eq!(c.at(0), 30);
+        assert_eq!(c.at(0), 1);
     }
 }
