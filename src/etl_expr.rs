@@ -80,6 +80,7 @@ pub trait EtlValueType:
     + DivAssign
     + std::marker::Sync
     + std::marker::Send
+    + std::fmt::Display
 {
 }
 impl<
@@ -98,7 +99,8 @@ impl<
             + Div<Output = Self>
             + DivAssign
             + std::marker::Sync
-            + std::marker::Send,
+            + std::marker::Send
+            + std::fmt::Display,
     > EtlValueType for T
 {
 }

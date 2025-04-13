@@ -1,6 +1,6 @@
 use crate::etl_expr::*;
 
-use std::ops::BitOrAssign;
+use std::{fmt, ops::BitOrAssign};
 
 use rand::Rng;
 use rand_distr::*;
@@ -167,6 +167,21 @@ impl<'a, T: EtlValueType> EtlComputable<T> for &'a Vector<T> {
     }
 }
 
+impl<T: EtlValueType> fmt::Display for Vector<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[")?;
+
+        for i in 0..self.size() {
+            if i > 0 {
+                write!(f, ",")?;
+            }
+            write!(f, "{}", self.data[i])?;
+        }
+
+        write!(f, "]")
+    }
+}
+
 // Operator overloading for Vector<T>
 
 impl<T: EtlValueType> std::ops::Index<usize> for Vector<T> {
@@ -242,16 +257,29 @@ mod tests {
 
     #[test]
     fn default_value() {
-        let mat = Vector::<f64>::new(8);
+        let vec = Vector::<f64>::new(8);
 
-        assert_eq!(mat.at(0), 0.0);
-        assert_eq!(mat.at(1), 0.0);
-        assert_eq!(mat.at(2), 0.0);
+        assert_eq!(vec.at(0), 0.0);
+        assert_eq!(vec.at(1), 0.0);
+        assert_eq!(vec.at(2), 0.0);
     }
 
     #[test]
     fn normal() {
-        let _mat = Vector::<f64>::new_rand_normal(3);
+        let _vec = Vector::<f64>::new_rand_normal(3);
+    }
+
+    #[test]
+    fn print() {
+        let mut vec = Vector::<i32>::new(3);
+
+        vec[0] = 3;
+        vec[1] = 2;
+        vec[2] = 1;
+
+        println!("Display vector: {}", vec);
+        let str = format!("{vec}");
+        assert_eq!(str, "[3,2,1]")
     }
 
     #[test]
