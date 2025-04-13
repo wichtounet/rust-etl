@@ -1,6 +1,6 @@
 use crate::etl_expr::*;
 
-use std::ops::BitOrAssign;
+use std::{fmt, ops::BitOrAssign};
 
 use rand::Rng;
 use rand_distr::*;
@@ -187,6 +187,28 @@ impl<'a, T: EtlValueType> EtlComputable<T> for &'a Matrix2d<T> {
     }
 }
 
+impl<T: EtlValueType> fmt::Display for Matrix2d<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[")?;
+
+        for row in 0..self.rows() {
+            if row > 0 {
+                write!(f, ",")?;
+            }
+            write!(f, "[")?;
+            for column in 0..self.columns() {
+                if column > 0 {
+                    write!(f, ",")?;
+                }
+                write!(f, "{}", self.at2(row, column))?;
+            }
+            write!(f, "]")?
+        }
+
+        write!(f, "]")
+    }
+}
+
 // Operator overloading for Matrix2d<T>
 
 impl<T: EtlValueType> std::ops::Index<usize> for Matrix2d<T> {
@@ -255,6 +277,22 @@ mod tests {
         assert_eq!(mat.at2(0, 0), 9);
         assert_eq!(mat.at2(1, 1), 3);
         assert_eq!(mat.at2(2, 1), 0);
+    }
+
+    #[test]
+    fn print() {
+        let mut mat = Matrix2d::<i32>::new(3, 2);
+
+        mat[0] = 3;
+        mat[1] = 2;
+        mat[2] = 1;
+        mat[3] = 5;
+        mat[4] = 6;
+        mat[5] = 9;
+
+        println!("Display matrix: {}", mat);
+        let str = format!("{mat}");
+        assert_eq!(str, "[[3,2],[1,5],[6,9]]");
     }
 
     #[test]
