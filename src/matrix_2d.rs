@@ -3,6 +3,7 @@ use crate::etl_expr::*;
 use std::ops::BitOrAssign;
 
 use rand::Rng;
+use rand_distr::*;
 
 // The declaration of Matrix2d<T>
 
@@ -29,6 +30,16 @@ impl<T: EtlValueType> Matrix2d<T> {
     {
         let mut mat = Self::new(rows, columns);
         mat.rand_fill();
+        mat
+    }
+
+    pub fn new_rand_normal(rows: usize, columns: usize) -> Self
+    where
+        StandardNormal: Distribution<T>,
+        T: EtlValueType + rand_distr::num_traits::Float,
+    {
+        let mut mat = Self::new(rows, columns);
+        mat.rand_fill_normal();
         mat
     }
 
@@ -64,6 +75,21 @@ impl<T: EtlValueType> Matrix2d<T> {
 
         for i in 0..self.size() {
             self.data[i] = rng.random::<T>();
+        }
+    }
+
+    pub fn rand_fill_normal(&mut self)
+    where
+        StandardNormal: Distribution<T>,
+        T: EtlValueType + rand_distr::num_traits::Float,
+    {
+        let mut rng = rand::rng();
+        let n = <T as Constants>::zero();
+        let p = <T as Constants>::one();
+        let normal = Normal::new(n, p).unwrap();
+
+        for i in 0..self.size() {
+            self.data[i] = normal.sample(&mut rng);
         }
     }
 }

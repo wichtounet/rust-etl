@@ -4,11 +4,15 @@ use std::ops::*;
 // Rust is pretty much retarded for getting constants out a generic type
 pub trait Constants {
     fn one() -> Self;
+    fn zero() -> Self;
 }
 
 impl Constants for f64 {
     fn one() -> Self {
         1.0
+    }
+    fn zero() -> Self {
+        0.0
     }
 }
 
@@ -16,17 +20,26 @@ impl Constants for f32 {
     fn one() -> Self {
         1.0
     }
+    fn zero() -> Self {
+        0.0
+    }
 }
 
 impl Constants for i64 {
     fn one() -> Self {
         1
     }
+    fn zero() -> Self {
+        0
+    }
 }
 
 impl Constants for i32 {
     fn one() -> Self {
         1
+    }
+    fn zero() -> Self {
+        0
     }
 }
 

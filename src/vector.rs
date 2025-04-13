@@ -3,6 +3,7 @@ use crate::etl_expr::*;
 use std::ops::BitOrAssign;
 
 use rand::Rng;
+use rand_distr::*;
 
 // The declaration of Vector<T>
 
@@ -43,6 +44,16 @@ impl<T: EtlValueType> Vector<T> {
         vec
     }
 
+    pub fn new_rand_normal(size: usize) -> Self
+    where
+        StandardNormal: Distribution<T>,
+        T: EtlValueType + rand_distr::num_traits::Float,
+    {
+        let mut vec = Self::new(size);
+        vec.rand_fill_normal();
+        vec
+    }
+
     pub fn at_mut(&mut self, i: usize) -> &mut T {
         &mut self.data[i]
     }
@@ -67,6 +78,21 @@ impl<T: EtlValueType> Vector<T> {
 
         for i in 0..self.size() {
             self.data[i] = rng.random::<T>();
+        }
+    }
+
+    pub fn rand_fill_normal(&mut self)
+    where
+        StandardNormal: Distribution<T>,
+        T: EtlValueType + rand_distr::num_traits::Float,
+    {
+        let mut rng = rand::rng();
+        let n = <T as Constants>::zero();
+        let p = <T as Constants>::one();
+        let normal = Normal::new(n, p).unwrap();
+
+        for i in 0..self.size() {
+            self.data[i] = normal.sample(&mut rng);
         }
     }
 
@@ -221,6 +247,11 @@ mod tests {
         assert_eq!(mat.at(0), 0.0);
         assert_eq!(mat.at(1), 0.0);
         assert_eq!(mat.at(2), 0.0);
+    }
+
+    #[test]
+    fn normal() {
+        let _mat = Vector::<f64>::new_rand_normal(3);
     }
 
     #[test]
