@@ -24,6 +24,14 @@ impl<T: EtlValueType> Matrix2d<T> {
         }
     }
 
+    pub fn new_copy(rhs: &Matrix2d<T>) -> Self {
+        Self {
+            data: rhs.data.clone(),
+            rows: rhs.rows(),
+            columns: rhs.columns(),
+        }
+    }
+
     pub fn new_rand(rows: usize, columns: usize) -> Self
     where
         rand::distr::StandardUniform: rand::distr::Distribution<T>,
@@ -362,5 +370,22 @@ mod tests {
         assert_eq!(a[1], 13);
         assert_eq!(a[2], 43);
         assert_eq!(a[3], 84);
+    }
+
+    #[test]
+    fn copy() {
+        let mut a = Matrix2d::<i64>::new(2, 2);
+
+        a[0] = 3;
+        a[1] = 9;
+        a[2] = 27;
+        a[3] = 42;
+
+        let b = Matrix2d::<i64>::new_copy(&a);
+
+        assert_eq!(b.at2(0, 0), 3);
+        assert_eq!(b.at2(0, 1), 9);
+        assert_eq!(b.at2(1, 0), 27);
+        assert_eq!(b.at2(1, 1), 42);
     }
 }
