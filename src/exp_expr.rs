@@ -1,21 +1,21 @@
 use crate::etl_expr::*;
 
-// The declaration of ExprExpr
+// The declaration of ExpExpr
 
-pub struct ExprExpr<T: EtlValueType + Float, Expr: WrappableExpr<T>> {
+pub struct ExpExpr<T: EtlValueType + Float, Expr: WrappableExpr<T>> {
     expr: EtlWrapper<T, Expr::WrappedAs>,
 }
 
-// The functions of ExprExpr
+// The functions of ExpExpr
 
-impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> ExprExpr<T, Expr> {
+impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> ExpExpr<T, Expr> {
     pub fn new(expr: Expr) -> Self {
         Self { expr: expr.wrap() }
     }
 }
 
-// ExprExpr is an EtlExpr
-impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for ExprExpr<T, Expr> {
+// ExpExpr is an EtlExpr
+impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for ExpExpr<T, Expr> {
     const DIMENSIONS: usize = Expr::DIMENSIONS;
     const TYPE: EtlType = EtlType::Simple;
 
@@ -40,10 +40,10 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for ExprExpr<T,
     }
 }
 
-// ExprExpr is an EtlWrappable
-// ExprExpr wraps as value
-impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlWrappable<T> for ExprExpr<T, Expr> {
-    type WrappedAs = ExprExpr<T, Expr>;
+// ExpExpr is an EtlWrappable
+// ExpExpr wraps as value
+impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlWrappable<T> for ExpExpr<T, Expr> {
+    type WrappedAs = ExpExpr<T, Expr>;
 
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
         EtlWrapper {
@@ -53,8 +53,8 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlWrappable<T> for ExprEx
     }
 }
 
-// ExprExpr computes as copy
-impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlComputable<T> for ExprExpr<T, Expr> {
+// ExpExpr computes as copy
+impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlComputable<T> for ExpExpr<T, Expr> {
     fn to_data(&self) -> Vec<T> {
         let mut vec = vec![T::default(); padded_size(self.size())];
         assign_direct(&mut vec, self);
@@ -67,14 +67,14 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlComputable<T> for ExprE
 // Note: Since Rust does not allow function return type inference, it is simpler to build an
 // expression type than to return the expression itself
 
-pub fn exp<T: EtlValueType + Float, Expr: WrappableExpr<T>>(expr: Expr) -> ExprExpr<T, Expr> {
-    ExprExpr::<T, Expr>::new(expr)
+pub fn exp<T: EtlValueType + Float, Expr: WrappableExpr<T>>(expr: Expr) -> ExpExpr<T, Expr> {
+    ExpExpr::<T, Expr>::new(expr)
 }
 
-crate::impl_add_op_unary_expr_float!(ExprExpr<T, Expr>);
-crate::impl_sub_op_unary_expr_float!(ExprExpr<T, Expr>);
-crate::impl_mul_op_unary_expr_float!(ExprExpr<T, Expr>);
-crate::impl_scale_op_unary_expr_float!(ExprExpr<T, Expr>);
+crate::impl_add_op_unary_expr_float!(ExpExpr<T, Expr>);
+crate::impl_sub_op_unary_expr_float!(ExpExpr<T, Expr>);
+crate::impl_mul_op_unary_expr_float!(ExpExpr<T, Expr>);
+crate::impl_scale_op_unary_expr_float!(ExpExpr<T, Expr>);
 
 // The tests
 
