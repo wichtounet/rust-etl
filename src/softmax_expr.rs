@@ -82,10 +82,10 @@ pub fn softmax<T: EtlValueType + Float, Expr: WrappableExpr<T>>(expr: Expr) -> S
     SoftmaxExpr::<T, Expr>::new(expr, m, s)
 }
 
-crate::impl_add_op_unary_expr_float!(SoftmaxExpr<T, Expr>);
-crate::impl_sub_op_unary_expr_float!(SoftmaxExpr<T, Expr>);
-crate::impl_mul_op_unary_expr_float!(SoftmaxExpr<T, Expr>);
-crate::impl_scale_op_unary_expr_float!(SoftmaxExpr<T, Expr>);
+crate::impl_add_op_unary_expr_trait!(Float, SoftmaxExpr<T, Expr>);
+crate::impl_sub_op_unary_expr_trait!(Float, SoftmaxExpr<T, Expr>);
+crate::impl_mul_op_unary_expr_trait!(Float, SoftmaxExpr<T, Expr>);
+crate::impl_scale_op_unary_expr_trait!(Float, SoftmaxExpr<T, Expr>);
 
 // The tests
 

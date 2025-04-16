@@ -150,9 +150,9 @@ macro_rules! impl_sub_op_unary_expr {
 }
 
 #[macro_export]
-macro_rules! impl_sub_op_unary_expr_float {
-    ($type:ty) => {
-        impl<T: EtlValueType + Float, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Sub<OuterRightExpr> for $type {
+macro_rules! impl_sub_op_unary_expr_trait {
+    ($trait:tt, $type:ty) => {
+        impl<T: EtlValueType + $trait, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Sub<OuterRightExpr> for $type {
             type Output = $crate::sub_expr::SubExpr<T, $type, OuterRightExpr>;
 
             fn sub(self, other: OuterRightExpr) -> Self::Output {

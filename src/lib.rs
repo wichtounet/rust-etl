@@ -3,6 +3,7 @@ pub mod base_traits;
 pub mod etl_expr;
 
 // The expressions
+pub mod abs_expr;
 pub mod add_expr;
 pub mod batch_outer_expr;
 pub mod bias_add_expr;

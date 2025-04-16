@@ -150,9 +150,9 @@ macro_rules! impl_add_op_unary_expr {
 }
 
 #[macro_export]
-macro_rules! impl_add_op_unary_expr_float {
-    ($type:ty) => {
-        impl<T: EtlValueType + Float, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Add<OuterRightExpr> for $type {
+macro_rules! impl_add_op_unary_expr_trait {
+    ($trait:tt, $type:ty) => {
+        impl<T: EtlValueType + $trait, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Add<OuterRightExpr> for $type {
             type Output = $crate::add_expr::AddExpr<T, $type, OuterRightExpr>;
 
             fn add(self, other: OuterRightExpr) -> Self::Output {

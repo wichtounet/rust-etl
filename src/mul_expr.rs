@@ -301,9 +301,9 @@ macro_rules! impl_mul_op_unary_expr {
 }
 
 #[macro_export]
-macro_rules! impl_mul_op_unary_expr_float {
-    ($type:ty) => {
-        impl<T: EtlValueType + Float, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr> for $type {
+macro_rules! impl_mul_op_unary_expr_trait {
+    ($trait:tt, $type:ty) => {
+        impl<T: EtlValueType + $trait, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr> for $type {
             type Output = $crate::mul_expr::MulExpr<T, $type, OuterRightExpr>;
 
             fn mul(self, other: OuterRightExpr) -> Self::Output {

@@ -72,10 +72,10 @@ pub fn sigmoid_derivative<T: EtlValueType + Float, Expr: WrappableExpr<T>>(expr:
     SigmoidDerivativeExpr::<T, Expr>::new(expr)
 }
 
-crate::impl_add_op_unary_expr_float!(SigmoidDerivativeExpr<T, Expr>);
-crate::impl_sub_op_unary_expr_float!(SigmoidDerivativeExpr<T, Expr>);
-crate::impl_mul_op_unary_expr_float!(SigmoidDerivativeExpr<T, Expr>);
-crate::impl_scale_op_unary_expr_float!(SigmoidDerivativeExpr<T, Expr>);
+crate::impl_add_op_unary_expr_trait!(Float, SigmoidDerivativeExpr<T, Expr>);
+crate::impl_sub_op_unary_expr_trait!(Float, SigmoidDerivativeExpr<T, Expr>);
+crate::impl_mul_op_unary_expr_trait!(Float, SigmoidDerivativeExpr<T, Expr>);
+crate::impl_scale_op_unary_expr_trait!(Float, SigmoidDerivativeExpr<T, Expr>);
 
 // The tests
 
