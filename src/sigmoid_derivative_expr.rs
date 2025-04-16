@@ -1,3 +1,4 @@
+use crate::base_traits::Float;
 use crate::etl_expr::*;
 
 // The declaration of SigmoidDerivativeExpr

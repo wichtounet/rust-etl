@@ -1,3 +1,4 @@
+use crate::base_traits::Float;
 use crate::etl_expr::*;
 use crate::reductions::max;
 use crate::reductions::sum;
