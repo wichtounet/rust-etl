@@ -10,6 +10,7 @@ pub mod bias_add_expr;
 pub mod bias_batch_sum_expr;
 pub mod exp_expr;
 pub mod log_expr;
+pub mod min_expr;
 pub mod mul_expr;
 pub mod scale_expr;
 pub mod sigmoid_derivative_expr;
