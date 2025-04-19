@@ -37,12 +37,12 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for ArgMaxExpr<T, Expr>
         let mut return_index = T::zero();
 
         for column in 1..self.expr.value.columns() {
-            if self.expr.value.at2(i, column) < self.expr.value.at2(i, min_index) {
+            current_return_index += T::one();
+
+            if self.expr.value.at2(i, column) > self.expr.value.at2(i, min_index) {
                 min_index = column;
                 return_index = current_return_index;
             }
-
-            current_return_index += T::one();
         }
 
         return_index
@@ -106,7 +106,7 @@ mod tests {
 
         b |= argmax(&a);
 
-        assert_eq!(a.at(0), 2);
-        assert_eq!(a.at(1), 0);
+        assert_eq!(b.at(0), 2);
+        assert_eq!(b.at(1), 0);
     }
 }
