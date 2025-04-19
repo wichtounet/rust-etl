@@ -52,6 +52,7 @@ impl<
 #[derive(PartialEq)]
 pub enum EtlType {
     Simple,
+    Unaligned,
     Smart,
     Value,
 }
@@ -140,7 +141,7 @@ pub fn validate_assign<T: EtlValueType, LeftExpr: EtlExpr<T>, RightExpr: EtlExpr
         return;
     }
 
-    if RightExpr::TYPE == EtlType::Value || RightExpr::TYPE == EtlType::Simple {
+    if RightExpr::TYPE == EtlType::Value || RightExpr::TYPE == EtlType::Simple || RightExpr::TYPE == EtlType::Unaligned {
         if lhs.size() != rhs.size() {
             panic!("Incompatible assignment ([{}] = [{}])", lhs.size(), rhs.size());
         }
@@ -197,6 +198,11 @@ pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, 
                 data[i] = rhs.at(i);
             }
         }
+    } else if RightExpr::TYPE == EtlType::Unaligned {
+        // TODO There may be some value in parallelizing this in some cases
+        for i in 0..rhs.size() {
+            data[i] = rhs.at(i);
+        }
     } else if RightExpr::TYPE == EtlType::Smart {
         rhs.compute_into(data);
     } else {
@@ -236,6 +242,11 @@ pub fn add_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
             for i in (0..(rhs.size() + 7) & !7).step_by(1) {
                 data[i] += rhs.at(i);
             }
+        }
+    } else if RightExpr::TYPE == EtlType::Unaligned {
+        // TODO There may be some value in parallelizing this in some cases
+        for i in 0..rhs.size() {
+            data[i] += rhs.at(i);
         }
     } else if RightExpr::TYPE == EtlType::Smart {
         rhs.compute_into_add(data);
@@ -277,6 +288,11 @@ pub fn sub_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
                 data[i] -= rhs.at(i);
             }
         }
+    } else if RightExpr::TYPE == EtlType::Unaligned {
+        // TODO There may be some value in parallelizing this in some cases
+        for i in 0..rhs.size() {
+            data[i] -= rhs.at(i);
+        }
     } else if RightExpr::TYPE == EtlType::Smart {
         rhs.compute_into_sub(data);
     } else {
@@ -316,6 +332,11 @@ pub fn scale_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Ve
             for i in (0..(rhs.size() + 7) & !7).step_by(1) {
                 data[i] *= rhs.at(i);
             }
+        }
+    } else if RightExpr::TYPE == EtlType::Unaligned {
+        // TODO There may be some value in parallelizing this in some cases
+        for i in 0..rhs.size() {
+            data[i] *= rhs.at(i);
         }
     } else if RightExpr::TYPE == EtlType::Smart {
         rhs.compute_into_scale(data);

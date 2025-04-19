@@ -21,7 +21,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> ArgMaxExpr<T, Expr> {
 // ArgMaxExpr is an EtlExpr
 impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for ArgMaxExpr<T, Expr> {
     const DIMENSIONS: usize = 1;
-    const TYPE: EtlType = EtlType::Simple;
+    const TYPE: EtlType = EtlType::Unaligned;
 
     fn size(&self) -> usize {
         self.expr.value.rows()
