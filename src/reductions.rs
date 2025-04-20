@@ -28,6 +28,8 @@ pub fn asum<T: EtlValueType, Expr: EtlExpr<T>>(expr: &Expr) -> T {
 }
 
 // TODO: I should find a way to make this better and avoid the cast to u32
+// TODO: I should also implement stddev
+// TODO: Tests and ensure it works with f32
 
 pub fn mean<T: EtlValueType + From<u32>, Expr: EtlExpr<T>>(expr: &Expr) -> Result<T, &'static str> {
     if expr.size() == 0 {
