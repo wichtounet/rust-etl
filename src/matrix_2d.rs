@@ -52,6 +52,16 @@ impl<T: EtlValueType> Matrix2d<T> {
         mat
     }
 
+    pub fn new_rand_normal_ms(rows: usize, columns: usize, mean: T, stddev: T) -> Self
+    where
+        StandardNormal: Distribution<T>,
+        T: EtlValueType + rand_distr::num_traits::Float,
+    {
+        let mut mat = Self::new(rows, columns);
+        mat.rand_fill_normal_ms(mean, stddev);
+        mat
+    }
+
     pub fn at_mut(&mut self, row: usize, column: usize) -> &mut T {
         if row >= self.rows {
             panic!("Row {} is out of bounds!", row);
@@ -96,6 +106,19 @@ impl<T: EtlValueType> Matrix2d<T> {
         let n = <T as Constants>::zero();
         let p = <T as Constants>::one();
         let normal = Normal::new(n, p).unwrap();
+
+        for i in 0..self.size() {
+            self.data[i] = normal.sample(&mut rng);
+        }
+    }
+
+    pub fn rand_fill_normal_ms(&mut self, mean: T, stddev: T)
+    where
+        StandardNormal: Distribution<T>,
+        T: EtlValueType + rand_distr::num_traits::Float,
+    {
+        let mut rng = rand::rng();
+        let normal = Normal::new(mean, stddev).unwrap();
 
         for i in 0..self.size() {
             self.data[i] = normal.sample(&mut rng);
