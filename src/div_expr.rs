@@ -25,7 +25,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> D
 // DivExpr is an EtlExpr
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for DivExpr<T, LeftExpr, RightExpr> {
     const DIMENSIONS: usize = if LeftExpr::DIMENSIONS > 0 { LeftExpr::DIMENSIONS } else { RightExpr::DIMENSIONS };
-    const TYPE: EtlType = EtlType::Simple;
+    const TYPE: EtlType = EtlType::Unaligned; // To avoid divisions by zero
 
     fn size(&self) -> usize {
         if LeftExpr::DIMENSIONS > 0 {
@@ -209,7 +209,8 @@ mod tests {
 
         c |= expr;
 
-        assert_eq!(c.at(0), 3);
+        assert_eq!(c.at(0), 0);
+        assert_eq!(c.at(1), 1);
     }
 
     #[test]
@@ -226,13 +227,14 @@ mod tests {
 
         c |= &a / &b;
 
-        assert_eq!(c.at(0), 3);
+        assert_eq!(c.at(0), 0);
+        assert_eq!(c.at(1), 1);
     }
 
     #[test]
     fn basic_assign_mixed() {
         let mut a = Matrix2d::<i64>::new(2, 1);
-        let mut b = Vector::<i64>::new(2);
+        let mut b = Vector::<i64>::new(1);
         let mut c = Vector::<i64>::new(2);
 
         a[0] = 1;
@@ -243,7 +245,8 @@ mod tests {
 
         c |= &a / &b;
 
-        assert_eq!(c.at(0), 3);
+        assert_eq!(c.at(0), 0);
+        assert_eq!(c.at(1), 1);
     }
 
     #[test]
@@ -260,7 +263,8 @@ mod tests {
 
         c |= (&a / &b) / &a;
 
-        assert_eq!(c.at(0), 4);
+        assert_eq!(c.at(0), 0);
+        assert_eq!(c.at(1), 0);
     }
 
     #[test]
@@ -274,7 +278,8 @@ mod tests {
 
         c |= (&a + &b) / (&a + &b);
 
-        assert_eq!(c.at(0), 6);
+        assert_eq!(c.at(0), 0);
+        assert_eq!(c.at(1), 1);
     }
 
     #[test]
@@ -288,6 +293,7 @@ mod tests {
 
         c /= &a / &b;
 
-        assert_eq!(c.at(0), 3);
+        assert_eq!(c.at(0), 0);
+        assert_eq!(c.at(1), 1);
     }
 }
