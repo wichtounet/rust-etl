@@ -234,7 +234,7 @@ mod tests {
     #[test]
     fn basic_assign_mixed() {
         let mut a = Matrix2d::<i64>::new(2, 1);
-        let mut b = Vector::<i64>::new(1);
+        let mut b = Vector::<i64>::new(2);
         let mut c = Vector::<i64>::new(2);
 
         a[0] = 1;
@@ -274,26 +274,35 @@ mod tests {
         let mut c = Vector::<i64>::new(2);
 
         a[0] = 1;
+        a[1] = 3;
+
         b[0] = 2;
+        b[1] = 2;
 
         c |= (&a + &b) / (&a + &b);
 
-        assert_eq!(c.at(0), 0);
+        assert_eq!(c.at(0), 1);
         assert_eq!(c.at(1), 1);
     }
 
     #[test]
-    fn basic_compound_add() {
+    fn basic_compound_div() {
         let mut a = Vector::<i64>::new(2);
         let mut b = Vector::<i64>::new(2);
         let mut c = Vector::<i64>::new(2);
 
-        a[0] = 1;
+        a[0] = 12;
+        a[1] = 6;
+
         b[0] = 2;
+        b[1] = 2;
+
+        c[0] = 21;
+        c[1] = 29;
 
         c /= &a / &b;
 
-        assert_eq!(c.at(0), 0);
-        assert_eq!(c.at(1), 1);
+        assert_eq!(c.at(0), 3);
+        assert_eq!(c.at(1), 9);
     }
 }

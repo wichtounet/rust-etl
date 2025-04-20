@@ -18,7 +18,7 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> SigmoidExpr<T, Expr> {
 // SigmoidExpr is an EtlExpr
 impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SigmoidExpr<T, Expr> {
     const DIMENSIONS: usize = Expr::DIMENSIONS;
-    const TYPE: EtlType = EtlType::Simple;
+    const TYPE: EtlType = simple_unary_type(Expr::TYPE);
 
     fn size(&self) -> usize {
         self.expr.value.size()

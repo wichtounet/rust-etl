@@ -49,12 +49,39 @@ impl<
 {
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum EtlType {
     Simple,
     Unaligned,
     Smart,
     Value,
+}
+
+// Since PartialEq is not const fn (yet), we must declare a const fn comparison
+pub const fn is_same_type(lhs_type: EtlType, rhs_type: EtlType) -> bool {
+    match (lhs_type, rhs_type) {
+        (EtlType::Simple, EtlType::Simple) => true,
+        (EtlType::Unaligned, EtlType::Unaligned) => true,
+        (EtlType::Smart, EtlType::Smart) => true,
+        (EtlType::Value, EtlType::Value) => true,
+        _ => false,
+    }
+}
+
+pub const fn simple_unary_type(etl_type: EtlType) -> EtlType {
+    if is_same_type(etl_type, EtlType::Unaligned) {
+        EtlType::Unaligned
+    } else {
+        EtlType::Simple
+    }
+}
+
+pub const fn simple_binary_type(lhs_type: EtlType, rhs_type: EtlType) -> EtlType {
+    if is_same_type(lhs_type, EtlType::Unaligned) || is_same_type(rhs_type, EtlType::Unaligned) {
+        EtlType::Unaligned
+    } else {
+        EtlType::Simple
+    }
 }
 
 impl EtlType {

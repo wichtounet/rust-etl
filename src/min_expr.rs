@@ -25,7 +25,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
 // MinExpr is an EtlExpr
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for MinExpr<T, LeftExpr, RightExpr> {
     const DIMENSIONS: usize = if LeftExpr::DIMENSIONS > 0 { LeftExpr::DIMENSIONS } else { RightExpr::DIMENSIONS };
-    const TYPE: EtlType = EtlType::Simple;
+    const TYPE: EtlType = simple_binary_type(LeftExpr::TYPE, RightExpr::TYPE);
 
     fn size(&self) -> usize {
         if LeftExpr::DIMENSIONS > 0 {
