@@ -33,11 +33,11 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SigmoidExpr
     }
 
     fn at(&self, i: usize) -> T {
-        T::one() / (T::one() + self.expr.value.at(i).exp())
+        T::one() / (T::one() + (-self.expr.value.at(i)).exp())
     }
 
     fn at2(&self, row: usize, column: usize) -> T {
-        T::one() / (T::one() + self.expr.value.at2(row, column).exp())
+        T::one() / (T::one() + (-self.expr.value.at2(row, column)).exp())
     }
 }
 
@@ -104,15 +104,15 @@ mod tests {
         let expr = sigmoid(&a);
 
         assert_eq!(expr.size(), 5);
-        assert_relative_eq!(expr.at(0), 0.268941421, epsilon = 1e-6);
+        assert_relative_eq!(expr.at(0), 1.0 / (1.0 + (-1.0_f64).exp()), epsilon = 1e-6);
 
         b |= sigmoid(&a);
 
-        assert_relative_eq!(b.at(0), 0.268941421, epsilon = 1e-6);
-        assert_relative_eq!(b.at(1), 0.119202922, epsilon = 1e-6);
-        assert_relative_eq!(b.at(2), 0.047425872, epsilon = 1e-6);
-        assert_relative_eq!(b.at(3), 0.017986209, epsilon = 1e-6);
-        assert_relative_eq!(b.at(4), 0.006692850, epsilon = 1e-6);
+        assert_relative_eq!(b.at(0), 1.0 / (1.0 + (-1.0_f64).exp()), epsilon = 1e-6);
+        assert_relative_eq!(b.at(1), 1.0 / (1.0 + (-2.0_f64).exp()), epsilon = 1e-6);
+        assert_relative_eq!(b.at(2), 1.0 / (1.0 + (-3.0_f64).exp()), epsilon = 1e-6);
+        assert_relative_eq!(b.at(3), 1.0 / (1.0 + (-4.0_f64).exp()), epsilon = 1e-6);
+        assert_relative_eq!(b.at(4), 1.0 / (1.0 + (-5.0_f64).exp()), epsilon = 1e-6);
     }
 
     #[test]
@@ -128,10 +128,10 @@ mod tests {
 
         b |= sigmoid(&a) + sigmoid(&a);
 
-        assert_relative_eq!(b.at(0), 2.0 * 0.268941421, epsilon = 1e-6);
-        assert_relative_eq!(b.at(1), 2.0 * 0.119202922, epsilon = 1e-6);
-        assert_relative_eq!(b.at(2), 2.0 * 0.047425872, epsilon = 1e-6);
-        assert_relative_eq!(b.at(3), 2.0 * 0.017986209, epsilon = 1e-6);
-        assert_relative_eq!(b.at(4), 2.0 * 0.006692850, epsilon = 1e-6);
+        assert_relative_eq!(b.at(0), 2.0 / (1.0 + (-1.0_f64).exp()), epsilon = 1e-6);
+        assert_relative_eq!(b.at(1), 2.0 / (1.0 + (-2.0_f64).exp()), epsilon = 1e-6);
+        assert_relative_eq!(b.at(2), 2.0 / (1.0 + (-3.0_f64).exp()), epsilon = 1e-6);
+        assert_relative_eq!(b.at(3), 2.0 / (1.0 + (-4.0_f64).exp()), epsilon = 1e-6);
+        assert_relative_eq!(b.at(4), 2.0 / (1.0 + (-5.0_f64).exp()), epsilon = 1e-6);
     }
 }
