@@ -198,6 +198,7 @@ pub fn batch_outer<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: Wrapp
 crate::impl_add_op_binary_expr!(BiasOuterExpr<T, LeftExpr, RightExpr>);
 crate::impl_sub_op_binary_expr!(BiasOuterExpr<T, LeftExpr, RightExpr>);
 crate::impl_mul_op_binary_expr!(BiasOuterExpr<T, LeftExpr, RightExpr>);
+crate::impl_div_op_binary_expr!(BiasOuterExpr<T, LeftExpr, RightExpr>);
 crate::impl_scale_op_binary_expr!(BiasOuterExpr<T, LeftExpr, RightExpr>);
 
 // The tests

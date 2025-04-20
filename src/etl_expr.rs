@@ -300,6 +300,51 @@ pub fn sub_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
     }
 }
 
+pub fn div_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: &RightExpr) {
+    if RightExpr::DIMENSIONS == 0 {
+        // If the other end is a constant, it's not sized and we cannot use rhs.size()
+        for i in 0..data.len() {
+            data[i] /= rhs.at(i);
+        }
+    } else if RightExpr::TYPE == EtlType::Value || RightExpr::TYPE == EtlType::Simple {
+        let padded_size = (rhs.size() + 7) & !7;
+        if padded_size > PARALLEL_THRESHOLD {
+            rayon::scope(|s| {
+                let n = rayon::current_num_threads();
+                let block_size = padded_size / n;
+
+                let ptr = data.as_mut_ptr();
+
+                for t in 0..n {
+                    let start = t * block_size;
+                    let end = if t < n { (t + 1) * block_size } else { padded_size };
+
+                    let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
+
+                    s.spawn(|_| {
+                        for (i, x) in slice.iter_mut().enumerate() {
+                            *x /= rhs.at(i);
+                        }
+                    });
+                }
+            });
+        } else {
+            for i in (0..padded_size).step_by(1) {
+                data[i] /= rhs.at(i);
+            }
+        }
+    } else if RightExpr::TYPE == EtlType::Unaligned {
+        // TODO There may be some value in parallelizing this in some cases
+        for i in 0..rhs.size() {
+            data[i] /= rhs.at(i);
+        }
+    } else if RightExpr::TYPE == EtlType::Smart {
+        rhs.compute_into_sub(data);
+    } else {
+        panic!("Unhandled EtlType");
+    }
+}
+
 pub fn scale_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: &RightExpr) {
     if RightExpr::DIMENSIONS == 0 {
         // If the other end is a constant, it's not sized and we cannot use rhs.size()

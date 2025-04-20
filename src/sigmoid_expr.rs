@@ -75,6 +75,7 @@ pub fn sigmoid<T: EtlValueType + Float, Expr: WrappableExpr<T>>(expr: Expr) -> S
 crate::impl_add_op_unary_expr_trait!(Float, SigmoidExpr<T, Expr>);
 crate::impl_sub_op_unary_expr_trait!(Float, SigmoidExpr<T, Expr>);
 crate::impl_mul_op_unary_expr_trait!(Float, SigmoidExpr<T, Expr>);
+crate::impl_div_op_unary_expr_trait!(Float, SigmoidExpr<T, Expr>);
 crate::impl_scale_op_unary_expr_trait!(Float, SigmoidExpr<T, Expr>);
 
 // The tests

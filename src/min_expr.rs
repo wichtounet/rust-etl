@@ -99,6 +99,7 @@ pub fn binary_min<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: Wrappa
 crate::impl_add_op_binary_expr!(MinExpr<T, LeftExpr, RightExpr>);
 crate::impl_sub_op_binary_expr!(MinExpr<T, LeftExpr, RightExpr>);
 crate::impl_mul_op_binary_expr!(MinExpr<T, LeftExpr, RightExpr>);
+crate::impl_div_op_binary_expr!(MinExpr<T, LeftExpr, RightExpr>);
 crate::impl_scale_op_binary_expr!(MinExpr<T, LeftExpr, RightExpr>);
 
 // The tests

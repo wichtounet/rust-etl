@@ -9,6 +9,7 @@ pub mod argmax_expr;
 pub mod batch_outer_expr;
 pub mod bias_add_expr;
 pub mod bias_batch_sum_expr;
+pub mod div_expr;
 pub mod exp_expr;
 pub mod log_expr;
 pub mod min_expr;

@@ -177,6 +177,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlComputable<T> for TransposeExpr
 crate::impl_add_op_unary_expr!(TransposeExpr<T, Expr>);
 crate::impl_sub_op_unary_expr!(TransposeExpr<T, Expr>);
 crate::impl_mul_op_unary_expr!(TransposeExpr<T, Expr>);
+crate::impl_div_op_unary_expr!(TransposeExpr<T, Expr>);
 crate::impl_scale_op_unary_expr!(TransposeExpr<T, Expr>);
 
 pub fn transpose<T: EtlValueType, Expr: WrappableExpr<T>>(expr: Expr) -> TransposeExpr<T, Expr> {

@@ -247,6 +247,7 @@ impl<T: EtlValueType, RightExpr: EtlExpr<T>> BitOrAssign<RightExpr> for Matrix2d
 crate::impl_add_op_value!(Matrix2d<T>);
 crate::impl_sub_op_value!(Matrix2d<T>);
 crate::impl_mul_op_value!(Matrix2d<T>);
+crate::impl_div_op_value!(Matrix2d<T>);
 crate::impl_scale_op_value!(Matrix2d<T>);
 
 #[cfg(test)]

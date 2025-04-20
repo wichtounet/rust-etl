@@ -165,6 +165,7 @@ macro_rules! impl_scale_op_unary_expr_trait {
 crate::impl_add_op_binary_expr!(ScaleExpr<T, LeftExpr, RightExpr>);
 crate::impl_sub_op_binary_expr!(ScaleExpr<T, LeftExpr, RightExpr>);
 crate::impl_mul_op_binary_expr!(ScaleExpr<T, LeftExpr, RightExpr>);
+crate::impl_div_op_binary_expr!(ScaleExpr<T, LeftExpr, RightExpr>);
 crate::impl_scale_op_binary_expr!(ScaleExpr<T, LeftExpr, RightExpr>);
 
 // The tests
