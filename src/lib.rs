@@ -7,6 +7,7 @@ pub mod abs_expr;
 pub mod add_expr;
 pub mod argmax_expr;
 pub mod batch_outer_expr;
+pub mod batch_stable_softmax_expr;
 pub mod bias_add_expr;
 pub mod bias_batch_sum_expr;
 pub mod div_expr;
