@@ -7,23 +7,24 @@ use crate::vector::Vector;
 use crate::constant::cst;
 use crate::exp_expr::exp;
 
-// The declaration of SoftmaxExpr
+// The declaration of StableSoftmaxExpr
 
-pub struct SoftmaxExpr<T: EtlValueType + Float, Expr: WrappableExpr<T>> {
+pub struct StableSoftmaxExpr<T: EtlValueType + Float, Expr: WrappableExpr<T>> {
     expr: EtlWrapper<T, Expr::WrappedAs>,
+    m: T,
     s: T,
 }
 
-// The functions of SoftmaxExpr
+// The functions of StableSoftmaxExpr
 
-impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> SoftmaxExpr<T, Expr> {
-    pub fn new(expr: Expr, s: T) -> Self {
-        Self { expr: expr.wrap(), s }
+impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> StableSoftmaxExpr<T, Expr> {
+    pub fn new(expr: Expr, m: T, s: T) -> Self {
+        Self { expr: expr.wrap(), m, s }
     }
 }
 
-// SoftmaxExpr is an EtlExpr
-impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SoftmaxExpr<T, Expr> {
+// StableSoftmaxExpr is an EtlExpr
+impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for StableSoftmaxExpr<T, Expr> {
     const DIMENSIONS: usize = Expr::DIMENSIONS;
     const TYPE: EtlType = simple_unary_type(Expr::TYPE);
 
@@ -40,14 +41,14 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SoftmaxExpr
     }
 
     fn at(&self, i: usize) -> T {
-        self.expr.value.at(i).exp() / self.s
+        (self.expr.value.at(i) - self.m).exp() / self.s
     }
 }
 
-// SoftmaxExpr is an EtlWrappable
-// SoftmaxExpr wraps as value
-impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlWrappable<T> for SoftmaxExpr<T, Expr> {
-    type WrappedAs = SoftmaxExpr<T, Expr>;
+// StableSoftmaxExpr is an EtlWrappable
+// StableSoftmaxExpr wraps as value
+impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlWrappable<T> for StableSoftmaxExpr<T, Expr> {
+    type WrappedAs = StableSoftmaxExpr<T, Expr>;
 
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
         EtlWrapper {
@@ -57,8 +58,8 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlWrappable<T> for Softma
     }
 }
 
-// SoftmaxExpr computes as copy
-impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlComputable<T> for SoftmaxExpr<T, Expr> {
+// StableSoftmaxExpr computes as copy
+impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlComputable<T> for StableSoftmaxExpr<T, Expr> {
     fn to_data(&self) -> Vec<T> {
         let mut vec = vec![T::default(); padded_size(self.size())];
         assign_direct(&mut vec, self);
@@ -71,20 +72,21 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlComputable<T> for Softm
 // Note: Since Rust does not allow function return type inference, it is simpler to build an
 // expression type than to return the expression itself
 
-pub fn softmax<T: EtlValueType + Float, Expr: WrappableExpr<T>>(expr: Expr) -> SoftmaxExpr<T, Expr> {
+pub fn stable_softmax<T: EtlValueType + Float, Expr: WrappableExpr<T>>(expr: Expr) -> StableSoftmaxExpr<T, Expr> {
     // We need a  concrete type because we have no traits implementing X - constant
 
     let vec = Vector::<T>::new_from_expr(&expr);
-    let s = sum(&exp(&vec));
+    let m = max(&vec).expect("Invalid expression for softmax");
+    let s = sum(&exp(&vec - cst(m)));
 
-    SoftmaxExpr::<T, Expr>::new(expr, s)
+    StableSoftmaxExpr::<T, Expr>::new(expr, m, s)
 }
 
-crate::impl_add_op_unary_expr_trait!(Float, SoftmaxExpr<T, Expr>);
-crate::impl_sub_op_unary_expr_trait!(Float, SoftmaxExpr<T, Expr>);
-crate::impl_mul_op_unary_expr_trait!(Float, SoftmaxExpr<T, Expr>);
-crate::impl_div_op_unary_expr_trait!(Float, SoftmaxExpr<T, Expr>);
-crate::impl_scale_op_unary_expr_trait!(Float, SoftmaxExpr<T, Expr>);
+crate::impl_add_op_unary_expr_trait!(Float, StableSoftmaxExpr<T, Expr>);
+crate::impl_sub_op_unary_expr_trait!(Float, StableSoftmaxExpr<T, Expr>);
+crate::impl_mul_op_unary_expr_trait!(Float, StableSoftmaxExpr<T, Expr>);
+crate::impl_div_op_unary_expr_trait!(Float, StableSoftmaxExpr<T, Expr>);
+crate::impl_scale_op_unary_expr_trait!(Float, StableSoftmaxExpr<T, Expr>);
 
 // The tests
 
@@ -93,7 +95,7 @@ mod tests {
     use core::f64;
 
     use crate::etl_expr::EtlExpr;
-    use crate::softmax_expr::softmax;
+    use crate::stable_softmax_expr::stable_softmax;
     use crate::vector::Vector;
 
     use approx::assert_relative_eq;
@@ -109,7 +111,7 @@ mod tests {
         a[3] = 4.0;
         a[4] = 5.0;
 
-        b |= softmax(&a);
+        b |= stable_softmax(&a);
 
         assert_relative_eq!(b.at(0), 0.011656, epsilon = 1e-6);
         assert_relative_eq!(b.at(1), 0.031684, epsilon = 1e-6);

@@ -18,6 +18,7 @@ pub mod scale_expr;
 pub mod sigmoid_derivative_expr;
 pub mod sigmoid_expr;
 pub mod softmax_expr;
+pub mod stable_softmax_expr;
 pub mod sub_expr;
 pub mod transpose_expr;
 
