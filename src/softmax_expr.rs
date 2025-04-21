@@ -41,7 +41,7 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SoftmaxExpr
     }
 
     fn at(&self, i: usize) -> T {
-        (self.expr.value.at(i) - self.m) / self.s
+        (self.expr.value.at(i) - self.m).exp() / self.s
     }
 }
 
@@ -113,10 +113,10 @@ mod tests {
 
         b |= softmax(&a);
 
-        assert_relative_eq!(b.at(0), -2.545634, epsilon = 1e-6);
-        assert_relative_eq!(b.at(1), -1.909225, epsilon = 1e-6);
-        assert_relative_eq!(b.at(2), -1.272817, epsilon = 1e-6);
-        assert_relative_eq!(b.at(3), -0.636408, epsilon = 1e-6);
-        assert_relative_eq!(b.at(4), 0.0, epsilon = 1e-6);
+        assert_relative_eq!(b.at(0), 0.011656, epsilon = 1e-6);
+        assert_relative_eq!(b.at(1), 0.031684, epsilon = 1e-6);
+        assert_relative_eq!(b.at(2), 0.086128, epsilon = 1e-6);
+        assert_relative_eq!(b.at(3), 0.234121, epsilon = 1e-6);
+        assert_relative_eq!(b.at(4), 0.636408, epsilon = 1e-6);
     }
 }
