@@ -74,6 +74,18 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> BiasBatchSumExpr<T, Expr> {
         self.compute_bias_batch_sum_impl(output);
     }
 
+    fn compute_bias_batch_sum_div(&self, output: &mut Vec<T>) {
+        // If we already computed the value at construction, we can do a simple copy
+        if !self.temp.is_empty() {
+            for n in 0..self.temp.len() {
+                output[n] /= self.temp[n];
+            }
+            return;
+        }
+
+        self.compute_bias_batch_sum_impl(output);
+    }
+
     fn compute_bias_batch_sum_impl(&self, output: &mut Vec<T>) {
         if Expr::DIMENSIONS == 2 {
             let b = self.lhs.value.rows();
@@ -139,6 +151,10 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for BiasBatchSumExpr<T,
 
     fn compute_into_scale(&self, output: &mut Vec<T>) {
         self.compute_bias_batch_sum_scale(output);
+    }
+
+    fn compute_into_div(&self, output: &mut Vec<T>) {
+        self.compute_bias_batch_sum_div(output);
     }
 
     fn at(&self, i: usize) -> T {

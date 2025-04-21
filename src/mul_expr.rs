@@ -97,6 +97,18 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
         self.compute_gemm_impl(output);
     }
 
+    fn compute_gemm_div(&self, output: &mut Vec<T>) {
+        // If we already computed the value at construction, we can do a simple copy
+        if !self.temp.is_empty() {
+            for n in 0..self.temp.len() {
+                output[n] /= self.temp[n];
+            }
+            return;
+        }
+
+        self.compute_gemm_impl(output);
+    }
+
     fn compute_gemm_impl(&self, output: &mut Vec<T>) {
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
             // No need to zero the vector since we did that a construction
@@ -215,6 +227,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 
     fn compute_into_scale(&self, output: &mut Vec<T>) {
         self.compute_gemm_scale(output);
+    }
+
+    fn compute_into_div(&self, output: &mut Vec<T>) {
+        self.compute_gemm_div(output);
     }
 
     fn at(&self, i: usize) -> T {

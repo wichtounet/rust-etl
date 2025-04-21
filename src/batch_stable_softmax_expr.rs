@@ -75,6 +75,18 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> BatchStableSoftmaxExpr<T, 
         self.compute_batch_stable_softmax_impl(output);
     }
 
+    fn compute_batch_stable_softmax_div(&self, output: &mut Vec<T>) {
+        // If we already computed the value at construction, we can do a simple copy
+        if !self.temp.is_empty() {
+            for n in 0..self.temp.len() {
+                output[n] /= self.temp[n];
+            }
+            return;
+        }
+
+        self.compute_batch_stable_softmax_impl(output);
+    }
+
     fn compute_batch_stable_softmax_impl(&self, output: &mut Vec<T>) {
         if Expr::DIMENSIONS == 2 {
             let b = self.lhs.value.rows();
@@ -156,6 +168,10 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for BatchStable
 
     fn compute_into_scale(&self, output: &mut Vec<T>) {
         self.compute_batch_stable_softmax_scale(output);
+    }
+
+    fn compute_into_div(&self, output: &mut Vec<T>) {
+        self.compute_batch_stable_softmax_div(output);
     }
 
     fn at(&self, i: usize) -> T {

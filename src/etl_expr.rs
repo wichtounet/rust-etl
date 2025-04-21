@@ -132,6 +132,10 @@ pub trait EtlExpr<T: EtlValueType>: std::marker::Sync {
         panic!("This function is only implemented for smart expression");
     }
 
+    fn compute_into_div(&self, _lhs: &mut Vec<T>) {
+        panic!("This function is only implemented for smart expression");
+    }
+
     fn validate_assign<LeftExpr: EtlExpr<T>>(&self, _lhs: &LeftExpr) {
         panic!("This function is only implemented for smart expression");
     }
@@ -366,7 +370,7 @@ pub fn div_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
             data[i] /= rhs.at(i);
         }
     } else if RightExpr::TYPE == EtlType::Smart {
-        rhs.compute_into_sub(data);
+        rhs.compute_into_div(data);
     } else {
         panic!("Unhandled EtlType");
     }

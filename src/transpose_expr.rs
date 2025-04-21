@@ -73,6 +73,18 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> TransposeExpr<T, Expr> {
         self.compute_transpose_impl(output);
     }
 
+    fn compute_transpose_div(&self, output: &mut Vec<T>) {
+        // If we already computed the value at construction, we can do a simple copy
+        if !self.temp.is_empty() {
+            for n in 0..self.temp.len() {
+                output[n] /= self.temp[n];
+            }
+            return;
+        }
+
+        self.compute_transpose_impl(output);
+    }
+
     fn compute_transpose_impl(&self, output: &mut Vec<T>) {
         if Expr::DIMENSIONS == 2 {
             let m = self.expr.value.rows();
@@ -138,6 +150,10 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for TransposeExpr<T, Ex
 
     fn compute_into_scale(&self, output: &mut Vec<T>) {
         self.compute_transpose_scale(output);
+    }
+
+    fn compute_into_div(&self, output: &mut Vec<T>) {
+        self.compute_transpose_div(output);
     }
 
     fn at(&self, i: usize) -> T {

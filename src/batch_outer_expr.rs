@@ -80,6 +80,18 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
         self.compute_batch_outer_impl(output);
     }
 
+    fn compute_batch_outer_div(&self, output: &mut Vec<T>) {
+        // If we already computed the value at construction, we can do a simple copy
+        if !self.temp.is_empty() {
+            for n in 0..self.temp.len() {
+                output[n] /= self.temp[n];
+            }
+            return;
+        }
+
+        self.compute_batch_outer_impl(output);
+    }
+
     fn compute_batch_outer_impl(&self, output: &mut Vec<T>) {
         if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
             let m = self.lhs.value.columns();
@@ -152,6 +164,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 
     fn compute_into_scale(&self, output: &mut Vec<T>) {
         self.compute_batch_outer_scale(output);
+    }
+
+    fn compute_into_div(&self, output: &mut Vec<T>) {
+        self.compute_batch_outer_div(output);
     }
 
     fn at(&self, i: usize) -> T {
