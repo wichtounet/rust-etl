@@ -35,61 +35,41 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
     }
 
     fn compute_batch_outer(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            output[..self.temp.len()].copy_from_slice(&self.temp[..]);
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_batch_outer_impl(output);
+        output[..self.temp.len()].copy_from_slice(&self.temp[..]);
     }
 
     fn compute_batch_outer_add(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] += self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_batch_outer_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] += self.temp[n];
+        }
     }
 
     fn compute_batch_outer_sub(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] -= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_batch_outer_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] -= self.temp[n];
+        }
     }
 
     fn compute_batch_outer_scale(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] *= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_batch_outer_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] *= self.temp[n];
+        }
     }
 
     fn compute_batch_outer_div(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] /= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_batch_outer_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] /= self.temp[n];
+        }
     }
 
     fn compute_batch_outer_impl(&self, output: &mut Vec<T>) {
@@ -102,7 +82,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
                 for batch in 0..b {
                     for row in 0..m {
                         for column in 0..n {
-                            out[row * n + column] += lhs[batch * m + row] + rhs[batch * n + column];
+                            out[row * n + column] += lhs[batch * m + row] * rhs[batch * n + column];
                         }
                     }
                 }
@@ -253,14 +233,14 @@ mod tests {
 
         c |= batch_outer(&a, &b);
 
-        assert_eq!(c.at2(0, 0), 54);
-        assert_eq!(c.at2(0, 1), 57);
-        assert_eq!(c.at2(0, 2), 60);
-        assert_eq!(c.at2(0, 3), 63);
-        assert_eq!(c.at2(1, 0), 57);
-        assert_eq!(c.at2(1, 1), 60);
-        assert_eq!(c.at2(1, 2), 63);
-        assert_eq!(c.at2(1, 3), 66);
+        assert_eq!(c.at2(0, 0), 151);
+        assert_eq!(c.at2(0, 1), 160);
+        assert_eq!(c.at2(0, 2), 169);
+        assert_eq!(c.at2(0, 3), 178);
+        assert_eq!(c.at2(1, 0), 196);
+        assert_eq!(c.at2(1, 1), 208);
+        assert_eq!(c.at2(1, 2), 220);
+        assert_eq!(c.at2(1, 3), 232);
     }
 
     #[test]
@@ -291,13 +271,13 @@ mod tests {
 
         c |= batch_outer(&a, &b) + batch_outer(&a, &b);
 
-        assert_eq!(c.at2(0, 0), 108);
-        assert_eq!(c.at2(0, 1), 114);
-        assert_eq!(c.at2(0, 2), 120);
-        assert_eq!(c.at2(0, 3), 126);
-        assert_eq!(c.at2(1, 0), 114);
-        assert_eq!(c.at2(1, 1), 120);
-        assert_eq!(c.at2(1, 2), 126);
-        assert_eq!(c.at2(1, 3), 132);
+        assert_eq!(c.at2(0, 0), 302);
+        assert_eq!(c.at2(0, 1), 320);
+        assert_eq!(c.at2(0, 2), 338);
+        assert_eq!(c.at2(0, 3), 356);
+        assert_eq!(c.at2(1, 0), 392);
+        assert_eq!(c.at2(1, 1), 416);
+        assert_eq!(c.at2(1, 2), 440);
+        assert_eq!(c.at2(1, 3), 464);
     }
 }
