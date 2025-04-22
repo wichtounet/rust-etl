@@ -15,6 +15,7 @@ pub mod exp_expr;
 pub mod log_expr;
 pub mod min_expr;
 pub mod mul_expr;
+pub mod relu_expr;
 pub mod scale_expr;
 pub mod sigmoid_derivative_expr;
 pub mod sigmoid_expr;
