@@ -1,17 +1,17 @@
 use crate::etl_expr::*;
 
-// The declaration of BiasOuterExpr
+// The declaration of BatchOuterExpr
 
 /// Expression representing the batched addition of biases to a matrix
-pub struct BiasOuterExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
+pub struct BatchOuterExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
     lhs: EtlWrapper<T, LeftExpr::WrappedAs>,
     rhs: EtlWrapper<T, RightExpr::WrappedAs>,
     pub temp: Vec<T>,
 }
 
-// The functions of BiasOuterExpr
+// The functions of BatchOuterExpr
 
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> BiasOuterExpr<T, LeftExpr, RightExpr> {
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> BatchOuterExpr<T, LeftExpr, RightExpr> {
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
         if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
             if lhs.rows() != rhs.rows() {
@@ -109,8 +109,8 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
     }
 }
 
-// BiasOuterExpr is an EtlExpr
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for BiasOuterExpr<T, LeftExpr, RightExpr> {
+// BatchOuterExpr is an EtlExpr
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for BatchOuterExpr<T, LeftExpr, RightExpr> {
     const DIMENSIONS: usize = 2;
     const TYPE: EtlType = EtlType::Smart;
 
@@ -163,9 +163,9 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 }
 
-// BiasOuterExpr is an EtlWrappable
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for BiasOuterExpr<T, LeftExpr, RightExpr> {
-    type WrappedAs = BiasOuterExpr<T, LeftExpr, RightExpr>;
+// BatchOuterExpr is an EtlWrappable
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for BatchOuterExpr<T, LeftExpr, RightExpr> {
+    type WrappedAs = BatchOuterExpr<T, LeftExpr, RightExpr>;
 
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
         EtlWrapper {
@@ -175,8 +175,8 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 }
 
-// BiasOuterExpr computes as copy
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlComputable<T> for BiasOuterExpr<T, LeftExpr, RightExpr> {
+// BatchOuterExpr computes as copy
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlComputable<T> for BatchOuterExpr<T, LeftExpr, RightExpr> {
     fn to_data(&self) -> Vec<T> {
         self.temp.clone()
     }
@@ -187,15 +187,15 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 pub fn batch_outer<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>>(
     lhs: LeftExpr,
     rhs: RightExpr,
-) -> BiasOuterExpr<T, LeftExpr, RightExpr> {
-    BiasOuterExpr::<T, LeftExpr, RightExpr>::new(lhs, rhs)
+) -> BatchOuterExpr<T, LeftExpr, RightExpr> {
+    BatchOuterExpr::<T, LeftExpr, RightExpr>::new(lhs, rhs)
 }
 
-crate::impl_add_op_binary_expr!(BiasOuterExpr<T, LeftExpr, RightExpr>);
-crate::impl_sub_op_binary_expr!(BiasOuterExpr<T, LeftExpr, RightExpr>);
-crate::impl_mul_op_binary_expr!(BiasOuterExpr<T, LeftExpr, RightExpr>);
-crate::impl_div_op_binary_expr!(BiasOuterExpr<T, LeftExpr, RightExpr>);
-crate::impl_scale_op_binary_expr!(BiasOuterExpr<T, LeftExpr, RightExpr>);
+crate::impl_add_op_binary_expr!(BatchOuterExpr<T, LeftExpr, RightExpr>);
+crate::impl_sub_op_binary_expr!(BatchOuterExpr<T, LeftExpr, RightExpr>);
+crate::impl_mul_op_binary_expr!(BatchOuterExpr<T, LeftExpr, RightExpr>);
+crate::impl_div_op_binary_expr!(BatchOuterExpr<T, LeftExpr, RightExpr>);
+crate::impl_scale_op_binary_expr!(BatchOuterExpr<T, LeftExpr, RightExpr>);
 
 // The tests
 

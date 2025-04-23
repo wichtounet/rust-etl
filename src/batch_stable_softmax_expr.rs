@@ -5,20 +5,20 @@ use crate::etl_expr::*;
 
 /// Expression representing the batched addition of biases to a matrix
 pub struct BatchStableSoftmaxExpr<T: EtlValueType + Float, Expr: WrappableExpr<T>> {
-    lhs: EtlWrapper<T, Expr::WrappedAs>,
+    expr: EtlWrapper<T, Expr::WrappedAs>,
     pub temp: Vec<T>,
 }
 
 // The functions of BatchStableSoftmaxExpr
 
 impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> BatchStableSoftmaxExpr<T, Expr> {
-    pub fn new(lhs: Expr) -> Self {
+    pub fn new(expr: Expr) -> Self {
         if Expr::DIMENSIONS != 2 {
             panic!("Invalid batch_stable_softmax dimensions ({}D)", Expr::DIMENSIONS);
         }
 
         let mut expr = Self {
-            lhs: lhs.wrap(),
+            expr: expr.wrap(),
             temp: Vec::<T>::new(),
         };
 
@@ -30,101 +30,81 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> BatchStableSoftmaxExpr<T, 
     }
 
     fn compute_batch_stable_softmax(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            output[..self.temp.len()].copy_from_slice(&self.temp[..]);
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_batch_stable_softmax_impl(output);
+        output[..self.temp.len()].copy_from_slice(&self.temp[..]);
     }
 
     fn compute_batch_stable_softmax_add(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] += self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_batch_stable_softmax_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] += self.temp[n];
+        }
     }
 
     fn compute_batch_stable_softmax_sub(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] -= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_batch_stable_softmax_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] -= self.temp[n];
+        }
     }
 
     fn compute_batch_stable_softmax_scale(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] *= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_batch_stable_softmax_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] *= self.temp[n];
+        }
     }
 
     fn compute_batch_stable_softmax_div(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] /= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_batch_stable_softmax_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] /= self.temp[n];
+        }
     }
 
     fn compute_batch_stable_softmax_impl(&self, output: &mut Vec<T>) {
         if Expr::DIMENSIONS == 2 {
-            let b = self.lhs.value.rows();
-            let m = self.lhs.value.columns();
+            let b = self.expr.value.rows();
+            let m = self.expr.value.columns();
 
-            let functor = |out: &mut Vec<T>, lhs: &Vec<T>| {
+            let functor = |out: &mut Vec<T>, expr: &Vec<T>| {
                 for batch in 0..b {
-                    let mut max = lhs[batch * m];
+                    let mut max = expr[batch * m];
 
                     for row in 1..m {
-                        max = if lhs[batch * m + row] > max { lhs[batch * m + row] } else { max }
+                        max = if expr[batch * m + row] > max { expr[batch * m + row] } else { max }
                     }
 
                     let mut sum_exp = T::zero();
 
                     for row in 0..m {
-                        sum_exp += (lhs[batch * m + row] - max).exp();
+                        sum_exp += (expr[batch * m + row] - max).exp();
                     }
 
                     for row in 0..m {
-                        out[batch * m + row] = (lhs[batch * m + row] - max).exp() / sum_exp;
+                        out[batch * m + row] = (expr[batch * m + row] - max).exp() / sum_exp;
                     }
                 }
             };
 
-            forward_data_unary(output, &self.lhs.value, functor);
+            forward_data_unary(output, &self.expr.value, functor);
         } else {
             panic!("This code should be unreachable!");
         }
     }
 
-    fn validate_batch_stable_softmax<OutputExpr: EtlExpr<T>>(&self, lhs: &OutputExpr) {
+    fn validate_batch_stable_softmax<OutputExpr: EtlExpr<T>>(&self, expr: &OutputExpr) {
         if OutputExpr::DIMENSIONS != 2 {
             panic!("The output of batch_stable_softmax must be a 2D Matrix");
         }
 
         if Expr::DIMENSIONS == 2 {
-            if lhs.size() != self.lhs.value.size() {
+            if expr.size() != self.expr.value.size() {
                 panic!("Invalid dimensions for assignment of batch_stable_softmax result");
             }
         } else {
@@ -139,19 +119,19 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for BatchStable
     const TYPE: EtlType = EtlType::Smart;
 
     fn size(&self) -> usize {
-        self.lhs.value.size()
+        self.expr.value.size()
     }
 
     fn rows(&self) -> usize {
-        self.lhs.value.rows()
+        self.expr.value.rows()
     }
 
     fn columns(&self) -> usize {
-        self.lhs.value.columns()
+        self.expr.value.columns()
     }
 
-    fn validate_assign<OutputExpr: EtlExpr<T>>(&self, lhs: &OutputExpr) {
-        self.validate_batch_stable_softmax(lhs);
+    fn validate_assign<OutputExpr: EtlExpr<T>>(&self, expr: &OutputExpr) {
+        self.validate_batch_stable_softmax(expr);
     }
 
     fn compute_into(&self, output: &mut Vec<T>) {
@@ -208,8 +188,8 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlComputable<T> for Batch
 
 // Operations
 
-pub fn batch_stable_softmax<T: EtlValueType + Float, Expr: WrappableExpr<T>>(lhs: Expr) -> BatchStableSoftmaxExpr<T, Expr> {
-    BatchStableSoftmaxExpr::<T, Expr>::new(lhs)
+pub fn batch_stable_softmax<T: EtlValueType + Float, Expr: WrappableExpr<T>>(expr: Expr) -> BatchStableSoftmaxExpr<T, Expr> {
+    BatchStableSoftmaxExpr::<T, Expr>::new(expr)
 }
 
 crate::impl_add_op_unary_expr_trait!(Float, BatchStableSoftmaxExpr<T, Expr>);

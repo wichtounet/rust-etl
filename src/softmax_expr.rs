@@ -1,10 +1,8 @@
 use crate::base_traits::Float;
 use crate::etl_expr::*;
-use crate::reductions::max;
 use crate::reductions::sum;
 use crate::vector::Vector;
 
-use crate::constant::cst;
 use crate::exp_expr::exp;
 
 // The declaration of SoftmaxExpr

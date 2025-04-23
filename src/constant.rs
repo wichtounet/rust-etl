@@ -67,6 +67,7 @@ impl<T: EtlValueType> EtlWrappable<T> for Constant<T> {
 crate::impl_add_op_constant!(Constant<T>);
 crate::impl_sub_op_constant!(Constant<T>);
 crate::impl_scale_op_constant!(Constant<T>);
+crate::impl_div_op_constant!(Constant<T>);
 
 #[cfg(test)]
 mod tests {

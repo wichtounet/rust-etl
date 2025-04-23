@@ -38,61 +38,41 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
     }
 
     fn compute_bias_add(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            output[..self.temp.len()].copy_from_slice(&self.temp[..]);
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_bias_add_impl(output);
+        output[..self.temp.len()].copy_from_slice(&self.temp[..]);
     }
 
     fn compute_bias_add_add(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] += self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_bias_add_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] += self.temp[n];
+        }
     }
 
     fn compute_bias_add_sub(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] -= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_bias_add_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] -= self.temp[n];
+        }
     }
 
     fn compute_bias_add_scale(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] *= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_bias_add_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] *= self.temp[n];
+        }
     }
 
     fn compute_bias_add_div(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] /= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_bias_add_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] /= self.temp[n];
+        }
     }
 
     fn compute_bias_add_impl(&self, output: &mut Vec<T>) {

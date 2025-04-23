@@ -3,6 +3,8 @@ use crate::etl_expr::*;
 // Reduction Operations
 
 pub fn sum<T: EtlValueType, Expr: EtlExpr<T>>(expr: &Expr) -> T {
+    assert!(expr.size() > 0);
+
     let mut value = T::default();
 
     for i in 0..expr.size() {
@@ -13,6 +15,8 @@ pub fn sum<T: EtlValueType, Expr: EtlExpr<T>>(expr: &Expr) -> T {
 }
 
 pub fn asum<T: EtlValueType, Expr: EtlExpr<T>>(expr: &Expr) -> T {
+    assert!(expr.size() > 0);
+
     let mut value = T::default();
 
     for i in 0..expr.size() {

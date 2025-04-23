@@ -29,61 +29,41 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> BiasBatchSumExpr<T, Expr> {
     }
 
     fn compute_bias_batch_sum(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            output[..self.temp.len()].copy_from_slice(&self.temp[..]);
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_bias_batch_sum_impl(output);
+        output[..self.temp.len()].copy_from_slice(&self.temp[..]);
     }
 
     fn compute_bias_batch_sum_add(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] += self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_bias_batch_sum_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] += self.temp[n];
+        }
     }
 
     fn compute_bias_batch_sum_sub(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] -= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_bias_batch_sum_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] -= self.temp[n];
+        }
     }
 
     fn compute_bias_batch_sum_scale(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] *= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_bias_batch_sum_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] *= self.temp[n];
+        }
     }
 
     fn compute_bias_batch_sum_div(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] /= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_bias_batch_sum_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] /= self.temp[n];
+        }
     }
 
     fn compute_bias_batch_sum_impl(&self, output: &mut Vec<T>) {
