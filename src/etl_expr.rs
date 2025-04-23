@@ -210,7 +210,7 @@ pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, 
 
                 for t in 0..n {
                     let start = t * block_size;
-                    let end = if t < n { (t + 1) * block_size } else { padded_size };
+                    let end = if t < n - 1 { (t + 1) * block_size } else { padded_size };
 
                     let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
 
@@ -258,7 +258,7 @@ pub fn add_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
 
                 for t in 0..n {
                     let start = t * block_size;
-                    let end = if t < n { (t + 1) * block_size } else { padded_size };
+                    let end = if t < n - 1 { (t + 1) * block_size } else { padded_size };
 
                     let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
 
@@ -303,7 +303,7 @@ pub fn sub_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
 
                 for t in 0..n {
                     let start = t * block_size;
-                    let end = if t < n { (t + 1) * block_size } else { padded_size };
+                    let end = if t < n - 1 { (t + 1) * block_size } else { padded_size };
 
                     let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
 
@@ -348,7 +348,7 @@ pub fn div_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
 
                 for t in 0..n {
                     let start = t * block_size;
-                    let end = if t < n { (t + 1) * block_size } else { padded_size };
+                    let end = if t < n - 1 { (t + 1) * block_size } else { padded_size };
 
                     let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
 
@@ -393,7 +393,7 @@ pub fn scale_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Ve
 
                 for t in 0..n {
                     let start = t * block_size;
-                    let end = if t < n { (t + 1) * block_size } else { padded_size };
+                    let end = if t < n - 1 { (t + 1) * block_size } else { padded_size };
 
                     let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
 

@@ -275,4 +275,21 @@ mod tests {
 
         assert_eq!(c.at(0), 3);
     }
+
+    #[test]
+    fn basic_parallel() {
+        let n = 32768 * 3 + 41;
+        let mut a = Vector::<i64>::new(n);
+        let mut b = Vector::<i64>::new(n);
+        let mut c = Vector::<i64>::new(n);
+
+        a.fill(1);
+        b.fill(3);
+
+        c += &a + &b;
+
+        for i in 0..n {
+            assert_eq!(c.at(i), 4, "Invalid value at index {i}");
+        }
+    }
 }
