@@ -225,7 +225,7 @@ impl<T: EtlValueType> fmt::Display for Matrix2d<T> {
 
         for row in 0..self.rows() {
             if row > 0 {
-                write!(f, ",")?;
+                writeln!(f)?;
             }
             write!(f, "[")?;
             for column in 0..self.columns() {
@@ -234,6 +234,7 @@ impl<T: EtlValueType> fmt::Display for Matrix2d<T> {
                 }
                 write!(f, "{}", self.at2(row, column))?;
             }
+
             write!(f, "]")?
         }
 
@@ -325,7 +326,7 @@ mod tests {
 
         println!("Display matrix: {}", mat);
         let str = format!("{mat}");
-        assert_eq!(str, "[[3,2],[1,5],[6,9]]");
+        assert_eq!(str, "[[3,2]\n[1,5]\n[6,9]]");
     }
 
     #[test]
