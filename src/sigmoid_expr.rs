@@ -13,6 +13,10 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> SigmoidExpr<T, Expr> {
     pub fn new(expr: Expr) -> Self {
         Self { expr: expr.wrap() }
     }
+
+    fn sigmoid(x: T) -> T {
+        T::one() / (T::one() + (-x).exp())
+    }
 }
 
 // SigmoidExpr is an EtlExpr
@@ -33,11 +37,11 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SigmoidExpr
     }
 
     fn at(&self, i: usize) -> T {
-        T::one() / (T::one() + (-self.expr.value.at(i)).exp())
+        Self::sigmoid(self.expr.value.at(i))
     }
 
     fn at2(&self, row: usize, column: usize) -> T {
-        T::one() / (T::one() + (-self.expr.value.at2(row, column)).exp())
+        Self::sigmoid(self.expr.value.at2(row, column))
     }
 }
 
