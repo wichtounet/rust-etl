@@ -28,61 +28,41 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> TransposeExpr<T, Expr> {
     }
 
     fn compute_transpose(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            output[..self.temp.len()].copy_from_slice(&self.temp[..]);
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_transpose_impl(output);
+        output[..self.temp.len()].copy_from_slice(&self.temp[..]);
     }
 
     fn compute_transpose_add(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] += self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_transpose_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] += self.temp[n];
+        }
     }
 
     fn compute_transpose_sub(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] -= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_transpose_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] -= self.temp[n];
+        }
     }
 
     fn compute_transpose_scale(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] *= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_transpose_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] *= self.temp[n];
+        }
     }
 
     fn compute_transpose_div(&self, output: &mut Vec<T>) {
-        // If we already computed the value at construction, we can do a simple copy
-        if !self.temp.is_empty() {
-            for n in 0..self.temp.len() {
-                output[n] /= self.temp[n];
-            }
-            return;
-        }
+        assert!(!self.temp.is_empty());
 
-        self.compute_transpose_impl(output);
+        for n in 0..self.temp.len() {
+            output[n] /= self.temp[n];
+        }
     }
 
     fn compute_transpose_impl(&self, output: &mut Vec<T>) {
