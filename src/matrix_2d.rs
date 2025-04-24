@@ -232,7 +232,7 @@ impl<T: EtlValueType> fmt::Display for Matrix2d<T> {
                 if column > 0 {
                     write!(f, ",")?;
                 }
-                write!(f, "{}", self.at2(row, column))?;
+                write!(f, "{:.6}", self.at2(row, column))?;
             }
 
             write!(f, "]")?
@@ -327,6 +327,20 @@ mod tests {
         println!("Display matrix: {}", mat);
         let str = format!("{mat}");
         assert_eq!(str, "[[3,2]\n[1,5]\n[6,9]]");
+    }
+
+    #[test]
+    fn print_float() {
+        let mut mat = Matrix2d::<f32>::new(2, 2);
+
+        mat[0] = 3.0;
+        mat[1] = 2.0;
+        mat[2] = 1.0;
+        mat[3] = 5.0;
+
+        println!("Display matrix: {}", mat);
+        let str = format!("{mat}");
+        assert_eq!(str, "[[3.000000,2.000000]\n[1.000000,5.000000]]");
     }
 
     #[test]
