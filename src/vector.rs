@@ -176,7 +176,7 @@ impl<T: EtlValueType> fmt::Display for Vector<T> {
             if i > 0 {
                 write!(f, ",")?;
             }
-            write!(f, "{}", self.data[i])?;
+            write!(f, "{:.6}", self.data[i])?;
         }
 
         write!(f, "]")
