@@ -350,7 +350,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
                         out[r1 * k + c7] = v71;
                         out[r2 * k + c7] = v72;
 
-                        out[r1 * k + c4] = v81;
+                        out[r1 * k + c8] = v81;
                         out[r2 * k + c8] = v82;
 
                         row += 2;
