@@ -140,63 +140,79 @@ fn bench_gemm_chain(rows: usize) {
 }
 
 fn main() {
-    bench_basic_a(1024);
-    bench_basic_a(8 * 1024);
-    bench_basic_a(16 * 1024);
-    bench_basic_a(32 * 1024);
-    bench_basic_a(64 * 1024);
-    bench_basic_a(128 * 1024);
-    bench_basic_a(1024 * 1024);
-    bench_basic_a(16 * 1024 * 1024);
-    bench_basic_a(32 * 1024 * 1024);
+    let args: Vec<String> = std::env::args().collect();
 
-    bench_basic_b(1024);
-    bench_basic_b(8 * 1024);
-    bench_basic_b(16 * 1024);
-    bench_basic_b(32 * 1024);
-    bench_basic_b(64 * 1024);
-    bench_basic_b(128 * 1024);
-    bench_basic_b(1024 * 1024);
-    bench_basic_b(16 * 1024 * 1024);
-    bench_basic_b(32 * 1024 * 1024);
+    let filter = if args.len() > 1 { args[args.len() - 1].clone() } else { "*".to_string() };
 
-    bench_gemv(16, 128);
-    bench_gemv(32, 128);
-    bench_gemv(64, 256);
-    bench_gemv(128, 1024);
-    bench_gemv(256, 1024);
-    bench_gemv(1024, 256);
-    bench_gemv(1024, 1024);
+    if filter == "*" || filter == "basic" {
+        bench_basic_a(1024);
+        bench_basic_a(8 * 1024);
+        bench_basic_a(16 * 1024);
+        bench_basic_a(32 * 1024);
+        bench_basic_a(64 * 1024);
+        bench_basic_a(128 * 1024);
+        bench_basic_a(1024 * 1024);
+        bench_basic_a(16 * 1024 * 1024);
+        bench_basic_a(32 * 1024 * 1024);
 
-    bench_gemm(16, 128, 128);
-    bench_gemm(32, 128, 128);
-    bench_gemm(64, 256, 128);
-    bench_gemm(128, 1024, 256);
-    bench_gemm(256, 1024, 256);
-    bench_gemm(1024, 256, 512);
-    bench_gemm(768, 768, 768);
+        bench_basic_b(1024);
+        bench_basic_b(8 * 1024);
+        bench_basic_b(16 * 1024);
+        bench_basic_b(32 * 1024);
+        bench_basic_b(64 * 1024);
+        bench_basic_b(128 * 1024);
+        bench_basic_b(1024 * 1024);
+        bench_basic_b(16 * 1024 * 1024);
+        bench_basic_b(32 * 1024 * 1024);
+    }
 
-    bench_gemm_outer(16, 128, 128);
-    bench_gemm_outer(32, 128, 128);
-    bench_gemm_outer(64, 256, 128);
-    bench_gemm_outer(128, 1024, 256);
-    bench_gemm_outer(256, 1024, 256);
-    bench_gemm_outer(1024, 256, 512);
-    bench_gemm_outer(768, 768, 768);
+    if filter == "*" || filter == "gemv" {
+        bench_gemv(16, 128);
+        bench_gemv(32, 128);
+        bench_gemv(64, 256);
+        bench_gemv(128, 1024);
+        bench_gemv(256, 1024);
+        bench_gemv(1024, 256);
+        bench_gemv(1024, 1024);
+    }
 
-    bench_gemm_inner(16, 128, 128);
-    bench_gemm_inner(32, 128, 128);
-    bench_gemm_inner(64, 256, 128);
-    bench_gemm_inner(128, 1024, 256);
-    bench_gemm_inner(256, 1024, 256);
-    bench_gemm_inner(1024, 256, 512);
-    bench_gemm_inner(768, 768, 768);
+    if filter == "*" || filter == "gemm" {
+        bench_gemm(16, 128, 128);
+        bench_gemm(32, 128, 128);
+        bench_gemm(64, 256, 128);
+        bench_gemm(128, 1024, 256);
+        bench_gemm(256, 1024, 256);
+        bench_gemm(1024, 256, 512);
+        bench_gemm(768, 768, 768);
+    }
 
-    bench_gemm_chain(16);
-    bench_gemm_chain(32);
-    bench_gemm_chain(64);
-    bench_gemm_chain(128);
-    bench_gemm_chain(256);
-    bench_gemm_chain(512);
-    bench_gemm_chain(768);
+    if filter == "*" || filter == "gemm_outer" {
+        bench_gemm_outer(16, 128, 128);
+        bench_gemm_outer(32, 128, 128);
+        bench_gemm_outer(64, 256, 128);
+        bench_gemm_outer(128, 1024, 256);
+        bench_gemm_outer(256, 1024, 256);
+        bench_gemm_outer(1024, 256, 512);
+        bench_gemm_outer(768, 768, 768);
+    }
+
+    if filter == "*" || filter == "gemm_inner" {
+        bench_gemm_inner(16, 128, 128);
+        bench_gemm_inner(32, 128, 128);
+        bench_gemm_inner(64, 256, 128);
+        bench_gemm_inner(128, 1024, 256);
+        bench_gemm_inner(256, 1024, 256);
+        bench_gemm_inner(1024, 256, 512);
+        bench_gemm_inner(768, 768, 768);
+    }
+
+    if filter == "*" || filter == "gemm_chain" {
+        bench_gemm_chain(16);
+        bench_gemm_chain(32);
+        bench_gemm_chain(64);
+        bench_gemm_chain(128);
+        bench_gemm_chain(256);
+        bench_gemm_chain(512);
+        bench_gemm_chain(768);
+    }
 }
