@@ -42,12 +42,17 @@ impl Constants for i32 {
 
 pub trait Float {
     fn exp(self) -> Self;
+    fn sqrt(self) -> Self;
     fn ln(self) -> Self;
 }
 
 impl Float for f32 {
     fn exp(self) -> Self {
         self.exp()
+    }
+
+    fn sqrt(self) -> Self {
+        self.sqrt()
     }
 
     fn ln(self) -> Self {
@@ -58,6 +63,10 @@ impl Float for f32 {
 impl Float for f64 {
     fn exp(self) -> Self {
         self.exp()
+    }
+
+    fn sqrt(self) -> Self {
+        self.sqrt()
     }
 
     fn ln(self) -> Self {
