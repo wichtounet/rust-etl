@@ -1,3 +1,5 @@
+#![feature(portable_simd)]
+
 // The basic traits
 pub mod base_traits;
 pub mod etl_expr;

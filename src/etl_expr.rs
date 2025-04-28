@@ -25,8 +25,10 @@ pub trait EtlValueType:
     + std::marker::Sync
     + std::marker::Send
     + std::fmt::Display
+    + std::simd::SimdElement
 {
 }
+
 impl<
         T: Constants
             + Default
@@ -44,7 +46,8 @@ impl<
             + DivAssign
             + std::marker::Sync
             + std::marker::Send
-            + std::fmt::Display,
+            + std::fmt::Display
+            + std::simd::SimdElement,
     > EtlValueType for T
 {
 }

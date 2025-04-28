@@ -1,3 +1,12 @@
+use std::simd::Simd;
+
+pub trait SimdHelper: Sized + std::ops::Add<Output = Self> {}
+
+impl SimdHelper for Simd<i64, 8> {}
+impl SimdHelper for Simd<i32, 8> {}
+impl SimdHelper for Simd<f32, 8> {}
+impl SimdHelper for Simd<f64, 8> {}
+
 // Rust is pretty much retarded for getting constants out a generic type
 pub trait Constants {
     fn one() -> Self;
