@@ -153,7 +153,99 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
                     }
                 }
 
-                for row in 0..m {
+                let mut row = 0;
+
+                while row + 1 < m {
+                    let r1 = row;
+                    let r2 = row + 1;
+
+                    let mut column = 0;
+
+                    while column + 3 < n {
+                        let c1 = column;
+                        let c2 = column + 1;
+                        let c3 = column + 2;
+                        let c4 = column + 3;
+
+                        let mut v11 = out[r1 * n + c1];
+                        let mut v12 = out[r1 * n + c2];
+                        let mut v13 = out[r1 * n + c3];
+                        let mut v14 = out[r1 * n + c4];
+
+                        let mut v21 = out[r2 * n + c1];
+                        let mut v22 = out[r2 * n + c2];
+                        let mut v23 = out[r2 * n + c3];
+                        let mut v24 = out[r2 * n + c4];
+
+                        for batch in 0..b {
+                            v11 += lhs_opp[r1 * b + batch] * rhs_opp[c1 * b + batch];
+                            v12 += lhs_opp[r1 * b + batch] * rhs_opp[c2 * b + batch];
+                            v13 += lhs_opp[r1 * b + batch] * rhs_opp[c3 * b + batch];
+                            v14 += lhs_opp[r1 * b + batch] * rhs_opp[c4 * b + batch];
+
+                            v21 += lhs_opp[r2 * b + batch] * rhs_opp[c1 * b + batch];
+                            v22 += lhs_opp[r2 * b + batch] * rhs_opp[c2 * b + batch];
+                            v23 += lhs_opp[r2 * b + batch] * rhs_opp[c3 * b + batch];
+                            v24 += lhs_opp[r2 * b + batch] * rhs_opp[c4 * b + batch];
+                        }
+
+                        out[r1 * n + c1] = v11;
+                        out[r1 * n + c2] = v12;
+                        out[r1 * n + c3] = v13;
+                        out[r1 * n + c4] = v14;
+
+                        out[r2 * n + c1] = v21;
+                        out[r2 * n + c2] = v22;
+                        out[r2 * n + c3] = v23;
+                        out[r2 * n + c4] = v24;
+
+                        column += 4;
+                    }
+
+                    while column + 1 < n {
+                        let c1 = column;
+                        let c2 = column + 1;
+
+                        let mut v11 = out[r1 * n + c1];
+                        let mut v12 = out[r1 * n + c2];
+
+                        let mut v21 = out[r2 * n + c1];
+                        let mut v22 = out[r2 * n + c2];
+
+                        for batch in 0..b {
+                            v11 += lhs_opp[r1 * b + batch] * rhs_opp[c1 * b + batch];
+                            v12 += lhs_opp[r1 * b + batch] * rhs_opp[c2 * b + batch];
+
+                            v21 += lhs_opp[r2 * b + batch] * rhs_opp[c1 * b + batch];
+                            v22 += lhs_opp[r2 * b + batch] * rhs_opp[c2 * b + batch];
+                        }
+
+                        out[r1 * n + c1] = v11;
+                        out[r1 * n + c2] = v12;
+
+                        out[r2 * n + c1] = v21;
+                        out[r2 * n + c2] = v22;
+
+                        column += 2;
+                    }
+
+                    if column < n {
+                        let mut v1 = out[r1 * n + column];
+                        let mut v2 = out[r2 * n + column];
+
+                        for batch in 0..b {
+                            v1 += lhs_opp[r1 * b + batch] * rhs_opp[column * b + batch];
+                            v2 += lhs_opp[r2 * b + batch] * rhs_opp[column * b + batch];
+                        }
+
+                        out[r1 * n + column] = v1;
+                        out[r2 * n + column] = v2;
+                    }
+
+                    row += 2;
+                }
+
+                if row < m {
                     for column in 0..n {
                         let mut v = out[row * n + column];
 
