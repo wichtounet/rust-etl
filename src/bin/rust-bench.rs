@@ -1,3 +1,4 @@
+use etl::batch_outer_expr::batch_outer;
 use etl::matrix_2d::Matrix2d;
 use etl::vector::Vector;
 
@@ -139,6 +140,17 @@ fn bench_gemm_chain(rows: usize) {
     println!("y = A * (B * (C * D)) ({}:{}) took {}", rows, rows, choose_time(times));
 }
 
+fn bench_batch_outer(rows: usize, columns: usize, batch: usize) {
+    let a = Matrix2d::<f64>::new_rand(batch, rows);
+    let b = Matrix2d::<f64>::new_rand(batch, columns);
+    let mut c = Matrix2d::<f64>::new_rand(rows, columns);
+
+    let func = || c |= batch_outer(&a, &b);
+
+    let times = bench_closure(func);
+    println!("c = batch_outer(A, B) ({}:{}:{}) took {}", rows, columns, batch, choose_time(times));
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
@@ -214,5 +226,15 @@ fn main() {
         bench_gemm_chain(256);
         bench_gemm_chain(512);
         bench_gemm_chain(768);
+    }
+
+    if filter == "*" || filter == "batch_outer" {
+        bench_batch_outer(16, 128, 128);
+        bench_batch_outer(32, 128, 128);
+        bench_batch_outer(64, 256, 128);
+        bench_batch_outer(128, 1024, 256);
+        bench_batch_outer(256, 1024, 256);
+        bench_batch_outer(1024, 256, 512);
+        bench_batch_outer(768, 768, 768);
     }
 }
