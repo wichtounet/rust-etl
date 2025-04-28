@@ -1,4 +1,5 @@
 use etl::batch_outer_expr::batch_outer;
+use etl::bias_add_expr::bias_add;
 use etl::matrix_2d::Matrix2d;
 use etl::vector::Vector;
 
@@ -151,6 +152,17 @@ fn bench_batch_outer(rows: usize, columns: usize, batch: usize) {
     println!("c = batch_outer(A, B) ({}:{}:{}) took {}", rows, columns, batch, choose_time(times));
 }
 
+fn bench_bias_add(rows: usize, columns: usize) {
+    let a = Matrix2d::<f64>::new_rand(rows, columns);
+    let b = Vector::<f64>::new_rand(columns);
+    let mut c = Matrix2d::<f64>::new_rand(rows, columns);
+
+    let func = || c |= bias_add(&a, &b);
+
+    let times = bench_closure(func);
+    println!("c = bias_add(A, B) ({}:{}) took {}", rows, columns, choose_time(times));
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
@@ -236,5 +248,15 @@ fn main() {
         bench_batch_outer(256, 1024, 256);
         bench_batch_outer(1024, 256, 512);
         bench_batch_outer(768, 768, 768);
+    }
+
+    if filter == "*" || filter == "bias_add" {
+        bench_bias_add(16, 128);
+        bench_bias_add(32, 128);
+        bench_bias_add(64, 256);
+        bench_bias_add(128, 1024);
+        bench_bias_add(256, 1024);
+        bench_bias_add(1024, 256);
+        bench_bias_add(768, 768);
     }
 }
