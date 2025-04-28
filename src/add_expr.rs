@@ -283,13 +283,27 @@ mod tests {
         let mut b = Vector::<i64>::new(n);
         let mut c = Vector::<i64>::new(n);
 
-        a.fill(1);
-        b.fill(3);
+        let mut index_a: i64 = 1;
+        let mut index_b: i64 = 3;
+
+        for i in 0..n {
+            a[i] = index_a;
+            b[i] = index_b;
+
+            index_a += 1;
+            index_b += 1;
+        }
 
         c += &a + &b;
 
+        index_a = 1;
+        index_b = 3;
+
         for i in 0..n {
-            assert_eq!(c.at(i), 4, "Invalid value at index {i}");
+            assert_eq!(c.at(i), index_a + index_b, "Invalid value at index {i}");
+
+            index_a += 1;
+            index_b += 1;
         }
     }
 }

@@ -218,9 +218,9 @@ pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, 
 
                     let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
 
-                    s.spawn(|_| {
+                    s.spawn(move |_| {
                         for (i, x) in slice.iter_mut().enumerate() {
-                            *x = rhs.at(i);
+                            *x = rhs.at(start + i);
                         }
                     });
                 }
@@ -262,9 +262,9 @@ pub fn add_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
 
                     let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
 
-                    s.spawn(|_| {
+                    s.spawn(move |_| {
                         for (i, x) in slice.iter_mut().enumerate() {
-                            *x += rhs.at(i);
+                            *x += rhs.at(start + i);
                         }
                     });
                 }
@@ -302,9 +302,9 @@ pub fn sub_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
 
                     let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
 
-                    s.spawn(|_| {
+                    s.spawn(move |_| {
                         for (i, x) in slice.iter_mut().enumerate() {
-                            *x -= rhs.at(i);
+                            *x -= rhs.at(start + i);
                         }
                     });
                 }
@@ -342,9 +342,9 @@ pub fn div_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
 
                     let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
 
-                    s.spawn(|_| {
+                    s.spawn(move |_| {
                         for (i, x) in slice.iter_mut().enumerate() {
-                            *x /= rhs.at(i);
+                            *x /= rhs.at(start + i);
                         }
                     });
                 }
@@ -382,9 +382,9 @@ pub fn scale_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Ve
 
                     let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start), end - start) };
 
-                    s.spawn(|_| {
+                    s.spawn(move |_| {
                         for (i, x) in slice.iter_mut().enumerate() {
-                            *x *= rhs.at(i);
+                            *x *= rhs.at(start + i);
                         }
                     });
                 }
