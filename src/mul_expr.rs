@@ -127,7 +127,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
             let n = self.lhs.value.columns();
             let k = self.rhs.value.columns();
 
-            let small_gemm_functor = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+            let small_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
                 let mut column = 0;
 
                 while column + 7 < k {
@@ -554,7 +554,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
                 }
             };
 
-            forward_data_binary(output, &self.lhs.value, &self.rhs.value, small_gemm_functor);
+            forward_data_binary(output, &self.lhs.value, &self.rhs.value, small_gemm_kernel);
         } else {
             panic!("This code should be unreachable!");
         }
