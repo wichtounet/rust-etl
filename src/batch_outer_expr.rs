@@ -78,17 +78,99 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
             let n = self.rhs.value.columns();
             let b = self.lhs.value.rows();
 
-            let functor = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
-                for batch in 0..b {
-                    for row in 0..m {
-                        for column in 0..n {
-                            out[row * n + column] += lhs[batch * m + row] * rhs[batch * n + column];
+            let small_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+                for row in 0..m {
+                    let mut column = 0;
+
+                    while column + 3 < n {
+                        let c1 = column;
+                        let c2 = column + 1;
+                        let c3 = column + 2;
+                        let c4 = column + 3;
+
+                        let mut v1 = out[row * n + c1];
+                        let mut v2 = out[row * n + c2];
+                        let mut v3 = out[row * n + c3];
+                        let mut v4 = out[row * n + c4];
+
+                        for batch in 0..b {
+                            v1 += lhs[batch * m + row] * rhs[batch * n + c1];
+                            v2 += lhs[batch * m + row] * rhs[batch * n + c2];
+                            v3 += lhs[batch * m + row] * rhs[batch * n + c3];
+                            v4 += lhs[batch * m + row] * rhs[batch * n + c4];
                         }
+
+                        out[row * n + c1] = v1;
+                        out[row * n + c2] = v2;
+                        out[row * n + c3] = v3;
+                        out[row * n + c4] = v4;
+
+                        column += 4;
+                    }
+
+                    while column + 1 < n {
+                        let c1 = column;
+                        let c2 = column + 1;
+
+                        let mut v1 = out[row * n + c1];
+                        let mut v2 = out[row * n + c2];
+
+                        for batch in 0..b {
+                            v1 += lhs[batch * m + row] * rhs[batch * n + c1];
+                            v2 += lhs[batch * m + row] * rhs[batch * n + c2];
+                        }
+
+                        out[row * n + c1] = v1;
+                        out[row * n + c2] = v2;
+
+                        column += 2;
+                    }
+
+                    if column < n {
+                        let mut v = out[row * n + column];
+
+                        for batch in 0..b {
+                            v += lhs[batch * m + row] * rhs[batch * n + column];
+                        }
+
+                        out[row * n + column] = v;
                     }
                 }
             };
 
-            forward_data_binary(output, &self.lhs.value, &self.rhs.value, functor);
+            let transpose_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+                let mut lhs_opp = lhs.clone();
+                for lhs_row in 0..b {
+                    for lhs_column in 0..m {
+                        lhs_opp[lhs_column * b + lhs_row] = lhs[lhs_row * m + lhs_column];
+                    }
+                }
+
+                let mut rhs_opp = rhs.clone();
+                for rhs_row in 0..b {
+                    for rhs_column in 0..n {
+                        rhs_opp[rhs_column * b + rhs_row] = rhs[rhs_row * n + rhs_column];
+                    }
+                }
+
+                for row in 0..m {
+                    for column in 0..n {
+                        let mut v = out[row * n + column];
+
+                        for batch in 0..b {
+                            v += lhs_opp[row * b + batch] * rhs_opp[column * b + batch];
+                        }
+
+                        out[row * n + column] = v;
+                    }
+                }
+            };
+
+            if m * n <= 16385 {
+                forward_data_binary(output, &self.lhs.value, &self.rhs.value, small_kernel);
+            } else {
+                forward_data_binary(output, &self.lhs.value, &self.rhs.value, transpose_kernel);
+            }
         } else {
             panic!("This code should be unreachable!");
         }
