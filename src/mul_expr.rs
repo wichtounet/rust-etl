@@ -554,6 +554,86 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
                 }
             };
 
+            let _medium_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+                let k_block_size = 128;
+                let m_block_size = 64;
+                let n_block_size = 128;
+
+                let mut column_start = 0;
+
+                while column_start < k {
+                    let column_end = if column_start + k_block_size > k { k } else { column_start + k_block_size };
+
+                    let mut row_start = 0;
+
+                    while row_start < m {
+                        let row_end = if row_start + m_block_size > m { m } else { row_start + m_block_size };
+
+                        // Zero out the block
+                        for column in column_start..column_end {
+                            for row in row_start..row_end {
+                                out[row * k + column] = T::default();
+                            }
+                        }
+
+                        let mut inner_start = 0;
+                        while inner_start < n {
+                            let inner_end = if inner_start + n_block_size > n { n } else { inner_start + n_block_size };
+
+                            let mut column = column_start;
+
+                            while column + 3 < column_end {
+                                let c1 = column;
+                                let c2 = column + 1;
+                                let c3 = column + 2;
+                                let c4 = column + 3;
+
+                                for row in row_start..row_end {
+                                    let mut v1 = out[row * k + c2];
+                                    let mut v2 = out[row * k + c1];
+                                    let mut v3 = out[row * k + c3];
+                                    let mut v4 = out[row * k + c4];
+
+                                    for inner in inner_start..inner_end {
+                                        v1 += lhs[row * n + inner] * rhs[inner * k + c1];
+                                        v2 += lhs[row * n + inner] * rhs[inner * k + c2];
+                                        v3 += lhs[row * n + inner] * rhs[inner * k + c3];
+                                        v4 += lhs[row * n + inner] * rhs[inner * k + c4];
+                                    }
+
+                                    out[row * k + c1] = v1;
+                                    out[row * k + c2] = v2;
+                                    out[row * k + c3] = v3;
+                                    out[row * k + c4] = v4;
+                                }
+
+                                column += 4;
+                            }
+
+                            while column < column_end {
+                                for row in row_start..row_end {
+                                    let mut v = out[row * k + column];
+                                    for inner in inner_start..inner_end {
+                                        v += lhs[row * n + inner] * rhs[inner * k + column];
+                                    }
+                                    out[row * k + column] = v;
+                                }
+
+                                column += 1;
+                            }
+
+                            inner_start += n_block_size;
+                        }
+
+                        row_start += m_block_size;
+                    }
+
+                    column_start += k_block_size;
+                }
+            };
+
+            // The medium kernel is WIP
+
             forward_data_binary(output, &self.lhs.value, &self.rhs.value, small_gemm_kernel);
         } else {
             panic!("This code should be unreachable!");
