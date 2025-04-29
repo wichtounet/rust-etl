@@ -587,4 +587,35 @@ mod tests {
             assert_eq!(c.at(i), c_ref.at(i), "Invalid value at index {i}");
         }
     }
+
+    #[test]
+    fn batch_outer_large_parallel() {
+        let m = 171;
+        let n = 11;
+        let b = 39;
+
+        let mut lhs = Matrix2d::<i64>::new(b, m);
+        let mut rhs = Matrix2d::<i64>::new(b, n);
+
+        let mut c = Matrix2d::<i64>::new(m, n);
+        c |= batch_outer(&lhs, &rhs);
+
+        let mut c_ref = Matrix2d::<i64>::new(m, n);
+
+        for row in 0..m {
+            for column in 0..n {
+                let mut v = 0;
+
+                for batch in 0..b {
+                    v += lhs.at2(batch, row) * rhs.at2(batch, column);
+                }
+
+                *c_ref.at_mut(row, column) = v;
+            }
+        }
+
+        for i in 0..(m * n) {
+            assert_eq!(c.at(i), c_ref.at(i), "Invalid value at index {i}");
+        }
+    }
 }
