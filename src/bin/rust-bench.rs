@@ -201,6 +201,9 @@ fn main() {
     }
 
     if filter == "*" || filter == "gemm" {
+        bench_gemm(16, 16, 62);
+        bench_gemm(16, 32, 32);
+        bench_gemm(16, 64, 64);
         bench_gemm(16, 128, 128);
         bench_gemm(32, 128, 128);
         bench_gemm(64, 256, 128);
@@ -208,6 +211,7 @@ fn main() {
         bench_gemm(256, 1024, 256);
         bench_gemm(1024, 256, 512);
         bench_gemm(768, 768, 768);
+        bench_gemm(1024, 1024, 1024);
     }
 
     if filter == "*" || filter == "gemm_outer" {
