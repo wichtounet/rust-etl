@@ -309,17 +309,21 @@ where
     }
 
     fn medium_gemm_kernel(m: usize, n: usize, k: usize, out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>) {
+        let lanes = 8;
+
         let k_block_size = 128;
         let m_block_size = 64;
         let n_block_size = 128;
 
         let mut column_start = 0;
 
+        // blocking loop for column
         while column_start < k {
             let column_end = if column_start + k_block_size > k { k } else { column_start + k_block_size };
 
             let mut row_start = 0;
 
+            // blocking loop for row
             while row_start < m {
                 let row_end = if row_start + m_block_size > m { m } else { row_start + m_block_size };
 
@@ -331,39 +335,89 @@ where
                 }
 
                 let mut inner_start = 0;
+
+                // blocking loop for inner
                 while inner_start < n {
                     let inner_end = if inner_start + n_block_size > n { n } else { inner_start + n_block_size };
 
                     let mut column = column_start;
 
-                    while column + 3 < column_end {
-                        let c1 = column;
-                        let c2 = column + 1;
-                        let c3 = column + 2;
-                        let c4 = column + 3;
+                    // vectorized loop, unrolled twice
+                    while column + 2 * lanes - 1 < column_end {
+                        let column1 = column;
+                        let column2 = column + lanes;
 
-                        for row in row_start..row_end {
-                            let mut v1 = out[row * k + c2];
-                            let mut v2 = out[row * k + c1];
-                            let mut v3 = out[row * k + c3];
-                            let mut v4 = out[row * k + c4];
+                        let mut row = row_start;
+
+                        while row + 1 < row_end {
+                            let row1 = row;
+                            let row2 = row + 1;
+
+                            let mut v1 = Simd::<T, 8>::from_slice(&out[row1 * k + column1..]);
+                            let mut v2 = Simd::<T, 8>::from_slice(&out[row1 * k + column2..]);
+                            let mut v3 = Simd::<T, 8>::from_slice(&out[row2 * k + column2..]);
+                            let mut v4 = Simd::<T, 8>::from_slice(&out[row2 * k + column2..]);
 
                             for inner in inner_start..inner_end {
-                                v1 += lhs[row * n + inner] * rhs[inner * k + c1];
-                                v2 += lhs[row * n + inner] * rhs[inner * k + c2];
-                                v3 += lhs[row * n + inner] * rhs[inner * k + c3];
-                                v4 += lhs[row * n + inner] * rhs[inner * k + c4];
+                                let l1 = Simd::<T, 8>::splat(lhs[row1 * n + inner]);
+                                let l2 = Simd::<T, 8>::splat(lhs[row2 * n + inner]);
+
+                                let r1 = Simd::<T, 8>::from_slice(&rhs[inner * k + column1..]);
+                                let r2 = Simd::<T, 8>::from_slice(&rhs[inner * k + column2..]);
+
+                                v1 += l1 * r1;
+                                v2 += l1 * r2;
+                                v3 += l2 * r1;
+                                v4 += l2 * r2;
                             }
 
-                            out[row * k + c1] = v1;
-                            out[row * k + c2] = v2;
-                            out[row * k + c3] = v3;
-                            out[row * k + c4] = v4;
+                            out[row1 * k + column1..row1 * k + column1 + lanes].copy_from_slice(&v1.to_array());
+                            out[row1 * k + column2..row1 * k + column2 + lanes].copy_from_slice(&v2.to_array());
+                            out[row2 * k + column1..row2 * k + column1 + lanes].copy_from_slice(&v3.to_array());
+                            out[row2 * k + column2..row2 * k + column2 + lanes].copy_from_slice(&v4.to_array());
+
+                            row += 2;
                         }
 
-                        column += 4;
+                        if row < row_end {
+                            let mut v1 = Simd::<T, 8>::from_slice(&out[row * k + column1..]);
+                            let mut v2 = Simd::<T, 8>::from_slice(&out[row * k + column2..]);
+
+                            for inner in inner_start..inner_end {
+                                let l1 = Simd::<T, 8>::splat(lhs[row * n + inner]);
+
+                                let r1 = Simd::<T, 8>::from_slice(&rhs[inner * k + column1..]);
+                                let r2 = Simd::<T, 8>::from_slice(&rhs[inner * k + column2..]);
+
+                                v1 += l1 * r1;
+                                v2 += l1 * r2;
+                            }
+
+                            out[row * k + column1..row * k + column1 + lanes].copy_from_slice(&v1.to_array());
+                            out[row * k + column2..row * k + column2 + lanes].copy_from_slice(&v2.to_array());
+                        }
+
+                        column += 2 * lanes;
                     }
 
+                    // vectorized loop
+                    while column + lanes - 1 < column_end {
+                        for row in row_start..row_end {
+                            let mut v1 = Simd::<T, 8>::from_slice(&out[row * k + column..]);
+
+                            for inner in inner_start..inner_end {
+                                let l1 = Simd::<T, 8>::splat(lhs[row * n + inner]);
+                                let r1 = Simd::<T, 8>::from_slice(&rhs[inner * k + column..]);
+                                v1 += l1 * r1;
+                            }
+
+                            out[row * k + column..row * k + column + lanes].copy_from_slice(&v1.to_array());
+                        }
+
+                        column += lanes;
+                    }
+
+                    // remainder loop
                     while column < column_end {
                         for row in row_start..row_end {
                             let mut v = out[row * k + column];
@@ -426,10 +480,13 @@ where
 
             let small_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::small_gemm_kernel(m, n, k, out, lhs, rhs);
 
-            // The medium kernel is WIP
-            let _medium_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::medium_gemm_kernel(m, n, k, out, lhs, rhs);
+            let medium_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::medium_gemm_kernel(m, n, k, out, lhs, rhs);
 
-            forward_data_binary(output, &self.lhs.value, &self.rhs.value, small_gemm_kernel);
+            if n * m < 100 * 100 {
+                forward_data_binary(output, &self.lhs.value, &self.rhs.value, small_gemm_kernel);
+            } else {
+                forward_data_binary(output, &self.lhs.value, &self.rhs.value, medium_gemm_kernel);
+            }
         } else {
             panic!("This code should be unreachable!");
         }
