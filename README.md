@@ -16,9 +16,12 @@ The main issue I am facing is the generics support in Rust. The Rust compiler do
 
 The Rust borrow checker is very powerful. And it is a great addition to a language since it prevents many issues. However, it is also very strict. The main issue comes from trying to mix immutable and mutable version of something. In an expression `x = b * x + z`, we simply cannot write at once because we would either mix one mutable and one immutable reference to `x` or we would have two mutable references to `x` which is forbidden.
 
-
 ### SIMD and Generics
 
 Rust has multiple SIMD library, including `std::simd` in the standard library itself (curently experimental). This works well and is very complete. But there is *one major issue*: It does not work well at all with generic code. I have been trying to get a generic kernel optimized with SIMD  but without much success. Some of the things work relatively well, but many operations are gated behind `SimdFloat` and `SimdInt`, like `reduce_sum`. As a result, the code can only be generic for integers or float, not both, which is highly inconvenient in a library like this.
 
 I could potentially use a custom trait for that and return a `Box<dyn MySimdType>` but this kinds of defeat the purpose of vectorization which is all about speed.
+
+The `reduce_sum` issue was worked around with a custom sum function. 
+
+Currently, this also prevents me from using FMA since the `mul_add` function is hidden behind StdFloat and the rust-etl code is generic for integers and floats.
