@@ -1,4 +1,7 @@
+use crate::base_traits::*;
 use crate::etl_expr::*;
+
+use std::simd::*;
 
 // The declaration of MulExpr
 
@@ -6,7 +9,10 @@ use crate::etl_expr::*;
 /// LeftExpr is a vector expression
 /// RightExpr is a matrix expression
 /// MulExpr is a vector expression
-pub struct MulExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
+pub struct MulExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>>
+where
+    Simd<T, 8>: SimdHelper,
+{
     lhs: EtlWrapper<T, LeftExpr::WrappedAs>,
     rhs: EtlWrapper<T, RightExpr::WrappedAs>,
     pub temp: Vec<T>,
@@ -14,7 +20,10 @@ pub struct MulExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: Wrapp
 
 // The functions of MulExpr
 
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> MulExpr<T, LeftExpr, RightExpr> {
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> MulExpr<T, LeftExpr, RightExpr>
+where
+    Simd<T, 8>: SimdHelper,
+{
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
             if lhs.rows() != rhs.rows() {
@@ -90,6 +99,8 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
     }
 
     fn small_gemm_kernel(m: usize, n: usize, k: usize, out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>) {
+        let lanes = 8;
+
         let mut column = 0;
 
         while column + 7 < k {
@@ -663,7 +674,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
 }
 
 // MulExpr is an EtlExpr
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for MulExpr<T, LeftExpr, RightExpr> {
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for MulExpr<T, LeftExpr, RightExpr>
+where
+    Simd<T, 8>: SimdHelper,
+{
     const DIMENSIONS: usize = if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 { 2 } else { 1 };
     const TYPE: EtlType = EtlType::Smart;
 
@@ -727,7 +741,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 }
 
 // MulExpr is an EtlWrappable
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for MulExpr<T, LeftExpr, RightExpr> {
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for MulExpr<T, LeftExpr, RightExpr>
+where
+    Simd<T, 8>: SimdHelper,
+{
     type WrappedAs = MulExpr<T, LeftExpr, RightExpr>;
 
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
@@ -739,7 +756,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 }
 
 // MulExpr computes as copy
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlComputable<T> for MulExpr<T, LeftExpr, RightExpr> {
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlComputable<T> for MulExpr<T, LeftExpr, RightExpr>
+where
+    Simd<T, 8>: SimdHelper,
+{
     fn to_data(&self) -> Vec<T> {
         self.temp.clone()
     }
@@ -758,7 +778,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 #[macro_export]
 macro_rules! impl_mul_op_value {
     ($type:ty) => {
-        impl<'a, T: EtlValueType, RightExpr: WrappableExpr<T>> std::ops::Mul<RightExpr> for &'a $type {
+        impl<'a, T: EtlValueType, RightExpr: WrappableExpr<T>> std::ops::Mul<RightExpr> for &'a $type
+        where
+            std::simd::Simd<T, 8>: $crate::base_traits::SimdHelper,
+        {
             type Output = $crate::mul_expr::MulExpr<T, &'a $type, RightExpr>;
 
             fn mul(self, other: RightExpr) -> Self::Output {
@@ -771,8 +794,9 @@ macro_rules! impl_mul_op_value {
 #[macro_export]
 macro_rules! impl_mul_op_binary_expr {
     ($type:ty) => {
-        impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr>
-            for $type
+        impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr> for $type
+        where
+            std::simd::Simd<T, 8>: $crate::base_traits::SimdHelper,
         {
             type Output = $crate::mul_expr::MulExpr<T, $type, OuterRightExpr>;
 
@@ -783,12 +807,13 @@ macro_rules! impl_mul_op_binary_expr {
     };
 }
 
+// TODO We can remove this macro soon
 #[macro_export]
 macro_rules! impl_mul_op_binary_expr_simd {
     ($type:ty) => {
         impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr> for $type
         where
-            Simd<T, 8>: SimdHelper,
+            std::simd::Simd<T, 8>: $crate::base_traits::SimdHelper,
         {
             type Output = $crate::mul_expr::MulExpr<T, $type, OuterRightExpr>;
 
@@ -802,7 +827,10 @@ macro_rules! impl_mul_op_binary_expr_simd {
 #[macro_export]
 macro_rules! impl_mul_op_unary_expr {
     ($type:ty) => {
-        impl<T: EtlValueType, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr> for $type {
+        impl<T: EtlValueType, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr> for $type
+        where
+            std::simd::Simd<T, 8>: $crate::base_traits::SimdHelper,
+        {
             type Output = $crate::mul_expr::MulExpr<T, $type, OuterRightExpr>;
 
             fn mul(self, other: OuterRightExpr) -> Self::Output {
@@ -815,7 +843,10 @@ macro_rules! impl_mul_op_unary_expr {
 #[macro_export]
 macro_rules! impl_mul_op_unary_expr_trait {
     ($trait:tt, $type:ty) => {
-        impl<T: EtlValueType + $trait, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr> for $type {
+        impl<T: EtlValueType + $trait, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr> for $type
+        where
+            std::simd::Simd<T, 8>: $crate::base_traits::SimdHelper,
+        {
             type Output = $crate::mul_expr::MulExpr<T, $type, OuterRightExpr>;
 
             fn mul(self, other: OuterRightExpr) -> Self::Output {
@@ -825,11 +856,11 @@ macro_rules! impl_mul_op_unary_expr_trait {
     };
 }
 
-crate::impl_add_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
-crate::impl_sub_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
-crate::impl_mul_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
-crate::impl_div_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
-crate::impl_scale_op_binary_expr!(MulExpr<T, LeftExpr, RightExpr>);
+crate::impl_add_op_binary_expr_simd!(MulExpr<T, LeftExpr, RightExpr>);
+crate::impl_sub_op_binary_expr_simd!(MulExpr<T, LeftExpr, RightExpr>);
+crate::impl_mul_op_binary_expr_simd!(MulExpr<T, LeftExpr, RightExpr>);
+crate::impl_div_op_binary_expr_simd!(MulExpr<T, LeftExpr, RightExpr>);
+crate::impl_scale_op_binary_expr_simd!(MulExpr<T, LeftExpr, RightExpr>);
 
 // The tests
 
