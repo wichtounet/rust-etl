@@ -137,6 +137,22 @@ macro_rules! impl_sub_op_binary_expr {
 }
 
 #[macro_export]
+macro_rules! impl_sub_op_binary_expr_simd {
+    ($type:ty) => {
+        impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Sub<OuterRightExpr> for $type
+        where
+            Simd<T, 8>: SimdHelper,
+        {
+            type Output = $crate::sub_expr::SubExpr<T, $type, OuterRightExpr>;
+
+            fn sub(self, other: OuterRightExpr) -> Self::Output {
+                Self::Output::new(self, other)
+            }
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! impl_sub_op_unary_expr {
     ($type:ty) => {
         impl<T: EtlValueType, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Sub<OuterRightExpr> for $type {

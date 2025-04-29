@@ -781,6 +781,22 @@ macro_rules! impl_mul_op_binary_expr {
 }
 
 #[macro_export]
+macro_rules! impl_mul_op_binary_expr_simd {
+    ($type:ty) => {
+        impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr> for $type
+        where
+            Simd<T, 8>: SimdHelper,
+        {
+            type Output = $crate::mul_expr::MulExpr<T, $type, OuterRightExpr>;
+
+            fn mul(self, other: OuterRightExpr) -> Self::Output {
+                Self::Output::new(self, other)
+            }
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! impl_mul_op_unary_expr {
     ($type:ty) => {
         impl<T: EtlValueType, Expr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Mul<OuterRightExpr> for $type {

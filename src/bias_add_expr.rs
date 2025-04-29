@@ -232,11 +232,11 @@ where
     BiasAddExpr::<T, LeftExpr, RightExpr>::new(lhs, rhs)
 }
 
-//crate::impl_add_op_binary_expr!(BiasAddExpr<T, LeftExpr, RightExpr>);
-//crate::impl_sub_op_binary_expr!(BiasAddExpr<T, LeftExpr, RightExpr>);
-//crate::impl_mul_op_binary_expr!(BiasAddExpr<T, LeftExpr, RightExpr>);
-//crate::impl_div_op_binary_expr!(BiasAddExpr<T, LeftExpr, RightExpr>);
-//crate::impl_scale_op_binary_expr!(BiasAddExpr<T, LeftExpr, RightExpr>);
+crate::impl_add_op_binary_expr_simd!(BiasAddExpr<T, LeftExpr, RightExpr>);
+crate::impl_sub_op_binary_expr_simd!(BiasAddExpr<T, LeftExpr, RightExpr>);
+crate::impl_mul_op_binary_expr_simd!(BiasAddExpr<T, LeftExpr, RightExpr>);
+crate::impl_div_op_binary_expr_simd!(BiasAddExpr<T, LeftExpr, RightExpr>);
+crate::impl_scale_op_binary_expr_simd!(BiasAddExpr<T, LeftExpr, RightExpr>);
 
 // The tests
 
@@ -289,7 +289,7 @@ mod tests {
         b[0] = 7;
         b[1] = 8;
 
-        //c |= bias_add(&a, &b) >> bias_add(&a, &b);
+        c |= bias_add(&a, &b) >> bias_add(&a, &b);
 
         assert_eq!(c.at2(0, 0), 8 * 8);
         assert_eq!(c.at2(0, 1), 10 * 10);
