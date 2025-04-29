@@ -566,6 +566,9 @@ mod tests {
         let mut lhs = Matrix2d::<i64>::new(b, m);
         let mut rhs = Matrix2d::<i64>::new(b, n);
 
+        lhs.iota_fill(1);
+        rhs.iota_fill(2);
+
         let mut c = Matrix2d::<i64>::new(m, n);
         c |= batch_outer(&lhs, &rhs);
 
@@ -591,11 +594,14 @@ mod tests {
     #[test]
     fn batch_outer_large_parallel() {
         let m = 171;
-        let n = 11;
+        let n = 111;
         let b = 39;
 
         let mut lhs = Matrix2d::<i64>::new(b, m);
         let mut rhs = Matrix2d::<i64>::new(b, n);
+
+        lhs.iota_fill(1);
+        rhs.iota_fill(2);
 
         let mut c = Matrix2d::<i64>::new(m, n);
         c |= batch_outer(&lhs, &rhs);

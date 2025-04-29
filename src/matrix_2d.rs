@@ -86,6 +86,14 @@ impl<T: EtlValueType> Matrix2d<T> {
         }
     }
 
+    pub fn iota_fill(&mut self, value: T) {
+        let mut acc = value;
+        for i in 0..self.size() {
+            self.data[i] = acc;
+            acc += T::one();
+        }
+    }
+
     pub fn rand_fill(&mut self)
     where
         rand::distr::StandardUniform: rand::distr::Distribution<T>,
