@@ -1,7 +1,6 @@
 use crate::base_traits::*;
 use crate::etl_expr::*;
 
-use std::simd::num::SimdInt;
 use std::simd::*;
 
 // The declaration of BatchOuterExpr
@@ -151,7 +150,7 @@ where
 
     // For medium-to-large matrices, we can transpose lhs and rhs and then we can vectorize the
     // inner loop properly
-    fn transposed_kernel(m_start: usize, m_end: usize, n: usize, b: usize, out: &mut Vec<T>, lhs_opp: &Vec<T>, rhs_opp: &Vec<T>) {
+    fn transposed_kernel(m_start: usize, m_end: usize, n: usize, b: usize, out: &mut [T], lhs_opp: &Vec<T>, rhs_opp: &Vec<T>) {
         let lanes = 8;
 
         let mut row = m_start;
@@ -226,15 +225,15 @@ where
                     batch += 1;
                 }
 
-                out[r1 * n + c1] = v11;
-                out[r1 * n + c2] = v12;
-                out[r1 * n + c3] = v13;
-                out[r1 * n + c4] = v14;
+                out[(r1 - m_start) * n + c1] = v11;
+                out[(r1 - m_start) * n + c2] = v12;
+                out[(r1 - m_start) * n + c3] = v13;
+                out[(r1 - m_start) * n + c4] = v14;
 
-                out[r2 * n + c1] = v21;
-                out[r2 * n + c2] = v22;
-                out[r2 * n + c3] = v23;
-                out[r2 * n + c4] = v24;
+                out[(r2 - m_start) * n + c1] = v21;
+                out[(r2 - m_start) * n + c2] = v22;
+                out[(r2 - m_start) * n + c3] = v23;
+                out[(r2 - m_start) * n + c4] = v24;
 
                 column += 4;
             }
@@ -282,11 +281,11 @@ where
                     batch += 1;
                 }
 
-                out[r1 * n + c1] = v11;
-                out[r1 * n + c2] = v12;
+                out[(r1 - m_start) * n + c1] = v11;
+                out[(r1 - m_start) * n + c2] = v12;
 
-                out[r2 * n + c1] = v21;
-                out[r2 * n + c2] = v22;
+                out[(r2 - m_start) * n + c1] = v21;
+                out[(r2 - m_start) * n + c2] = v22;
 
                 column += 2;
             }
@@ -300,8 +299,8 @@ where
                     v2 += lhs_opp[r2 * b + batch] * rhs_opp[column * b + batch];
                 }
 
-                out[r1 * n + column] = v1;
-                out[r2 * n + column] = v2;
+                out[(r1 - m_start) * n + column] = v1;
+                out[(r2 - m_start) * n + column] = v2;
             }
 
             row += 2;
@@ -315,7 +314,7 @@ where
                     v += lhs_opp[row * b + batch] * rhs_opp[column * b + batch];
                 }
 
-                out[row * n + column] = v;
+                out[(row - m_start) * n + column] = v;
             }
         }
     }
@@ -351,7 +350,10 @@ where
 
                 forward_data_binary_mut(output, &self.lhs.value, &self.rhs.value, &mut transpose_first_kernel);
 
-                Self::transposed_kernel(0, m, n, b, output, &lhs_opp, &rhs_opp);
+                let transposed_kernel = |out: &mut [T], m_start: usize, m_end: usize| {
+                    Self::transposed_kernel(m_start, m_end, n, b, out, &lhs_opp, &rhs_opp);
+                };
+                dispatch_parallel_2d(output, m, n > 20, n, transposed_kernel);
             }
         } else {
             panic!("This code should be unreachable!");

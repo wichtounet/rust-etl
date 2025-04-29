@@ -1,7 +1,6 @@
 use crate::base_traits::*;
 use crate::etl_expr::*;
 
-use std::simd::num::SimdInt;
 use std::simd::*;
 
 // The declaration of BiasAddExpr

@@ -400,6 +400,40 @@ pub fn scale_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Ve
     }
 }
 
+// Parallel dispatchers
+
+pub fn dispatch_parallel_2d<T: EtlValueType, F: Fn(&mut [T], usize, usize) + Sync + Send + Clone>(
+    data: &mut Vec<T>,
+    size: usize,
+    helper: bool,
+    mul: usize,
+    functor: F,
+) {
+    if size >= rayon::current_num_threads() && helper {
+        rayon::scope(|s| {
+            let n = rayon::current_num_threads();
+            let block_size = size / n;
+
+            let ptr = data.as_mut_ptr();
+
+            for t in 0..n {
+                let start = t * block_size;
+                let end = if t < n - 1 { (t + 1) * block_size } else { size };
+
+                let slice = unsafe { std::slice::from_raw_parts_mut(ptr.add(start * mul), (end - start) * mul) };
+
+                let f = functor.clone();
+
+                s.spawn(move |_| {
+                    f(slice, start, end);
+                });
+            }
+        });
+    } else {
+        functor(data, 0, size);
+    }
+}
+
 // Helpers
 
 pub fn forward_data_binary<

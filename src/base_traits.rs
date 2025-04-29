@@ -1,4 +1,3 @@
-use std::simd::num::SimdInt;
 use std::simd::Simd;
 
 pub trait SimdHelper: Sized + std::ops::AddAssign + std::ops::Add<Output = Self> + std::ops::MulAssign + std::ops::Mul<Output = Self> {}
