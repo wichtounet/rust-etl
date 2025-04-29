@@ -431,7 +431,49 @@ pub fn forward_data_binary<
     }
 }
 
+pub fn forward_data_binary_mut<
+    T: EtlValueType,
+    F: FnMut(&mut Vec<T>, &Vec<T>, &Vec<T>),
+    LeftExpr: EtlComputable<T> + EtlExpr<T>,
+    RightExpr: EtlComputable<T> + EtlExpr<T>,
+>(
+    output: &mut Vec<T>,
+    lhs: &LeftExpr,
+    rhs: &RightExpr,
+    functor: &mut F,
+) {
+    if LeftExpr::TYPE.direct() && RightExpr::TYPE.direct() {
+        functor(output, lhs.get_data(), rhs.get_data());
+    } else if LeftExpr::TYPE.direct() && !RightExpr::TYPE.direct() {
+        let rhs_data = rhs.to_data();
+
+        functor(output, lhs.get_data(), &rhs_data);
+    } else if !LeftExpr::TYPE.direct() && RightExpr::TYPE.direct() {
+        let lhs_data = lhs.to_data();
+
+        functor(output, &lhs_data, rhs.get_data());
+    } else {
+        let lhs_data = lhs.to_data();
+        let rhs_data = rhs.to_data();
+
+        functor(output, &lhs_data, &rhs_data);
+    }
+}
+
 pub fn forward_data_unary<T: EtlValueType, F: Fn(&mut Vec<T>, &Vec<T>), Expr: EtlComputable<T> + EtlExpr<T>>(output: &mut Vec<T>, expr: &Expr, functor: F) {
+    if Expr::TYPE.direct() {
+        functor(output, expr.get_data());
+    } else {
+        let data = expr.to_data();
+        functor(output, &data);
+    }
+}
+
+pub fn forward_data_unary_mut<T: EtlValueType, F: FnMut(&mut Vec<T>, &Vec<T>), Expr: EtlComputable<T> + EtlExpr<T>>(
+    output: &mut Vec<T>,
+    expr: &Expr,
+    functor: &mut F,
+) {
     if Expr::TYPE.direct() {
         functor(output, expr.get_data());
     } else {
