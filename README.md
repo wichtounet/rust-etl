@@ -20,3 +20,5 @@ The Rust borrow checker is very powerful. And it is a great addition to a langua
 ### SIMD and Generics
 
 Rust has multiple SIMD library, including `std::simd` in the standard library itself (curently experimental). This works well and is very complete. But there is *one major issue*: It does not work well at all with generic code. I have been trying to get a generic kernel optimized with SIMD  but without much success. Some of the things work relatively well, but many operations are gated behind `SimdFloat` and `SimdInt`, like `reduce_sum`. As a result, the code can only be generic for integers or float, not both, which is highly inconvenient in a library like this.
+
+I could potentially use a custom trait for that and return a `Box<dyn MySimdType>` but this kinds of defeat the purpose of vectorization which is all about speed.
