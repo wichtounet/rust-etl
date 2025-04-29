@@ -1,9 +1,16 @@
+use crate::base_traits::*;
 use crate::etl_expr::*;
+
+use std::simd::num::SimdInt;
+use std::simd::*;
 
 // The declaration of BatchOuterExpr
 
 /// Expression representing the batched addition of biases to a matrix
-pub struct BatchOuterExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
+pub struct BatchOuterExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>>
+where
+    Simd<T, 8>: SimdHelper,
+{
     lhs: EtlWrapper<T, LeftExpr::WrappedAs>,
     rhs: EtlWrapper<T, RightExpr::WrappedAs>,
     pub temp: Vec<T>,
@@ -11,7 +18,10 @@ pub struct BatchOuterExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr
 
 // The functions of BatchOuterExpr
 
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> BatchOuterExpr<T, LeftExpr, RightExpr> {
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> BatchOuterExpr<T, LeftExpr, RightExpr>
+where
+    Simd<T, 8>: SimdHelper,
+{
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
         if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
             if lhs.rows() != rhs.rows() {
@@ -72,6 +82,258 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
         }
     }
 
+    // Note: Cannot use reduce_sum in generic code
+    fn sum(input: &[T; 8]) -> T {
+        input[0] + input[1] + input[2] + input[3] + input[4] + input[5] + input[6] + input[7]
+    }
+
+    // For small matrices, it is not worth computing the transpose of lhs and rhs
+    // Instead, we unroll the outer loop so that we can compute multiple elements together
+    fn small_kernel(m: usize, n: usize, b: usize, out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>) {
+        for row in 0..m {
+            let mut column = 0;
+
+            while column + 3 < n {
+                let c1 = column;
+                let c2 = column + 1;
+                let c3 = column + 2;
+                let c4 = column + 3;
+
+                let mut v1 = T::default();
+                let mut v2 = T::default();
+                let mut v3 = T::default();
+                let mut v4 = T::default();
+
+                for batch in 0..b {
+                    v1 += lhs[batch * m + row] * rhs[batch * n + c1];
+                    v2 += lhs[batch * m + row] * rhs[batch * n + c2];
+                    v3 += lhs[batch * m + row] * rhs[batch * n + c3];
+                    v4 += lhs[batch * m + row] * rhs[batch * n + c4];
+                }
+
+                out[row * n + c1] = v1;
+                out[row * n + c2] = v2;
+                out[row * n + c3] = v3;
+                out[row * n + c4] = v4;
+
+                column += 4;
+            }
+
+            while column + 1 < n {
+                let c1 = column;
+                let c2 = column + 1;
+
+                let mut v1 = out[row * n + c1];
+                let mut v2 = out[row * n + c2];
+
+                for batch in 0..b {
+                    v1 += lhs[batch * m + row] * rhs[batch * n + c1];
+                    v2 += lhs[batch * m + row] * rhs[batch * n + c2];
+                }
+
+                out[row * n + c1] = v1;
+                out[row * n + c2] = v2;
+
+                column += 2;
+            }
+
+            if column < n {
+                let mut v = out[row * n + column];
+
+                for batch in 0..b {
+                    v += lhs[batch * m + row] * rhs[batch * n + column];
+                }
+
+                out[row * n + column] = v;
+            }
+        }
+    }
+
+    // For medium-to-large matrices, we can transpose lhs and rhs and then we can vectorize the
+    // inner loop properly
+    fn transpose_kernel(m: usize, n: usize, b: usize, out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>) {
+        let mut lhs_opp = lhs.clone();
+        for lhs_row in 0..b {
+            for lhs_column in 0..m {
+                lhs_opp[lhs_column * b + lhs_row] = lhs[lhs_row * m + lhs_column];
+            }
+        }
+
+        let mut rhs_opp = rhs.clone();
+        for rhs_row in 0..b {
+            for rhs_column in 0..n {
+                rhs_opp[rhs_column * b + rhs_row] = rhs[rhs_row * n + rhs_column];
+            }
+        }
+
+        let lanes = 8;
+
+        let mut row = 0;
+
+        while row + 1 < m {
+            let r1 = row;
+            let r2 = row + 1;
+
+            let mut column = 0;
+
+            while column + 3 < n {
+                let c1 = column;
+                let c2 = column + 1;
+                let c3 = column + 2;
+                let c4 = column + 3;
+
+                let mut xmm1 = Simd::<T, 8>::splat(T::default());
+                let mut xmm2 = Simd::<T, 8>::splat(T::default());
+                let mut xmm3 = Simd::<T, 8>::splat(T::default());
+                let mut xmm4 = Simd::<T, 8>::splat(T::default());
+                let mut xmm5 = Simd::<T, 8>::splat(T::default());
+                let mut xmm6 = Simd::<T, 8>::splat(T::default());
+                let mut xmm7 = Simd::<T, 8>::splat(T::default());
+                let mut xmm8 = Simd::<T, 8>::splat(T::default());
+
+                let mut batch = 0;
+
+                while batch + lanes - 1 < b {
+                    let l1 = Simd::<T, 8>::from_slice(&lhs_opp[r1 * b + batch..]);
+                    let l2 = Simd::<T, 8>::from_slice(&lhs_opp[r2 * b + batch..]);
+
+                    let r1 = Simd::<T, 8>::from_slice(&rhs_opp[c1 * b + batch..]);
+                    let r2 = Simd::<T, 8>::from_slice(&rhs_opp[c2 * b + batch..]);
+                    let r3 = Simd::<T, 8>::from_slice(&rhs_opp[c3 * b + batch..]);
+                    let r4 = Simd::<T, 8>::from_slice(&rhs_opp[c4 * b + batch..]);
+
+                    // TODO: Missed opportunity to use FMA here
+                    xmm1 += l1 * r1;
+                    xmm2 += l1 * r2;
+                    xmm3 += l1 * r3;
+                    xmm4 += l1 * r4;
+
+                    xmm5 += l2 * r1;
+                    xmm6 += l2 * r2;
+                    xmm7 += l2 * r3;
+                    xmm8 += l2 * r4;
+
+                    batch += lanes;
+                }
+
+                let mut v11 = Self::sum(&xmm1.to_array());
+                let mut v12 = Self::sum(&xmm2.to_array());
+                let mut v13 = Self::sum(&xmm3.to_array());
+                let mut v14 = Self::sum(&xmm4.to_array());
+
+                let mut v21 = Self::sum(&xmm5.to_array());
+                let mut v22 = Self::sum(&xmm6.to_array());
+                let mut v23 = Self::sum(&xmm7.to_array());
+                let mut v24 = Self::sum(&xmm8.to_array());
+
+                while batch < b {
+                    v11 += lhs_opp[r1 * b + batch] * rhs_opp[c1 * b + batch];
+                    v12 += lhs_opp[r1 * b + batch] * rhs_opp[c2 * b + batch];
+                    v13 += lhs_opp[r1 * b + batch] * rhs_opp[c3 * b + batch];
+                    v14 += lhs_opp[r1 * b + batch] * rhs_opp[c4 * b + batch];
+
+                    v21 += lhs_opp[r2 * b + batch] * rhs_opp[c1 * b + batch];
+                    v22 += lhs_opp[r2 * b + batch] * rhs_opp[c2 * b + batch];
+                    v23 += lhs_opp[r2 * b + batch] * rhs_opp[c3 * b + batch];
+                    v24 += lhs_opp[r2 * b + batch] * rhs_opp[c4 * b + batch];
+
+                    batch += 1;
+                }
+
+                out[r1 * n + c1] = v11;
+                out[r1 * n + c2] = v12;
+                out[r1 * n + c3] = v13;
+                out[r1 * n + c4] = v14;
+
+                out[r2 * n + c1] = v21;
+                out[r2 * n + c2] = v22;
+                out[r2 * n + c3] = v23;
+                out[r2 * n + c4] = v24;
+
+                column += 4;
+            }
+
+            while column + 1 < n {
+                let c1 = column;
+                let c2 = column + 1;
+
+                let mut xmm1 = Simd::<T, 8>::splat(T::default());
+                let mut xmm2 = Simd::<T, 8>::splat(T::default());
+                let mut xmm3 = Simd::<T, 8>::splat(T::default());
+                let mut xmm4 = Simd::<T, 8>::splat(T::default());
+
+                let mut batch = 0;
+
+                while batch + lanes - 1 < b {
+                    let l1 = Simd::<T, 8>::from_slice(&lhs_opp[r1 * b + batch..]);
+                    let l2 = Simd::<T, 8>::from_slice(&lhs_opp[r2 * b + batch..]);
+
+                    let r1 = Simd::<T, 8>::from_slice(&rhs_opp[c1 * b + batch..]);
+                    let r2 = Simd::<T, 8>::from_slice(&rhs_opp[c2 * b + batch..]);
+
+                    xmm1 += l1 * r1;
+                    xmm2 += l1 * r2;
+
+                    xmm3 += l2 * r1;
+                    xmm4 += l2 * r2;
+
+                    batch += lanes;
+                }
+
+                let mut v11 = Self::sum(&xmm1.to_array());
+                let mut v12 = Self::sum(&xmm2.to_array());
+
+                let mut v21 = Self::sum(&xmm3.to_array());
+                let mut v22 = Self::sum(&xmm4.to_array());
+
+                while batch < b {
+                    v11 += lhs_opp[r1 * b + batch] * rhs_opp[c1 * b + batch];
+                    v12 += lhs_opp[r1 * b + batch] * rhs_opp[c2 * b + batch];
+
+                    v21 += lhs_opp[r2 * b + batch] * rhs_opp[c1 * b + batch];
+                    v22 += lhs_opp[r2 * b + batch] * rhs_opp[c2 * b + batch];
+
+                    batch += 1;
+                }
+
+                out[r1 * n + c1] = v11;
+                out[r1 * n + c2] = v12;
+
+                out[r2 * n + c1] = v21;
+                out[r2 * n + c2] = v22;
+
+                column += 2;
+            }
+
+            if column < n {
+                let mut v1 = T::default();
+                let mut v2 = T::default();
+
+                for batch in 0..b {
+                    v1 += lhs_opp[r1 * b + batch] * rhs_opp[column * b + batch];
+                    v2 += lhs_opp[r2 * b + batch] * rhs_opp[column * b + batch];
+                }
+
+                out[r1 * n + column] = v1;
+                out[r2 * n + column] = v2;
+            }
+
+            row += 2;
+        }
+
+        if row < m {
+            for column in 0..n {
+                let mut v = T::default();
+
+                for batch in 0..b {
+                    v += lhs_opp[row * b + batch] * rhs_opp[column * b + batch];
+                }
+
+                out[row * n + column] = v;
+            }
+        }
+    }
+
     fn compute_batch_outer_impl(&self, output: &mut Vec<T>) {
         if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 {
             let m = self.lhs.value.columns();
@@ -79,186 +341,14 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
             let b = self.lhs.value.rows();
 
             let small_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
-                for row in 0..m {
-                    let mut column = 0;
-
-                    while column + 3 < n {
-                        let c1 = column;
-                        let c2 = column + 1;
-                        let c3 = column + 2;
-                        let c4 = column + 3;
-
-                        let mut v1 = out[row * n + c1];
-                        let mut v2 = out[row * n + c2];
-                        let mut v3 = out[row * n + c3];
-                        let mut v4 = out[row * n + c4];
-
-                        for batch in 0..b {
-                            v1 += lhs[batch * m + row] * rhs[batch * n + c1];
-                            v2 += lhs[batch * m + row] * rhs[batch * n + c2];
-                            v3 += lhs[batch * m + row] * rhs[batch * n + c3];
-                            v4 += lhs[batch * m + row] * rhs[batch * n + c4];
-                        }
-
-                        out[row * n + c1] = v1;
-                        out[row * n + c2] = v2;
-                        out[row * n + c3] = v3;
-                        out[row * n + c4] = v4;
-
-                        column += 4;
-                    }
-
-                    while column + 1 < n {
-                        let c1 = column;
-                        let c2 = column + 1;
-
-                        let mut v1 = out[row * n + c1];
-                        let mut v2 = out[row * n + c2];
-
-                        for batch in 0..b {
-                            v1 += lhs[batch * m + row] * rhs[batch * n + c1];
-                            v2 += lhs[batch * m + row] * rhs[batch * n + c2];
-                        }
-
-                        out[row * n + c1] = v1;
-                        out[row * n + c2] = v2;
-
-                        column += 2;
-                    }
-
-                    if column < n {
-                        let mut v = out[row * n + column];
-
-                        for batch in 0..b {
-                            v += lhs[batch * m + row] * rhs[batch * n + column];
-                        }
-
-                        out[row * n + column] = v;
-                    }
-                }
+                Self::small_kernel(m, n, b, out, lhs, rhs);
             };
 
             let transpose_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
-                let mut lhs_opp = lhs.clone();
-                for lhs_row in 0..b {
-                    for lhs_column in 0..m {
-                        lhs_opp[lhs_column * b + lhs_row] = lhs[lhs_row * m + lhs_column];
-                    }
-                }
-
-                let mut rhs_opp = rhs.clone();
-                for rhs_row in 0..b {
-                    for rhs_column in 0..n {
-                        rhs_opp[rhs_column * b + rhs_row] = rhs[rhs_row * n + rhs_column];
-                    }
-                }
-
-                let mut row = 0;
-
-                while row + 1 < m {
-                    let r1 = row;
-                    let r2 = row + 1;
-
-                    let mut column = 0;
-
-                    while column + 3 < n {
-                        let c1 = column;
-                        let c2 = column + 1;
-                        let c3 = column + 2;
-                        let c4 = column + 3;
-
-                        let mut v11 = out[r1 * n + c1];
-                        let mut v12 = out[r1 * n + c2];
-                        let mut v13 = out[r1 * n + c3];
-                        let mut v14 = out[r1 * n + c4];
-
-                        let mut v21 = out[r2 * n + c1];
-                        let mut v22 = out[r2 * n + c2];
-                        let mut v23 = out[r2 * n + c3];
-                        let mut v24 = out[r2 * n + c4];
-
-                        for batch in 0..b {
-                            v11 += lhs_opp[r1 * b + batch] * rhs_opp[c1 * b + batch];
-                            v12 += lhs_opp[r1 * b + batch] * rhs_opp[c2 * b + batch];
-                            v13 += lhs_opp[r1 * b + batch] * rhs_opp[c3 * b + batch];
-                            v14 += lhs_opp[r1 * b + batch] * rhs_opp[c4 * b + batch];
-
-                            v21 += lhs_opp[r2 * b + batch] * rhs_opp[c1 * b + batch];
-                            v22 += lhs_opp[r2 * b + batch] * rhs_opp[c2 * b + batch];
-                            v23 += lhs_opp[r2 * b + batch] * rhs_opp[c3 * b + batch];
-                            v24 += lhs_opp[r2 * b + batch] * rhs_opp[c4 * b + batch];
-                        }
-
-                        out[r1 * n + c1] = v11;
-                        out[r1 * n + c2] = v12;
-                        out[r1 * n + c3] = v13;
-                        out[r1 * n + c4] = v14;
-
-                        out[r2 * n + c1] = v21;
-                        out[r2 * n + c2] = v22;
-                        out[r2 * n + c3] = v23;
-                        out[r2 * n + c4] = v24;
-
-                        column += 4;
-                    }
-
-                    while column + 1 < n {
-                        let c1 = column;
-                        let c2 = column + 1;
-
-                        let mut v11 = out[r1 * n + c1];
-                        let mut v12 = out[r1 * n + c2];
-
-                        let mut v21 = out[r2 * n + c1];
-                        let mut v22 = out[r2 * n + c2];
-
-                        for batch in 0..b {
-                            v11 += lhs_opp[r1 * b + batch] * rhs_opp[c1 * b + batch];
-                            v12 += lhs_opp[r1 * b + batch] * rhs_opp[c2 * b + batch];
-
-                            v21 += lhs_opp[r2 * b + batch] * rhs_opp[c1 * b + batch];
-                            v22 += lhs_opp[r2 * b + batch] * rhs_opp[c2 * b + batch];
-                        }
-
-                        out[r1 * n + c1] = v11;
-                        out[r1 * n + c2] = v12;
-
-                        out[r2 * n + c1] = v21;
-                        out[r2 * n + c2] = v22;
-
-                        column += 2;
-                    }
-
-                    if column < n {
-                        let mut v1 = out[r1 * n + column];
-                        let mut v2 = out[r2 * n + column];
-
-                        for batch in 0..b {
-                            v1 += lhs_opp[r1 * b + batch] * rhs_opp[column * b + batch];
-                            v2 += lhs_opp[r2 * b + batch] * rhs_opp[column * b + batch];
-                        }
-
-                        out[r1 * n + column] = v1;
-                        out[r2 * n + column] = v2;
-                    }
-
-                    row += 2;
-                }
-
-                if row < m {
-                    for column in 0..n {
-                        let mut v = out[row * n + column];
-
-                        for batch in 0..b {
-                            v += lhs_opp[row * b + batch] * rhs_opp[column * b + batch];
-                        }
-
-                        out[row * n + column] = v;
-                    }
-                }
+                Self::transpose_kernel(m, n, b, out, lhs, rhs);
             };
 
-            if m * n <= 16385 {
+            if m * n <= 16384 {
                 forward_data_binary(output, &self.lhs.value, &self.rhs.value, small_kernel);
             } else {
                 forward_data_binary(output, &self.lhs.value, &self.rhs.value, transpose_kernel);
@@ -284,7 +374,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> B
 }
 
 // BatchOuterExpr is an EtlExpr
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for BatchOuterExpr<T, LeftExpr, RightExpr> {
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for BatchOuterExpr<T, LeftExpr, RightExpr>
+where
+    Simd<T, 8>: SimdHelper,
+{
     const DIMENSIONS: usize = 2;
     const TYPE: EtlType = EtlType::Smart;
 
@@ -338,7 +431,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 }
 
 // BatchOuterExpr is an EtlWrappable
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for BatchOuterExpr<T, LeftExpr, RightExpr> {
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlWrappable<T> for BatchOuterExpr<T, LeftExpr, RightExpr>
+where
+    Simd<T, 8>: SimdHelper,
+{
     type WrappedAs = BatchOuterExpr<T, LeftExpr, RightExpr>;
 
     fn wrap(self) -> EtlWrapper<T, Self::WrappedAs> {
@@ -350,7 +446,10 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 }
 
 // BatchOuterExpr computes as copy
-impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlComputable<T> for BatchOuterExpr<T, LeftExpr, RightExpr> {
+impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlComputable<T> for BatchOuterExpr<T, LeftExpr, RightExpr>
+where
+    Simd<T, 8>: SimdHelper,
+{
     fn to_data(&self) -> Vec<T> {
         self.temp.clone()
     }
@@ -361,15 +460,18 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
 pub fn batch_outer<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>>(
     lhs: LeftExpr,
     rhs: RightExpr,
-) -> BatchOuterExpr<T, LeftExpr, RightExpr> {
+) -> BatchOuterExpr<T, LeftExpr, RightExpr>
+where
+    Simd<T, 8>: SimdHelper,
+{
     BatchOuterExpr::<T, LeftExpr, RightExpr>::new(lhs, rhs)
 }
 
-crate::impl_add_op_binary_expr!(BatchOuterExpr<T, LeftExpr, RightExpr>);
-crate::impl_sub_op_binary_expr!(BatchOuterExpr<T, LeftExpr, RightExpr>);
-crate::impl_mul_op_binary_expr!(BatchOuterExpr<T, LeftExpr, RightExpr>);
-crate::impl_div_op_binary_expr!(BatchOuterExpr<T, LeftExpr, RightExpr>);
-crate::impl_scale_op_binary_expr!(BatchOuterExpr<T, LeftExpr, RightExpr>);
+crate::impl_add_op_binary_expr_simd!(BatchOuterExpr<T, LeftExpr, RightExpr>);
+crate::impl_sub_op_binary_expr_simd!(BatchOuterExpr<T, LeftExpr, RightExpr>);
+crate::impl_mul_op_binary_expr_simd!(BatchOuterExpr<T, LeftExpr, RightExpr>);
+crate::impl_div_op_binary_expr_simd!(BatchOuterExpr<T, LeftExpr, RightExpr>);
+crate::impl_scale_op_binary_expr_simd!(BatchOuterExpr<T, LeftExpr, RightExpr>);
 
 // The tests
 

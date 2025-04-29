@@ -1,6 +1,7 @@
+use std::simd::num::SimdInt;
 use std::simd::Simd;
 
-pub trait SimdHelper: Sized + std::ops::Add<Output = Self> {}
+pub trait SimdHelper: Sized + std::ops::AddAssign + std::ops::Add<Output = Self> + std::ops::MulAssign + std::ops::Mul<Output = Self> {}
 
 impl SimdHelper for Simd<i64, 8> {}
 impl SimdHelper for Simd<i32, 8> {}
