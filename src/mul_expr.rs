@@ -1209,4 +1209,68 @@ mod tests {
 
         assert_eq!(d.at2(0, 0), 216);
     }
+
+    #[test]
+    fn gemm_large() {
+        let m = 17;
+        let n = 11;
+        let k = 39;
+
+        let mut lhs = Matrix2d::<i64>::new(m, n);
+        let mut rhs = Matrix2d::<i64>::new(n, k);
+
+        lhs.iota_fill(1);
+        rhs.iota_fill(2);
+
+        let mut c = Matrix2d::<i64>::new(m, k);
+        c |= &lhs * &rhs;
+
+        let mut c_ref = Matrix2d::<i64>::new(m, k);
+
+        for row in 0..m {
+            for column in 0..k {
+                let mut v = 0;
+                for inner in 0..n {
+                    v += lhs.at2(row, inner) * rhs.at2(inner, column);
+                }
+                *c_ref.at_mut(row, column) = v;
+            }
+        }
+
+        for i in 0..(m * k) {
+            assert_eq!(c.at(i), c_ref.at(i), "Invalid value at index {i}");
+        }
+    }
+
+    #[test]
+    fn gemm_large_parallel() {
+        let m = 171;
+        let n = 111;
+        let k = 39;
+
+        let mut lhs = Matrix2d::<i64>::new(m, n);
+        let mut rhs = Matrix2d::<i64>::new(n, k);
+
+        lhs.iota_fill(1);
+        rhs.iota_fill(2);
+
+        let mut c = Matrix2d::<i64>::new(m, k);
+        c |= &lhs * &rhs;
+
+        let mut c_ref = Matrix2d::<i64>::new(m, k);
+
+        for row in 0..m {
+            for column in 0..k {
+                let mut v = 0;
+                for inner in 0..n {
+                    v += lhs.at2(row, inner) * rhs.at2(inner, column);
+                }
+                *c_ref.at_mut(row, column) = v;
+            }
+        }
+
+        for i in 0..(m * k) {
+            assert_eq!(c.at(i), c_ref.at(i), "Invalid value at index {i}");
+        }
+    }
 }
