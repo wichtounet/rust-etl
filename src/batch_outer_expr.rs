@@ -151,26 +151,12 @@ where
 
     // For medium-to-large matrices, we can transpose lhs and rhs and then we can vectorize the
     // inner loop properly
-    fn transpose_kernel(m: usize, n: usize, b: usize, out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>) {
-        let mut lhs_opp = lhs.clone();
-        for lhs_row in 0..b {
-            for lhs_column in 0..m {
-                lhs_opp[lhs_column * b + lhs_row] = lhs[lhs_row * m + lhs_column];
-            }
-        }
-
-        let mut rhs_opp = rhs.clone();
-        for rhs_row in 0..b {
-            for rhs_column in 0..n {
-                rhs_opp[rhs_column * b + rhs_row] = rhs[rhs_row * n + rhs_column];
-            }
-        }
-
+    fn transposed_kernel(m_start: usize, m_end: usize, n: usize, b: usize, out: &mut Vec<T>, lhs_opp: &Vec<T>, rhs_opp: &Vec<T>) {
         let lanes = 8;
 
-        let mut row = 0;
+        let mut row = m_start;
 
-        while row + 1 < m {
+        while row + 1 < m_end {
             let r1 = row;
             let r2 = row + 1;
 
@@ -321,7 +307,7 @@ where
             row += 2;
         }
 
-        if row < m {
+        if row < m_end {
             for column in 0..n {
                 let mut v = T::default();
 
@@ -340,18 +326,32 @@ where
             let n = self.rhs.value.columns();
             let b = self.lhs.value.rows();
 
-            let small_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
-                Self::small_kernel(m, n, b, out, lhs, rhs);
-            };
-
-            let transpose_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
-                Self::transpose_kernel(m, n, b, out, lhs, rhs);
-            };
-
             if m * n <= 16384 {
+                let small_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::small_kernel(m, n, b, out, lhs, rhs);
                 forward_data_binary(output, &self.lhs.value, &self.rhs.value, small_kernel);
             } else {
-                forward_data_binary(output, &self.lhs.value, &self.rhs.value, transpose_kernel);
+                let mut rhs_opp = Vec::<T>::new();
+                let mut lhs_opp = Vec::<T>::new();
+
+                let mut transpose_first_kernel = |_out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+                    lhs_opp = lhs.clone();
+                    for lhs_row in 0..b {
+                        for lhs_column in 0..m {
+                            lhs_opp[lhs_column * b + lhs_row] = lhs[lhs_row * m + lhs_column];
+                        }
+                    }
+
+                    rhs_opp = rhs.clone();
+                    for rhs_row in 0..b {
+                        for rhs_column in 0..n {
+                            rhs_opp[rhs_column * b + rhs_row] = rhs[rhs_row * n + rhs_column];
+                        }
+                    }
+                };
+
+                forward_data_binary_mut(output, &self.lhs.value, &self.rhs.value, &mut transpose_first_kernel);
+
+                Self::transposed_kernel(0, m, n, b, output, &lhs_opp, &rhs_opp);
             }
         } else {
             panic!("This code should be unreachable!");
