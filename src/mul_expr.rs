@@ -478,13 +478,11 @@ where
             let n = self.lhs.value.columns();
             let k = self.rhs.value.columns();
 
-            let small_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::small_gemm_kernel(m, n, k, out, lhs, rhs);
-
-            let medium_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::medium_gemm_kernel(m, n, k, out, lhs, rhs);
-
             if n * m < 100 * 100 {
+                let small_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::small_gemm_kernel(m, n, k, out, lhs, rhs);
                 forward_data_binary(output, &self.lhs.value, &self.rhs.value, small_gemm_kernel);
             } else {
+                let medium_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::medium_gemm_kernel(m, n, k, out, lhs, rhs);
                 forward_data_binary(output, &self.lhs.value, &self.rhs.value, medium_gemm_kernel);
             }
         } else {
