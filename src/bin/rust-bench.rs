@@ -212,6 +212,7 @@ fn main() {
         bench_gemm(1024, 256, 512);
         bench_gemm(768, 768, 768);
         bench_gemm(1024, 1024, 1024);
+        bench_gemm(2048, 2048, 2048);
     }
 
     if filter == "*" || filter == "gemm_outer" {
