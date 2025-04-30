@@ -440,6 +440,335 @@ where
         }
     }
 
+    fn prev_block(value: usize, lanes: usize) -> usize {
+        value - (value % lanes)
+    }
+
+    // Note: Cannot use reduce_sum in generic code
+    fn sum(input: &[T; 8]) -> T {
+        input[0] + input[1] + input[2] + input[3] + input[4] + input[5] + input[6] + input[7]
+    }
+
+    // Multiply LHS[m, n] with RHS[n, k] into OUT[m, k]
+    fn large_gemm_kernel(rows: usize, inner_size: usize, columns: usize, out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>) {
+        let lanes = 8;
+
+        let inner_block_size = 112 * (16 / 4); // Optimized for f32
+        let column_block_size = 96;
+
+        let mut lhs2 = vec![T::default(); rows * inner_block_size]; // [rows, inner_block_size] (RM)
+        let mut rhs2 = vec![T::default(); column_block_size * inner_block_size]; // [inner_block_size, column_block_size] (CM)
+
+        let mut inner_block_index = 0;
+
+        while inner_block_index + lanes - 1 < inner_size {
+            let inner_block = if inner_block_index + inner_block_size <= inner_size {
+                inner_block_size
+            } else {
+                Self::prev_block(inner_size - inner_block_index, lanes)
+            };
+
+            assert!(inner_block > 0);
+
+            // Copy (standard) lhs -> lhs2
+            for sub_row in 0..rows {
+                for sub_column in 0..inner_block {
+                    lhs2[sub_row * inner_block_size + sub_column] = lhs[sub_row * inner_size + sub_column + inner_block_index];
+                }
+            }
+
+            let mut column_block_index = 0;
+
+            while column_block_index < columns {
+                let column_block = if column_block_index + column_block_size <= columns {
+                    column_block_size
+                } else {
+                    columns - column_block_index
+                };
+
+                // Copy (transposed) rhs -> rhs2
+                for sub_row in 0..inner_block {
+                    for sub_column in 0..column_block {
+                        rhs2[sub_column * inner_block_size + sub_row] = rhs[(sub_row + inner_block_index) * columns + sub_column + column_block_index];
+                    }
+                }
+
+                let mut row = 0;
+
+                while row + 3 < rows {
+                    let row1 = row;
+                    let row2 = row + 1;
+                    let row3 = row + 2;
+                    let row4 = row + 3;
+
+                    let mut column = 0;
+
+                    while column + 1 < column_block {
+                        let column1 = column;
+                        let column2 = column + 1;
+
+                        // inner = 0
+                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size + 0..]);
+                        let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size + 0..]);
+                        let l3 = Simd::<T, 8>::from_slice(&lhs2[row3 * inner_block_size + 0..]);
+                        let l4 = Simd::<T, 8>::from_slice(&lhs2[row4 * inner_block_size + 0..]);
+
+                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column1 * inner_block_size + 0..]);
+                        let r2 = Simd::<T, 8>::from_slice(&rhs2[column2 * inner_block_size + 0..]);
+
+                        let mut v1 = l1 * r1;
+                        let mut v2 = l2 * r1;
+                        let mut v3 = l3 * r1;
+                        let mut v4 = l4 * r1;
+                        let mut v5 = l1 * r2;
+                        let mut v6 = l2 * r2;
+                        let mut v7 = l3 * r2;
+                        let mut v8 = l4 * r2;
+
+                        for inner in (lanes..inner_block).step_by(lanes) {
+                            let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size + inner..]);
+                            let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size + inner..]);
+                            let l3 = Simd::<T, 8>::from_slice(&lhs2[row3 * inner_block_size + inner..]);
+                            let l4 = Simd::<T, 8>::from_slice(&lhs2[row4 * inner_block_size + inner..]);
+
+                            let r1 = Simd::<T, 8>::from_slice(&rhs2[column1 * inner_block_size + inner..]);
+                            let r2 = Simd::<T, 8>::from_slice(&rhs2[column2 * inner_block_size + inner..]);
+
+                            v1 += l1 * r1;
+                            v2 += l2 * r1;
+                            v3 += l3 * r1;
+                            v4 += l4 * r1;
+                            v5 += l1 * r2;
+                            v6 += l2 * r2;
+                            v7 += l3 * r2;
+                            v8 += l4 * r2;
+                        }
+
+                        out[row1 * columns + column1 + column_block_index] += Self::sum(&v1.to_array());
+                        out[row2 * columns + column1 + column_block_index] += Self::sum(&v2.to_array());
+                        out[row3 * columns + column1 + column_block_index] += Self::sum(&v3.to_array());
+                        out[row4 * columns + column1 + column_block_index] += Self::sum(&v4.to_array());
+                        out[row1 * columns + column2 + column_block_index] += Self::sum(&v5.to_array());
+                        out[row2 * columns + column2 + column_block_index] += Self::sum(&v6.to_array());
+                        out[row3 * columns + column2 + column_block_index] += Self::sum(&v7.to_array());
+                        out[row4 * columns + column2 + column_block_index] += Self::sum(&v8.to_array());
+
+                        column += 2;
+                    }
+
+                    if column < column_block {
+                        // inner = 0
+                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size + 0..]);
+                        let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size + 0..]);
+                        let l3 = Simd::<T, 8>::from_slice(&lhs2[row3 * inner_block_size + 0..]);
+                        let l4 = Simd::<T, 8>::from_slice(&lhs2[row4 * inner_block_size + 0..]);
+
+                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column * inner_block_size + 0..]);
+
+                        let mut v1 = l1 * r1;
+                        let mut v2 = l2 * r1;
+                        let mut v3 = l3 * r1;
+                        let mut v4 = l4 * r1;
+
+                        for inner in (lanes..inner_block).step_by(lanes) {
+                            let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size + inner..]);
+                            let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size + inner..]);
+                            let l3 = Simd::<T, 8>::from_slice(&lhs2[row3 * inner_block_size + inner..]);
+                            let l4 = Simd::<T, 8>::from_slice(&lhs2[row4 * inner_block_size + inner..]);
+
+                            let r1 = Simd::<T, 8>::from_slice(&rhs2[column * inner_block_size + inner..]);
+
+                            v1 += l1 * r1;
+                            v2 += l2 * r1;
+                            v3 += l3 * r1;
+                            v4 += l4 * r1;
+                        }
+
+                        out[row1 * columns + column + column_block_index] += Self::sum(&v1.to_array());
+                        out[row2 * columns + column + column_block_index] += Self::sum(&v2.to_array());
+                        out[row3 * columns + column + column_block_index] += Self::sum(&v3.to_array());
+                        out[row4 * columns + column + column_block_index] += Self::sum(&v4.to_array());
+                    }
+
+                    row += 4;
+                }
+
+                while row + 1 < rows {
+                    let row1 = row;
+                    let row2 = row + 1;
+
+                    let mut column = 0;
+
+                    while column + 1 < column_block {
+                        let column1 = column;
+                        let column2 = column + 1;
+
+                        // inner = 0
+                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size + 0..]);
+                        let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size + 0..]);
+
+                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column1 * inner_block_size + 0..]);
+                        let r2 = Simd::<T, 8>::from_slice(&rhs2[column2 * inner_block_size + 0..]);
+
+                        let mut v1 = l1 * r1;
+                        let mut v2 = l2 * r1;
+                        let mut v3 = l1 * r2;
+                        let mut v4 = l2 * r2;
+
+                        for inner in (lanes..inner_block).step_by(lanes) {
+                            let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size + inner..]);
+                            let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size + inner..]);
+
+                            let r1 = Simd::<T, 8>::from_slice(&rhs2[column1 * inner_block_size + inner..]);
+                            let r2 = Simd::<T, 8>::from_slice(&rhs2[column2 * inner_block_size + inner..]);
+
+                            v1 += l1 * r1;
+                            v2 += l2 * r1;
+                            v3 += l1 * r2;
+                            v4 += l2 * r2;
+                        }
+
+                        out[row1 * columns + column1 + column_block_index] += Self::sum(&v1.to_array());
+                        out[row2 * columns + column1 + column_block_index] += Self::sum(&v2.to_array());
+                        out[row1 * columns + column2 + column_block_index] += Self::sum(&v3.to_array());
+                        out[row2 * columns + column2 + column_block_index] += Self::sum(&v4.to_array());
+
+                        column += 2;
+                    }
+
+                    if column < column_block {
+                        // inner = 0
+                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size + 0..]);
+                        let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size + 0..]);
+
+                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column * inner_block_size + 0..]);
+
+                        let mut v1 = l1 * r1;
+                        let mut v2 = l2 * r1;
+
+                        for inner in (lanes..inner_block).step_by(lanes) {
+                            let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size + inner..]);
+                            let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size + inner..]);
+
+                            let r1 = Simd::<T, 8>::from_slice(&rhs2[column * inner_block_size + inner..]);
+
+                            v1 += l1 * r1;
+                            v2 += l2 * r1;
+                        }
+
+                        out[row1 * columns + column + column_block_index] += Self::sum(&v1.to_array());
+                        out[row2 * columns + column + column_block_index] += Self::sum(&v2.to_array());
+                    }
+
+                    row += 2;
+                }
+
+                while row < rows {
+                    let mut column = 0;
+
+                    while column + 1 < column_block {
+                        let column1 = column;
+                        let column2 = column + 1;
+
+                        // inner = 0
+                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row * inner_block_size + 0..]);
+
+                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column1 * inner_block_size + 0..]);
+                        let r2 = Simd::<T, 8>::from_slice(&rhs2[column2 * inner_block_size + 0..]);
+
+                        let mut v1 = l1 * r1;
+                        let mut v2 = l1 * r2;
+
+                        for inner in (lanes..inner_block).step_by(lanes) {
+                            let l1 = Simd::<T, 8>::from_slice(&lhs2[row * inner_block_size + inner..]);
+
+                            let r1 = Simd::<T, 8>::from_slice(&rhs2[column1 * inner_block_size + inner..]);
+                            let r2 = Simd::<T, 8>::from_slice(&rhs2[column2 * inner_block_size + inner..]);
+
+                            v1 += l1 * r1;
+                            v2 += l1 * r2;
+                        }
+
+                        out[row * columns + column1 + column_block_index] += Self::sum(&v1.to_array());
+                        out[row * columns + column2 + column_block_index] += Self::sum(&v2.to_array());
+
+                        column += 2;
+                    }
+
+                    if column < column_block {
+                        // inner = 0
+                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row * inner_block_size + 0..]);
+                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column * inner_block_size + 0..]);
+                        let mut v1 = l1 * r1;
+
+                        for inner in (lanes..inner_block).step_by(lanes) {
+                            let l1 = Simd::<T, 8>::from_slice(&lhs2[row * inner_block_size + inner..]);
+                            let r1 = Simd::<T, 8>::from_slice(&rhs2[column * inner_block_size + inner..]);
+                            v1 += l1 * r1;
+                        }
+
+                        out[row * columns + column + column_block_index] += Self::sum(&v1.to_array());
+                    }
+
+                    row += 1;
+                }
+
+                column_block_index += column_block;
+            }
+
+            inner_block_index += inner_block;
+        }
+
+        // Remainder loop (incomple blocks)
+        if inner_block_index < inner_size {
+            let inner_block = inner_size - inner_block_index;
+
+            // Copy lhs -> lhs2
+            for sub_row in 0..rows {
+                for sub_column in 0..inner_block {
+                    lhs2[sub_row * inner_block_size + sub_column] = lhs[sub_row * inner_size + sub_column + inner_block_index];
+                }
+            }
+
+            let mut column_block_index = 0;
+
+            while column_block_index < columns {
+                let column_block = if column_block_index + column_block_size <= columns {
+                    column_block_size
+                } else {
+                    columns - column_block_index
+                };
+
+                // Copy rhs -> rhs2
+                for sub_row in 0..inner_block {
+                    for sub_column in 0..column_block {
+                        rhs2[sub_column * inner_block_size + sub_row] = rhs[(sub_row + inner_block_index) * columns + sub_column + column_block_index];
+                    }
+                }
+
+                let mut row = 0;
+
+                // TODO Can probably still unroll more here
+
+                while row < rows {
+                    let mut column = 0;
+
+                    while column < column_block {
+                        for inner in 0..inner_block {
+                            out[row * columns + column + column_block_index] += lhs2[row * inner_block_size + inner] * rhs2[column * inner_block_size + inner];
+                        }
+
+                        column += 1;
+                    }
+
+                    row += 1;
+                }
+
+                column_block_index += column_block;
+            }
+        }
+    }
+
     fn compute_gemm_impl(&self, output: &mut Vec<T>) {
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
             // No need to zero the vector since we did that a construction
@@ -481,9 +810,12 @@ where
             if n * m < 100 * 100 {
                 let small_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::small_gemm_kernel(m, n, k, out, lhs, rhs);
                 forward_data_binary(output, &self.lhs.value, &self.rhs.value, small_gemm_kernel);
-            } else {
+            } else if n * m < 300 * 300 {
                 let medium_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::medium_gemm_kernel(m, n, k, out, lhs, rhs);
                 forward_data_binary(output, &self.lhs.value, &self.rhs.value, medium_gemm_kernel);
+            } else {
+                let large_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::large_gemm_kernel(m, n, k, out, lhs, rhs);
+                forward_data_binary(output, &self.lhs.value, &self.rhs.value, large_gemm_kernel);
             }
         } else {
             panic!("This code should be unreachable!");
