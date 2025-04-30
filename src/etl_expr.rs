@@ -434,6 +434,37 @@ pub fn dispatch_parallel_2d<T: EtlValueType, F: Fn(&mut [T], usize, usize) + Syn
     }
 }
 
+pub fn dispatch_parallel_block<T: EtlValueType, F: Fn(&mut [T], usize, usize) + Sync + Send + Clone>(data: &mut Vec<T>, size: usize, block: usize, functor: F) {
+    if size >= block * 2 {
+        rayon::scope(|s| {
+            let mut n = rayon::current_num_threads();
+            let mut block_size = size / n;
+
+            if block_size < block {
+                block_size = block;
+                n = size / block_size;
+            }
+
+            let ptr = data.as_mut_ptr();
+
+            for t in 0..n {
+                let start = t * block_size;
+                let end = if t < n - 1 { (t + 1) * block_size } else { size };
+
+                let slice = unsafe { std::slice::from_raw_parts_mut(ptr, data.len()) };
+
+                let f = functor.clone();
+
+                s.spawn(move |_| {
+                    f(slice, start, end);
+                });
+            }
+        });
+    } else {
+        functor(data, 0, size);
+    }
+}
+
 // Helpers
 
 pub fn forward_data_binary<

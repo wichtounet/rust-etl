@@ -450,7 +450,7 @@ where
     }
 
     // Multiply LHS[m, n] with RHS[n, k] into OUT[m, k]
-    fn large_gemm_kernel(rows: usize, inner_size: usize, columns: usize, out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>) {
+    fn large_gemm_kernel(column_first: usize, column_last: usize, rows: usize, inner_size: usize, columns: usize, out: &mut [T], lhs: &Vec<T>, rhs: &Vec<T>) {
         let lanes = 8;
 
         let inner_block_size = 112 * (16 / 4); // Optimized for f32
@@ -477,13 +477,13 @@ where
                 }
             }
 
-            let mut column_block_index = 0;
+            let mut column_block_index = column_first;
 
-            while column_block_index < columns {
-                let column_block = if column_block_index + column_block_size <= columns {
+            while column_block_index < column_last {
+                let column_block = if column_block_index + column_block_size <= column_last {
                     column_block_size
                 } else {
-                    columns - column_block_index
+                    column_last - column_block_index
                 };
 
                 // Copy (transposed) rhs -> rhs2
@@ -730,13 +730,13 @@ where
                 }
             }
 
-            let mut column_block_index = 0;
+            let mut column_block_index = column_first;
 
-            while column_block_index < columns {
-                let column_block = if column_block_index + column_block_size <= columns {
+            while column_block_index < column_last {
+                let column_block = if column_block_index + column_block_size <= column_last {
                     column_block_size
                 } else {
-                    columns - column_block_index
+                    column_last - column_block_index
                 };
 
                 // Copy rhs -> rhs2
@@ -814,7 +814,13 @@ where
                 let medium_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::medium_gemm_kernel(m, n, k, out, lhs, rhs);
                 forward_data_binary(output, &self.lhs.value, &self.rhs.value, medium_gemm_kernel);
             } else {
-                let large_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::large_gemm_kernel(m, n, k, out, lhs, rhs);
+                // the forwarding kernel
+                let large_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+                    // The kernel for a single thread
+                    let large_gemm_kernel_thread =
+                        |par_out: &mut [T], first: usize, last: usize| Self::large_gemm_kernel(first, last, m, n, k, par_out, lhs, rhs);
+                    dispatch_parallel_block(out, k, 96, large_gemm_kernel_thread);
+                };
                 forward_data_binary(output, &self.lhs.value, &self.rhs.value, large_gemm_kernel);
             }
         } else {
@@ -1412,8 +1418,8 @@ mod tests {
 
     #[test]
     fn gemm_large_parallel() {
-        let m = 171;
-        let n = 111;
+        let m = 371;
+        let n = 311;
         let k = 39;
 
         let mut lhs = Matrix2d::<i64>::new(m, n);
