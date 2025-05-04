@@ -253,6 +253,11 @@ fn main() {
         bench_batch_outer(256, 1024, 256);
         bench_batch_outer(1024, 256, 512);
         bench_batch_outer(768, 768, 768);
+
+        // Specific numbers for DLL
+        bench_batch_outer(500, 10, 100);
+        bench_batch_outer(500, 500, 100);
+        bench_batch_outer(768, 500, 100);
     }
 
     if filter == "*" || filter == "bias_add" {
