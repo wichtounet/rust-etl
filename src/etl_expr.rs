@@ -192,7 +192,7 @@ pub fn validate_assign<T: EtlValueType, LeftExpr: EtlExpr<T>, RightExpr: EtlExpr
 // rayon setups the thread pool with max number of CPUs on the machine, so we use that as our
 // threads
 
-const PARALLEL_THRESHOLD: usize = 32768;
+const PARALLEL_THRESHOLD: usize = 64 * 1024;
 
 pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, rhs: &RightExpr) {
     // TODO Ideally, a RightExpr::TYPE = Value should be a simple memcpy
