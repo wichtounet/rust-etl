@@ -213,6 +213,14 @@ fn main() {
         bench_gemm(768, 768, 768);
         bench_gemm(1024, 1024, 1024);
         bench_gemm(2048, 2048, 2048);
+
+        // Specific numbers for DLL
+        bench_gemm(100, 500, 768); // Forward
+        bench_gemm(100, 500, 500); // Forward
+        bench_gemm(100, 10, 500); // Forward
+
+        bench_gemm(100, 500, 500); // Backward
+        bench_gemm(100, 768, 500); // Backward
     }
 
     if filter == "*" || filter == "gemm_outer" {
