@@ -810,7 +810,7 @@ where
             if n * m < 100 * 100 {
                 let small_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::small_gemm_kernel(m, n, k, out, lhs, rhs);
                 forward_data_binary(output, &self.lhs.value, &self.rhs.value, small_gemm_kernel);
-            } else if n * m < 300 * 300 {
+            } else if n * m < 200 * 200 {
                 let medium_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::medium_gemm_kernel(m, n, k, out, lhs, rhs);
                 forward_data_binary(output, &self.lhs.value, &self.rhs.value, medium_gemm_kernel);
             } else {
