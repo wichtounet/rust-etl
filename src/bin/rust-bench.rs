@@ -175,6 +175,8 @@ fn main() {
         bench_basic_a(32 * 1024);
         bench_basic_a(64 * 1024);
         bench_basic_a(128 * 1024);
+        bench_basic_a(256 * 1024);
+        bench_basic_a(512 * 1024);
         bench_basic_a(1024 * 1024);
         bench_basic_a(16 * 1024 * 1024);
         bench_basic_a(32 * 1024 * 1024);
