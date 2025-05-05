@@ -71,10 +71,10 @@ fn bench_basic_b(n: usize) {
 
     let mut d = Vector::<f64>::new_rand(n);
 
-    let func = || d |= &a + &b + &c + &a;
+    let func = || d |= &a >> &b + &c >> &a;
 
     let times = bench_closure(func);
-    println!("d = a + b + c + a ({}) took {}", n, choose_time(times));
+    println!("d = a >> b + c >> a ({}) took {}", n, choose_time(times));
 }
 
 fn bench_gemv(rows: usize, columns: usize) {
