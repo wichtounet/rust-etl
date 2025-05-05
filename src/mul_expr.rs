@@ -472,9 +472,9 @@ where
 
             // Copy (standard) lhs -> lhs2
             for sub_row in 0..rows {
-                for sub_column in 0..inner_block {
-                    lhs2[sub_row * inner_block_size + sub_column] = lhs[sub_row * inner_size + sub_column + inner_block_index];
-                }
+                // Copy one column at a time (slightly faster, without bounds check)
+                lhs2[sub_row * inner_block_size..sub_row * inner_block_size + inner_block]
+                    .copy_from_slice(&lhs[sub_row * inner_size + inner_block_index..sub_row * inner_size + inner_block_index + inner_block]);
             }
 
             let mut column_block_index = column_first;
