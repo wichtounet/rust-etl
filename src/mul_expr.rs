@@ -60,45 +60,45 @@ where
         expr
     }
 
-    fn compute_gemm(&self, output: &mut Vec<T>) {
+    fn compute_gemm(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
         output[..self.temp.len()].copy_from_slice(&self.temp[..]);
     }
 
-    fn compute_gemm_add(&self, output: &mut Vec<T>) {
+    fn compute_gemm_add(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] += self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value += self.temp[n];
         }
     }
 
-    fn compute_gemm_sub(&self, output: &mut Vec<T>) {
+    fn compute_gemm_sub(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] -= self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value -= self.temp[n];
         }
     }
 
-    fn compute_gemm_scale(&self, output: &mut Vec<T>) {
+    fn compute_gemm_scale(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] *= self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value *= self.temp[n];
         }
     }
 
-    fn compute_gemm_div(&self, output: &mut Vec<T>) {
+    fn compute_gemm_div(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] /= self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value /= self.temp[n];
         }
     }
 
-    fn small_gemm_kernel(m: usize, n: usize, k: usize, out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>) {
+    fn small_gemm_kernel(m: usize, n: usize, k: usize, out: &mut [T], lhs: &[T], rhs: &[T]) {
         let lanes = 8;
 
         let mut column = 0;
@@ -115,11 +115,11 @@ where
                 let row2 = row + 1;
 
                 // inner = 0
-                let mut l1 = Simd::<T, 8>::splat(lhs[row1 * n + 0]);
-                let mut l2 = Simd::<T, 8>::splat(lhs[row2 * n + 0]);
+                let mut l1 = Simd::<T, 8>::splat(lhs[row1 * n]);
+                let mut l2 = Simd::<T, 8>::splat(lhs[row2 * n]);
 
-                let mut r1 = Simd::<T, 8>::from_slice(&rhs[0 * k + column1..]);
-                let mut r2 = Simd::<T, 8>::from_slice(&rhs[0 * k + column2..]);
+                let mut r1 = Simd::<T, 8>::from_slice(&rhs[column1..]);
+                let mut r2 = Simd::<T, 8>::from_slice(&rhs[column2..]);
 
                 let mut v1 = l1 * r1;
                 let mut v2 = l1 * r2;
@@ -149,10 +149,10 @@ where
 
             if row < m {
                 // inner = 0
-                let mut l1 = Simd::<T, 8>::splat(lhs[row * n + 0]);
+                let mut l1 = Simd::<T, 8>::splat(lhs[row * n]);
 
-                let mut r1 = Simd::<T, 8>::from_slice(&rhs[0 * k + column1..]);
-                let mut r2 = Simd::<T, 8>::from_slice(&rhs[0 * k + column2..]);
+                let mut r1 = Simd::<T, 8>::from_slice(&rhs[column1..]);
+                let mut r2 = Simd::<T, 8>::from_slice(&rhs[column2..]);
 
                 let mut v1 = l1 * r1;
                 let mut v2 = l1 * r2;
@@ -183,10 +183,10 @@ where
                 let row2 = row + 1;
 
                 // inner = 0
-                let mut l1 = Simd::<T, 8>::splat(lhs[row1 * n + 0]);
-                let mut l2 = Simd::<T, 8>::splat(lhs[row2 * n + 0]);
+                let mut l1 = Simd::<T, 8>::splat(lhs[row1 * n]);
+                let mut l2 = Simd::<T, 8>::splat(lhs[row2 * n]);
 
-                let mut r1 = Simd::<T, 8>::from_slice(&rhs[0 * k + column..]);
+                let mut r1 = Simd::<T, 8>::from_slice(&rhs[column..]);
 
                 let mut v1 = l1 * r1;
                 let mut v2 = l2 * r1;
@@ -209,8 +209,8 @@ where
 
             if row < m {
                 // inner = 0
-                let mut l1 = Simd::<T, 8>::splat(lhs[row * n + 0]);
-                let mut r1 = Simd::<T, 8>::from_slice(&rhs[0 * k + column..]);
+                let mut l1 = Simd::<T, 8>::splat(lhs[row * n]);
+                let mut r1 = Simd::<T, 8>::from_slice(&rhs[column..]);
                 let mut v1 = l1 * r1;
 
                 for inner in 1..n {
@@ -236,10 +236,10 @@ where
                 let r2 = row + 1;
 
                 // inner = 0
-                let mut v1 = lhs[r1 * n + 0] * rhs[0 * k + c1];
-                let mut v2 = lhs[r1 * n + 0] * rhs[0 * k + c2];
-                let mut v3 = lhs[r2 * n + 0] * rhs[0 * k + c1];
-                let mut v4 = lhs[r2 * n + 0] * rhs[0 * k + c2];
+                let mut v1 = lhs[r1 * n] * rhs[c1];
+                let mut v2 = lhs[r1 * n] * rhs[c2];
+                let mut v3 = lhs[r2 * n] * rhs[c1];
+                let mut v4 = lhs[r2 * n] * rhs[c2];
 
                 for inner in 1..n {
                     v1 += lhs[r1 * n + inner] * rhs[inner * k + c1];
@@ -258,8 +258,8 @@ where
 
             if row < m {
                 // inner = 0
-                let mut v1 = lhs[row * n + 0] * rhs[0 * k + c1];
-                let mut v2 = lhs[row * n + 0] * rhs[0 * k + c2];
+                let mut v1 = lhs[row * n] * rhs[c1];
+                let mut v2 = lhs[row * n] * rhs[c2];
 
                 for inner in 1..n {
                     v1 += lhs[row * n + inner] * rhs[inner * k + c1];
@@ -281,8 +281,8 @@ where
                 let r2 = row + 1;
 
                 // inner = 0
-                let mut v1 = lhs[r1 * n + 0] * rhs[0 * k + column];
-                let mut v2 = lhs[r2 * n + 0] * rhs[0 * k + column];
+                let mut v1 = lhs[r1 * n] * rhs[column];
+                let mut v2 = lhs[r2 * n] * rhs[column];
 
                 for inner in 1..n {
                     v1 += lhs[r1 * n + inner] * rhs[inner * k + column];
@@ -297,7 +297,7 @@ where
 
             if row < m {
                 // inner = 0
-                let mut v = lhs[row * n + 0] * rhs[0 * k + column];
+                let mut v = lhs[row * n] * rhs[column];
 
                 for inner in 1..n {
                     v += lhs[row * n + inner] * rhs[inner * k + column];
@@ -308,7 +308,7 @@ where
         }
     }
 
-    fn medium_gemm_kernel(m: usize, n: usize, k: usize, out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>) {
+    fn medium_gemm_kernel(m: usize, n: usize, k: usize, out: &mut [T], lhs: &[T], rhs: &[T]) {
         let lanes = 8;
 
         let k_block_size = 128;
@@ -450,7 +450,7 @@ where
     }
 
     // Multiply LHS[m, n] with RHS[n, k] into OUT[m, k]
-    fn large_gemm_kernel(column_first: usize, column_last: usize, rows: usize, inner_size: usize, columns: usize, out: &mut [T], lhs: &Vec<T>, rhs: &Vec<T>) {
+    fn large_gemm_kernel(column_first: usize, column_last: usize, rows: usize, inner_size: usize, columns: usize, out: &mut [T], lhs: &[T], rhs: &[T]) {
         let lanes = 8;
 
         let inner_block_size = 112 * (16 / 4); // Optimized for f32
