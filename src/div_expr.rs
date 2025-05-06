@@ -26,6 +26,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> D
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for DivExpr<T, LeftExpr, RightExpr> {
     const DIMENSIONS: usize = if LeftExpr::DIMENSIONS > 0 { LeftExpr::DIMENSIONS } else { RightExpr::DIMENSIONS };
     const TYPE: EtlType = EtlType::Unaligned; // To avoid divisions by zero
+    const THREAD_SAFE: bool = LeftExpr::THREAD_SAFE && RightExpr::THREAD_SAFE;
 
     fn size(&self) -> usize {
         if LeftExpr::DIMENSIONS > 0 {

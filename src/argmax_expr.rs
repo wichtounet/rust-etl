@@ -22,6 +22,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> ArgMaxExpr<T, Expr> {
 impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for ArgMaxExpr<T, Expr> {
     const DIMENSIONS: usize = 1;
     const TYPE: EtlType = EtlType::Unaligned;
+    const THREAD_SAFE: bool = Expr::THREAD_SAFE;
 
     fn size(&self) -> usize {
         self.expr.value.rows()

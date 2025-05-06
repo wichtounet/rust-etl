@@ -854,6 +854,7 @@ where
 {
     const DIMENSIONS: usize = if LeftExpr::DIMENSIONS == 2 && RightExpr::DIMENSIONS == 2 { 2 } else { 1 };
     const TYPE: EtlType = EtlType::Smart;
+    const THREAD_SAFE: bool = true;
 
     fn size(&self) -> usize {
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {

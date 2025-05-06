@@ -110,6 +110,7 @@ impl<T: EtlValueType> Vector<T> {
 impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
     const DIMENSIONS: usize = 1;
     const TYPE: EtlType = EtlType::Value;
+    const THREAD_SAFE: bool = true;
 
     fn size(&self) -> usize {
         self.size
@@ -131,6 +132,7 @@ impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
 impl<T: EtlValueType> EtlExpr<T> for &Vector<T> {
     const DIMENSIONS: usize = 1;
     const TYPE: EtlType = EtlType::Value;
+    const THREAD_SAFE: bool = true;
 
     fn size(&self) -> usize {
         self.size

@@ -21,6 +21,7 @@ pub fn cst<T: EtlValueType>(value: T) -> Constant<T> {
 impl<T: EtlValueType> EtlExpr<T> for Constant<T> {
     const DIMENSIONS: usize = 0;
     const TYPE: EtlType = EtlType::Value;
+    const THREAD_SAFE: bool = true;
 
     fn size(&self) -> usize {
         0

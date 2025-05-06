@@ -19,6 +19,7 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> ExpExpr<T, Expr> {
 impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for ExpExpr<T, Expr> {
     const DIMENSIONS: usize = Expr::DIMENSIONS;
     const TYPE: EtlType = simple_unary_type(Expr::TYPE);
+    const THREAD_SAFE: bool = Expr::THREAD_SAFE;
 
     fn size(&self) -> usize {
         self.expr.value.size()

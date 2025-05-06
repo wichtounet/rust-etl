@@ -104,6 +104,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> BiasBatchSumExpr<T, Expr> {
 impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for BiasBatchSumExpr<T, Expr> {
     const DIMENSIONS: usize = 1;
     const TYPE: EtlType = EtlType::Smart;
+    const THREAD_SAFE: bool = true;
 
     fn size(&self) -> usize {
         self.lhs.value.columns()

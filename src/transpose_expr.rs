@@ -99,6 +99,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> TransposeExpr<T, Expr> {
 impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for TransposeExpr<T, Expr> {
     const DIMENSIONS: usize = 2;
     const TYPE: EtlType = EtlType::Smart;
+    const THREAD_SAFE: bool = true;
 
     fn size(&self) -> usize {
         self.expr.value.size()

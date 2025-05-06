@@ -96,6 +96,7 @@ impl EtlType {
 pub trait EtlExpr<T: EtlValueType>: std::marker::Sync {
     const DIMENSIONS: usize;
     const TYPE: EtlType;
+    const THREAD_SAFE: bool;
 
     /// Return the size of the Expressions.
     ///

@@ -146,6 +146,7 @@ where
 {
     const DIMENSIONS: usize = 2;
     const TYPE: EtlType = EtlType::Smart;
+    const THREAD_SAFE: bool = true;
 
     fn size(&self) -> usize {
         self.lhs.value.size()
