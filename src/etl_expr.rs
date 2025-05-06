@@ -211,7 +211,7 @@ pub fn assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<T>, 
             rhs.size()
         };
 
-        if size > PARALLEL_THRESHOLD {
+        if RightExpr::THREAD_SAFE && size > PARALLEL_THRESHOLD {
             rayon::scope(|s| {
                 let n = rayon::current_num_threads();
                 let block_size = size / n;
@@ -255,7 +255,7 @@ pub fn add_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
             rhs.size()
         };
 
-        if size > PARALLEL_THRESHOLD {
+        if RightExpr::THREAD_SAFE && size > PARALLEL_THRESHOLD {
             rayon::scope(|s| {
                 let n = rayon::current_num_threads();
                 let block_size = size / n;
@@ -295,7 +295,7 @@ pub fn sub_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
             rhs.size()
         };
 
-        if size > PARALLEL_THRESHOLD {
+        if RightExpr::THREAD_SAFE && size > PARALLEL_THRESHOLD {
             rayon::scope(|s| {
                 let n = rayon::current_num_threads();
                 let block_size = size / n;
@@ -335,7 +335,7 @@ pub fn div_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
             rhs.size()
         };
 
-        if size > PARALLEL_THRESHOLD {
+        if RightExpr::THREAD_SAFE && size > PARALLEL_THRESHOLD {
             rayon::scope(|s| {
                 let n = rayon::current_num_threads();
                 let block_size = size / n;
@@ -375,7 +375,7 @@ pub fn scale_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Ve
             rhs.size()
         };
 
-        if size > PARALLEL_THRESHOLD {
+        if RightExpr::THREAD_SAFE && size > PARALLEL_THRESHOLD {
             rayon::scope(|s| {
                 let n = rayon::current_num_threads();
                 let block_size = size / n;
