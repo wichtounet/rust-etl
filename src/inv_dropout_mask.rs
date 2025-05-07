@@ -53,7 +53,7 @@ impl<T: EtlValueType + RandFloat> EtlExpr<T> for InvDropoutMask<T> {
         if self.engine.lock().unwrap().random_range(T::zero()..T::one()) < self.probability {
             T::zero()
         } else {
-            T::one() / (T::one() / self.probability)
+            T::one() / (T::one() - self.probability)
         }
     }
 
@@ -61,7 +61,7 @@ impl<T: EtlValueType + RandFloat> EtlExpr<T> for InvDropoutMask<T> {
         if self.engine.lock().unwrap().random_range(T::zero()..T::one()) < self.probability {
             T::zero()
         } else {
-            T::one() / (T::one() / self.probability)
+            T::one() / (T::one() - self.probability)
         }
     }
 }
@@ -106,7 +106,7 @@ mod tests {
     fn basic() {
         let mut b = Matrix2d::<f64>::new(2, 2);
 
-        b |= inv_dropout_mask(0.5_f64);
+        b |= inv_dropout_mask(0.5);
 
         assert!(b[0] == 0.0 || b[0] == 1.0 / (1.0 - 0.5));
         assert!(b[1] == 0.0 || b[1] == 1.0 / (1.0 - 0.5));
