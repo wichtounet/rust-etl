@@ -35,6 +35,7 @@ pub mod vector;
 
 // The pseudo containers
 pub mod constant;
+pub mod inv_dropout_mask;
 
 // Free functions
 pub mod reductions;

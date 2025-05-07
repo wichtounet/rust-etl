@@ -123,6 +123,19 @@ macro_rules! impl_div_op_constant {
 }
 
 #[macro_export]
+macro_rules! impl_div_op_constant_trait {
+    ($trait:tt, $type:ty) => {
+        impl<T: EtlValueType + $trait, RightExpr: WrappableExpr<T>> std::ops::Div<RightExpr> for $type {
+            type Output = $crate::div_expr::DivExpr<T, $type, RightExpr>;
+
+            fn div(self, other: RightExpr) -> Self::Output {
+                Self::Output::new(self, other)
+            }
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! impl_div_op_binary_expr {
     ($type:ty) => {
         impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>, OuterRightExpr: WrappableExpr<T>> std::ops::Div<OuterRightExpr>
