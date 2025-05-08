@@ -1,5 +1,6 @@
 use etl::batch_outer_expr::batch_outer;
 use etl::bias_add_expr::bias_add;
+use etl::bias_batch_sum_expr::bias_batch_sum;
 use etl::matrix_2d::Matrix2d;
 use etl::vector::Vector;
 
@@ -152,6 +153,16 @@ fn bench_batch_outer(rows: usize, columns: usize, batch: usize) {
     println!("c = batch_outer(A, B) ({}:{}:{}) took {}", rows, columns, batch, choose_time(times));
 }
 
+fn bench_bias_batch_sum(batch: usize, columns: usize) {
+    let a = Matrix2d::<f64>::new_rand(batch, columns);
+    let mut c = Vector::<f64>::new_rand(columns);
+
+    let func = || c |= bias_batch_sum(&a);
+
+    let times = bench_closure(func);
+    println!("c = bias_batch_sum(A) ({}:{}) took {}", batch, columns, choose_time(times));
+}
+
 fn bench_bias_add(rows: usize, columns: usize) {
     let a = Matrix2d::<f64>::new_rand(rows, columns);
     let b = Vector::<f64>::new_rand(columns);
@@ -268,6 +279,16 @@ fn main() {
         bench_batch_outer(500, 10, 100);
         bench_batch_outer(500, 500, 100);
         bench_batch_outer(768, 500, 100);
+    }
+
+    if filter == "*" || filter == "bias_batch_sum" {
+        bench_bias_batch_sum(32, 128);
+        bench_bias_batch_sum(32, 256);
+        bench_bias_batch_sum(64, 256);
+        bench_bias_batch_sum(128, 256);
+        bench_bias_batch_sum(128, 512);
+        bench_bias_batch_sum(128, 1024);
+        bench_bias_batch_sum(128, 2500);
     }
 
     if filter == "*" || filter == "bias_add" {
