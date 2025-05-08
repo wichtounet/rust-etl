@@ -73,8 +73,8 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> BiasBatchSumExpr<T, Expr> {
 
             let functor = |out: &mut Vec<T>, lhs: &Vec<T>| {
                 for batch in 0..b {
-                    for row in 0..m {
-                        out[row] += lhs[batch * m + row]
+                    for (a, b) in out[0..m].iter_mut().zip(lhs[batch * m..batch * m + m].iter()) {
+                        *a += *b;
                     }
                 }
             };
