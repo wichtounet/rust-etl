@@ -29,41 +29,41 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> BatchStableSoftmaxExpr<T, 
         expr
     }
 
-    fn compute_batch_stable_softmax(&self, output: &mut Vec<T>) {
+    fn compute_batch_stable_softmax(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
         output[..self.temp.len()].copy_from_slice(&self.temp[..]);
     }
 
-    fn compute_batch_stable_softmax_add(&self, output: &mut Vec<T>) {
+    fn compute_batch_stable_softmax_add(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] += self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value += self.temp[n];
         }
     }
 
-    fn compute_batch_stable_softmax_sub(&self, output: &mut Vec<T>) {
+    fn compute_batch_stable_softmax_sub(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] -= self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value -= self.temp[n];
         }
     }
 
-    fn compute_batch_stable_softmax_scale(&self, output: &mut Vec<T>) {
+    fn compute_batch_stable_softmax_scale(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] *= self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value *= self.temp[n];
         }
     }
 
-    fn compute_batch_stable_softmax_div(&self, output: &mut Vec<T>) {
+    fn compute_batch_stable_softmax_div(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] /= self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value /= self.temp[n];
         }
     }
 
@@ -76,18 +76,18 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> BatchStableSoftmaxExpr<T, 
                 for batch in 0..b {
                     let mut max = expr[batch * m];
 
-                    for row in 1..m {
-                        max = if expr[batch * m + row] > max { expr[batch * m + row] } else { max }
+                    for value in expr[batch * m + 1..batch * m + m].iter() {
+                        max = if *value > max { *value } else { max }
                     }
 
                     let mut sum_exp = T::zero();
 
-                    for row in 0..m {
-                        sum_exp += (expr[batch * m + row] - max).exp();
+                    for value in expr[batch * m..batch * m + m].iter() {
+                        sum_exp += (*value - max).exp();
                     }
 
-                    for row in 0..m {
-                        out[batch * m + row] = (expr[batch * m + row] - max).exp() / sum_exp;
+                    for (row, value) in out[batch * m..batch * m + m].iter_mut().enumerate() {
+                        *value = (expr[batch * m + row] - max).exp() / sum_exp;
                     }
                 }
             };
