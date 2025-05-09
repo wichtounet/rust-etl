@@ -326,6 +326,36 @@ mod tests {
     }
 
     #[test]
+    fn basic_iterator() {
+        let mut a = Matrix2d::<i64>::new(2, 4);
+        let mut b = Matrix2d::<i64>::new(4, 2);
+
+        a.iota_fill(1);
+        b.iota_fill(2);
+
+        let expr = &a + &b;
+
+        for (n, value) in expr.iter().enumerate() {
+            assert_eq!(value, ((n + 1) + (n + 2)).try_into().unwrap());
+        }
+    }
+
+    #[test]
+    fn basic_iterator_deep() {
+        let mut a = Matrix2d::<i64>::new(2, 4);
+        let mut b = Matrix2d::<i64>::new(4, 2);
+
+        a.iota_fill(1);
+        b.iota_fill(2);
+
+        let expr = (&a + &b) >> (&b + &a);
+
+        for (n, value) in expr.iter().enumerate() {
+            assert_eq!(value, (((n + 1) + (n + 2)) * ((n + 1) + (n + 2))).try_into().unwrap());
+        }
+    }
+
+    #[test]
     fn basic_compound_add() {
         let mut a = Vector::<i64>::new(8);
         let mut b = Vector::<i64>::new(8);
