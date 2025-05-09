@@ -14,9 +14,32 @@ pub struct SoftmaxExpr<T: EtlValueType + Float, Expr: WrappableExpr<T>> {
 
 // The functions of SoftmaxExpr
 
+fn softmax_impl<T: EtlValueType + Float>(value: T, s: T) -> T {
+    value.exp() / s
+}
+
 impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> SoftmaxExpr<T, Expr> {
     pub fn new(expr: Expr, s: T) -> Self {
         Self { expr: expr.wrap(), s }
+    }
+}
+
+pub struct SoftmaxExprIterator<'a, T: EtlValueType, Expr: EtlExpr<T> + 'a>
+where
+    T: 'a,
+{
+    sub_iter: Expr::Iter<'a>,
+    s: T,
+}
+
+impl<'a, T: EtlValueType + Float, Expr: EtlExpr<T>> Iterator for SoftmaxExprIterator<'a, T, Expr> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.sub_iter.next() {
+            Some(sub) => Some(softmax_impl(sub, self.s)),
+            _ => None,
+        }
     }
 }
 
@@ -25,6 +48,19 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SoftmaxExpr
     const DIMENSIONS: usize = Expr::DIMENSIONS;
     const TYPE: EtlType = simple_unary_type(Expr::TYPE);
     const THREAD_SAFE: bool = Expr::THREAD_SAFE;
+
+    type Iter<'x>
+        = SoftmaxExprIterator<'x, T, Expr::WrappedAs>
+    where
+        T: 'x,
+        Self: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        SoftmaxExprIterator {
+            sub_iter: self.expr.value.iter(),
+            s: self.s,
+        }
+    }
 
     fn size(&self) -> usize {
         self.expr.value.size()
@@ -39,7 +75,7 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SoftmaxExpr
     }
 
     fn at(&self, i: usize) -> T {
-        self.expr.value.at(i).exp() / self.s
+        softmax_impl(self.expr.value.at(i), self.s)
     }
 }
 

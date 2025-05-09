@@ -22,11 +22,43 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> D
     }
 }
 
+pub struct DivExprIterator<'a, T: EtlValueType, LeftExpr: EtlExpr<T> + 'a, RightExpr: EtlExpr<T> + 'a>
+where
+    T: 'a,
+{
+    lhs_iter: LeftExpr::Iter<'a>,
+    rhs_iter: RightExpr::Iter<'a>,
+}
+
+impl<'a, T: EtlValueType, LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>> Iterator for DivExprIterator<'a, T, LeftExpr, RightExpr> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match (self.lhs_iter.next(), self.rhs_iter.next()) {
+            (Some(lhs), Some(rhs)) => Some(lhs / rhs),
+            _ => None,
+        }
+    }
+}
+
 // DivExpr is an EtlExpr
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for DivExpr<T, LeftExpr, RightExpr> {
     const DIMENSIONS: usize = if LeftExpr::DIMENSIONS > 0 { LeftExpr::DIMENSIONS } else { RightExpr::DIMENSIONS };
     const TYPE: EtlType = EtlType::Unaligned; // To avoid divisions by zero
     const THREAD_SAFE: bool = LeftExpr::THREAD_SAFE && RightExpr::THREAD_SAFE;
+
+    type Iter<'x>
+        = DivExprIterator<'x, T, LeftExpr::WrappedAs, RightExpr::WrappedAs>
+    where
+        T: 'x,
+        Self: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        DivExprIterator {
+            lhs_iter: self.lhs.value.iter(),
+            rhs_iter: self.rhs.value.iter(),
+        }
+    }
 
     fn size(&self) -> usize {
         if LeftExpr::DIMENSIONS > 0 {

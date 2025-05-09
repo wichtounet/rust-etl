@@ -30,12 +30,41 @@ impl<T: EtlValueType + RandFloat> InvDropoutMask<T> {
             engine: Mutex::<SmallRng>::new(SmallRng::from_rng(&mut rand::rng())),
         }
     }
+
+    fn next_value(&self) -> T {
+        if self.engine.lock().unwrap().random_range(T::zero()..T::one()) < self.probability {
+            T::zero()
+        } else {
+            T::one() / (T::one() - self.probability)
+        }
+    }
+}
+
+pub struct InvDropoutMaskIterator<'a, T: EtlValueType + RandFloat> {
+    expr: &'a InvDropoutMask<T>,
+}
+
+impl<'a, T: EtlValueType + RandFloat> Iterator for InvDropoutMaskIterator<'a, T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(self.expr.next_value())
+    }
 }
 
 impl<T: EtlValueType + RandFloat> EtlExpr<T> for InvDropoutMask<T> {
     const DIMENSIONS: usize = 0;
     const TYPE: EtlType = EtlType::Value;
     const THREAD_SAFE: bool = false;
+
+    type Iter<'x>
+        = InvDropoutMaskIterator<'x, T>
+    where
+        T: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        InvDropoutMaskIterator { expr: self }
+    }
 
     fn size(&self) -> usize {
         0
@@ -50,19 +79,11 @@ impl<T: EtlValueType + RandFloat> EtlExpr<T> for InvDropoutMask<T> {
     }
 
     fn at(&self, _i: usize) -> T {
-        if self.engine.lock().unwrap().random_range(T::zero()..T::one()) < self.probability {
-            T::zero()
-        } else {
-            T::one() / (T::one() - self.probability)
-        }
+        self.next_value()
     }
 
     fn at2(&self, _row: usize, _column: usize) -> T {
-        if self.engine.lock().unwrap().random_range(T::zero()..T::one()) < self.probability {
-            T::zero()
-        } else {
-            T::one() / (T::one() - self.probability)
-        }
+        self.next_value()
     }
 }
 

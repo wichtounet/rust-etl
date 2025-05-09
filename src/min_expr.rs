@@ -9,6 +9,14 @@ pub struct MinExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: Wrapp
 
 // The functions of MinExpr
 
+fn min_impl<T: EtlValueType>(a: T, b: T) -> T {
+    if a < b {
+        a
+    } else {
+        b
+    }
+}
+
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> MinExpr<T, LeftExpr, RightExpr> {
     pub fn new(lhs: LeftExpr, rhs: RightExpr) -> Self {
         if LeftExpr::DIMENSIONS > 0 && RightExpr::DIMENSIONS > 0 && lhs.size() != rhs.size() {
@@ -22,11 +30,43 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> M
     }
 }
 
+pub struct MinExprIterator<'a, T: EtlValueType, LeftExpr: EtlExpr<T> + 'a, RightExpr: EtlExpr<T> + 'a>
+where
+    T: 'a,
+{
+    lhs_iter: LeftExpr::Iter<'a>,
+    rhs_iter: RightExpr::Iter<'a>,
+}
+
+impl<'a, T: EtlValueType, LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>> Iterator for MinExprIterator<'a, T, LeftExpr, RightExpr> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match (self.lhs_iter.next(), self.rhs_iter.next()) {
+            (Some(lhs), Some(rhs)) => Some(min_impl(lhs, rhs)),
+            _ => None,
+        }
+    }
+}
+
 // MinExpr is an EtlExpr
 impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> EtlExpr<T> for MinExpr<T, LeftExpr, RightExpr> {
     const DIMENSIONS: usize = if LeftExpr::DIMENSIONS > 0 { LeftExpr::DIMENSIONS } else { RightExpr::DIMENSIONS };
     const TYPE: EtlType = simple_binary_type(LeftExpr::TYPE, RightExpr::TYPE);
     const THREAD_SAFE: bool = LeftExpr::THREAD_SAFE && RightExpr::THREAD_SAFE;
+
+    type Iter<'x>
+        = MinExprIterator<'x, T, LeftExpr::WrappedAs, RightExpr::WrappedAs>
+    where
+        T: 'x,
+        Self: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        MinExprIterator {
+            lhs_iter: self.lhs.value.iter(),
+            rhs_iter: self.rhs.value.iter(),
+        }
+    }
 
     fn size(&self) -> usize {
         if LeftExpr::DIMENSIONS > 0 {
@@ -53,19 +93,11 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     }
 
     fn at(&self, i: usize) -> T {
-        if self.lhs.value.at(i) < self.rhs.value.at(i) {
-            self.lhs.value.at(i)
-        } else {
-            self.rhs.value.at(i)
-        }
+        min_impl(self.lhs.value.at(i), self.rhs.value.at(i))
     }
 
     fn at2(&self, row: usize, column: usize) -> T {
-        if self.lhs.value.at2(row, column) < self.rhs.value.at2(row, column) {
-            self.lhs.value.at2(row, column)
-        } else {
-            self.rhs.value.at2(row, column)
-        }
+        min_impl(self.lhs.value.at2(row, column), self.rhs.value.at2(row, column))
     }
 }
 

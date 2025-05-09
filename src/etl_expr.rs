@@ -98,6 +98,13 @@ pub trait EtlExpr<T: EtlValueType>: std::marker::Sync {
     const TYPE: EtlType;
     const THREAD_SAFE: bool;
 
+    type Iter<'x>: Iterator<Item = T>
+    where
+        T: 'x,
+        Self: 'x;
+
+    fn iter(&self) -> Self::Iter<'_>;
+
     /// Return the size of the Expressions.
     ///
     /// This is valid for all dimensions

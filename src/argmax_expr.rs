@@ -18,11 +18,42 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> ArgMaxExpr<T, Expr> {
     }
 }
 
+pub struct ArgMaxExprIterator<'a, T: EtlValueType, Expr: EtlExpr<T> + 'a>
+where
+    T: 'a,
+{
+    sub_iter: Expr::Iter<'a>,
+}
+
+impl<'a, T: EtlValueType, Expr: EtlExpr<T>> Iterator for ArgMaxExprIterator<'a, T, Expr> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.sub_iter.next() {
+            Some(sub) => Some(sub),
+            _ => None,
+        }
+    }
+}
+
 // ArgMaxExpr is an EtlExpr
 impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for ArgMaxExpr<T, Expr> {
     const DIMENSIONS: usize = 1;
     const TYPE: EtlType = EtlType::Unaligned;
     const THREAD_SAFE: bool = Expr::THREAD_SAFE;
+
+    type Iter<'x>
+        = ArgMaxExprIterator<'x, T, Expr::WrappedAs>
+    where
+        T: 'x,
+        Self: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        todo!("ArgMax must be transformed into a smart expression");
+        /* ArgMaxExprIterator {
+            sub_iter: self.expr.value.iter(),
+        } */
+    }
 
     fn size(&self) -> usize {
         self.expr.value.rows()

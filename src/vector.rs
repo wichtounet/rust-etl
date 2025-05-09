@@ -116,6 +116,16 @@ impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
     const TYPE: EtlType = EtlType::Value;
     const THREAD_SAFE: bool = true;
 
+    type Iter<'x>
+        = std::iter::Cloned<std::slice::Iter<'x, T>>
+    where
+        T: 'x,
+        Self: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        self.data.iter().cloned()
+    }
+
     fn size(&self) -> usize {
         self.size
     }
@@ -138,6 +148,16 @@ impl<T: EtlValueType> EtlExpr<T> for &Vector<T> {
     const DIMENSIONS: usize = 1;
     const TYPE: EtlType = EtlType::Value;
     const THREAD_SAFE: bool = true;
+
+    type Iter<'x>
+        = std::iter::Cloned<std::slice::Iter<'x, T>>
+    where
+        T: 'x,
+        Self: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        self.data.iter().cloned()
+    }
 
     fn size(&self) -> usize {
         self.size

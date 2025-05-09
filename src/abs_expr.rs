@@ -15,11 +15,41 @@ impl<T: EtlValueType + Abs, Expr: WrappableExpr<T>> AbsExpr<T, Expr> {
     }
 }
 
+pub struct AbsExprIterator<'a, T: EtlValueType, Expr: EtlExpr<T> + 'a>
+where
+    T: 'a,
+{
+    sub_iter: Expr::Iter<'a>,
+}
+
+impl<'a, T: EtlValueType + Abs, Expr: EtlExpr<T>> Iterator for AbsExprIterator<'a, T, Expr> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.sub_iter.next() {
+            Some(sub) => Some(sub.abs()),
+            _ => None,
+        }
+    }
+}
+
 // AbsExpr is an EtlExpr
 impl<T: EtlValueType + Abs, Expr: WrappableExpr<T>> EtlExpr<T> for AbsExpr<T, Expr> {
     const DIMENSIONS: usize = Expr::DIMENSIONS;
     const TYPE: EtlType = simple_unary_type(Expr::TYPE);
     const THREAD_SAFE: bool = Expr::THREAD_SAFE;
+
+    type Iter<'x>
+        = AbsExprIterator<'x, T, Expr::WrappedAs>
+    where
+        T: 'x,
+        Self: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        AbsExprIterator {
+            sub_iter: self.expr.value.iter(),
+        }
+    }
 
     fn size(&self) -> usize {
         self.expr.value.size()

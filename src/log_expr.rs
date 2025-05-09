@@ -15,11 +15,41 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> LogExpr<T, Expr> {
     }
 }
 
+pub struct LogExprIterator<'a, T: EtlValueType, Expr: EtlExpr<T> + 'a>
+where
+    T: 'a,
+{
+    sub_iter: Expr::Iter<'a>,
+}
+
+impl<'a, T: EtlValueType + Float, Expr: EtlExpr<T>> Iterator for LogExprIterator<'a, T, Expr> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.sub_iter.next() {
+            Some(sub) => Some(sub.ln()),
+            _ => None,
+        }
+    }
+}
+
 // LogExpr is an EtlExpr
 impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for LogExpr<T, Expr> {
     const DIMENSIONS: usize = Expr::DIMENSIONS;
     const TYPE: EtlType = simple_unary_type(Expr::TYPE);
     const THREAD_SAFE: bool = Expr::THREAD_SAFE;
+
+    type Iter<'x>
+        = LogExprIterator<'x, T, Expr::WrappedAs>
+    where
+        T: 'x,
+        Expr: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        LogExprIterator {
+            sub_iter: self.expr.value.iter(),
+        }
+    }
 
     fn size(&self) -> usize {
         self.expr.value.size()

@@ -9,9 +9,35 @@ pub struct ReluExpr<T: EtlValueType + Float, Expr: WrappableExpr<T>> {
 
 // The functions of ReluExpr
 
+fn relu_impl<T: EtlValueType + Float>(value: T) -> T {
+    if value > T::zero() {
+        value
+    } else {
+        T::zero()
+    }
+}
+
 impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> ReluExpr<T, Expr> {
     pub fn new(expr: Expr) -> Self {
         Self { expr: expr.wrap() }
+    }
+}
+
+pub struct ReluExprIterator<'a, T: EtlValueType, Expr: EtlExpr<T> + 'a>
+where
+    T: 'a,
+{
+    sub_iter: Expr::Iter<'a>,
+}
+
+impl<'a, T: EtlValueType + Float, Expr: EtlExpr<T>> Iterator for ReluExprIterator<'a, T, Expr> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.sub_iter.next() {
+            Some(sub) => Some(relu_impl(sub)),
+            _ => None,
+        }
     }
 }
 
@@ -20,6 +46,18 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for ReluExpr<T,
     const DIMENSIONS: usize = Expr::DIMENSIONS;
     const TYPE: EtlType = simple_unary_type(Expr::TYPE);
     const THREAD_SAFE: bool = Expr::THREAD_SAFE;
+
+    type Iter<'x>
+        = ReluExprIterator<'x, T, Expr::WrappedAs>
+    where
+        T: 'x,
+        Expr: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        ReluExprIterator {
+            sub_iter: self.expr.value.iter(),
+        }
+    }
 
     fn size(&self) -> usize {
         self.expr.value.size()
@@ -34,19 +72,11 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for ReluExpr<T,
     }
 
     fn at(&self, i: usize) -> T {
-        if self.expr.value.at(i) > T::zero() {
-            self.expr.value.at(i)
-        } else {
-            T::zero()
-        }
+        relu_impl(self.expr.value.at(i))
     }
 
     fn at2(&self, row: usize, column: usize) -> T {
-        if self.expr.value.at2(row, column) > T::zero() {
-            self.expr.value.at2(row, column)
-        } else {
-            T::zero()
-        }
+        relu_impl(self.expr.value.at2(row, column))
     }
 }
 

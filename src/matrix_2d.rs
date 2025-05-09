@@ -145,6 +145,16 @@ impl<T: EtlValueType> EtlExpr<T> for Matrix2d<T> {
     const TYPE: EtlType = EtlType::Value;
     const THREAD_SAFE: bool = true;
 
+    type Iter<'x>
+        = std::iter::Cloned<std::slice::Iter<'x, T>>
+    where
+        T: 'x,
+        Self: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        self.data.iter().cloned()
+    }
+
     fn size(&self) -> usize {
         self.rows * self.columns
     }
@@ -183,6 +193,16 @@ impl<T: EtlValueType> EtlExpr<T> for &Matrix2d<T> {
     const DIMENSIONS: usize = 2;
     const TYPE: EtlType = EtlType::Value;
     const THREAD_SAFE: bool = true;
+
+    type Iter<'x>
+        = std::iter::Cloned<std::slice::Iter<'x, T>>
+    where
+        T: 'x,
+        Self: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        self.data.iter().cloned()
+    }
 
     fn size(&self) -> usize {
         self.rows * self.columns

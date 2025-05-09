@@ -9,13 +9,31 @@ pub struct SigmoidExpr<T: EtlValueType + Float, Expr: WrappableExpr<T>> {
 
 // The functions of SigmoidExpr
 
+fn sigmoid_impl<T: EtlValueType + Float>(value: T) -> T {
+    T::one() / (T::one() + (-value).exp())
+}
+
 impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> SigmoidExpr<T, Expr> {
     pub fn new(expr: Expr) -> Self {
         Self { expr: expr.wrap() }
     }
+}
 
-    fn sigmoid(x: T) -> T {
-        T::one() / (T::one() + (-x).exp())
+pub struct SigmoidExprIterator<'a, T: EtlValueType, Expr: EtlExpr<T> + 'a>
+where
+    T: 'a,
+{
+    sub_iter: Expr::Iter<'a>,
+}
+
+impl<'a, T: EtlValueType + Float, Expr: EtlExpr<T>> Iterator for SigmoidExprIterator<'a, T, Expr> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.sub_iter.next() {
+            Some(sub) => Some(sigmoid_impl(sub)),
+            _ => None,
+        }
     }
 }
 
@@ -24,6 +42,18 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SigmoidExpr
     const DIMENSIONS: usize = Expr::DIMENSIONS;
     const TYPE: EtlType = simple_unary_type(Expr::TYPE);
     const THREAD_SAFE: bool = Expr::THREAD_SAFE;
+
+    type Iter<'x>
+        = SigmoidExprIterator<'x, T, Expr::WrappedAs>
+    where
+        T: 'x,
+        Expr: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        SigmoidExprIterator {
+            sub_iter: self.expr.value.iter(),
+        }
+    }
 
     fn size(&self) -> usize {
         self.expr.value.size()
@@ -38,11 +68,11 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SigmoidExpr
     }
 
     fn at(&self, i: usize) -> T {
-        Self::sigmoid(self.expr.value.at(i))
+        sigmoid_impl(self.expr.value.at(i))
     }
 
     fn at2(&self, row: usize, column: usize) -> T {
-        Self::sigmoid(self.expr.value.at2(row, column))
+        sigmoid_impl(self.expr.value.at2(row, column))
     }
 }
 

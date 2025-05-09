@@ -9,9 +9,35 @@ pub struct ReluDerivativeExpr<T: EtlValueType + Float, Expr: WrappableExpr<T>> {
 
 // The functions of ReluDerivativeExpr
 
+fn relu_derivative_impl<T: EtlValueType + Float>(value: T) -> T {
+    if value > T::zero() {
+        T::one()
+    } else {
+        T::zero()
+    }
+}
+
 impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> ReluDerivativeExpr<T, Expr> {
     pub fn new(expr: Expr) -> Self {
         Self { expr: expr.wrap() }
+    }
+}
+
+pub struct ReluDerivativeExprIterator<'a, T: EtlValueType, Expr: EtlExpr<T> + 'a>
+where
+    T: 'a,
+{
+    sub_iter: Expr::Iter<'a>,
+}
+
+impl<'a, T: EtlValueType + Float, Expr: EtlExpr<T>> Iterator for ReluDerivativeExprIterator<'a, T, Expr> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.sub_iter.next() {
+            Some(sub) => Some(relu_derivative_impl(sub)),
+            _ => None,
+        }
     }
 }
 
@@ -20,6 +46,18 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for ReluDerivat
     const DIMENSIONS: usize = Expr::DIMENSIONS;
     const TYPE: EtlType = simple_unary_type(Expr::TYPE);
     const THREAD_SAFE: bool = Expr::THREAD_SAFE;
+
+    type Iter<'x>
+        = ReluDerivativeExprIterator<'x, T, Expr::WrappedAs>
+    where
+        T: 'x,
+        Expr: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        ReluDerivativeExprIterator {
+            sub_iter: self.expr.value.iter(),
+        }
+    }
 
     fn size(&self) -> usize {
         self.expr.value.size()
@@ -34,19 +72,11 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for ReluDerivat
     }
 
     fn at(&self, i: usize) -> T {
-        if self.expr.value.at(i) > T::zero() {
-            T::one()
-        } else {
-            T::zero()
-        }
+        relu_derivative_impl(self.expr.value.at(i))
     }
 
     fn at2(&self, row: usize, column: usize) -> T {
-        if self.expr.value.at2(row, column) > T::zero() {
-            T::one()
-        } else {
-            T::zero()
-        }
+        relu_derivative_impl(self.expr.value.at2(row, column))
     }
 }
 

@@ -18,10 +18,31 @@ pub fn cst<T: EtlValueType>(value: T) -> Constant<T> {
     Constant::<T>::new(value)
 }
 
+pub struct ConstantIterator<T: EtlValueType> {
+    value: T,
+}
+
+impl<T: EtlValueType> Iterator for ConstantIterator<T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(self.value)
+    }
+}
+
 impl<T: EtlValueType> EtlExpr<T> for Constant<T> {
     const DIMENSIONS: usize = 0;
     const TYPE: EtlType = EtlType::Value;
     const THREAD_SAFE: bool = true;
+
+    type Iter<'x>
+        = ConstantIterator<T>
+    where
+        T: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        ConstantIterator { value: self.value }
+    }
 
     fn size(&self) -> usize {
         0

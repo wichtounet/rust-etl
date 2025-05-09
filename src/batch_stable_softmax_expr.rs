@@ -119,6 +119,16 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for BatchStable
     const TYPE: EtlType = EtlType::Smart;
     const THREAD_SAFE: bool = true;
 
+    type Iter<'x>
+        = std::iter::Cloned<std::slice::Iter<'x, T>>
+    where
+        T: 'x,
+        Self: 'x;
+
+    fn iter(&self) -> Self::Iter<'_> {
+        self.temp.iter().cloned()
+    }
+
     fn size(&self) -> usize {
         self.expr.value.size()
     }
