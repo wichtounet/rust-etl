@@ -52,6 +52,7 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
         }
     }
 
+    #[inline(always)]
     fn at(&self, i: usize) -> T {
         self.lhs.value.at(i) * self.rhs.value.at(i)
     }

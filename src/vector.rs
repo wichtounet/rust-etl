@@ -125,6 +125,7 @@ impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
         self.size
     }
 
+    #[inline(always)]
     fn at(&self, i: usize) -> T {
         self.data[i]
     }
@@ -147,6 +148,7 @@ impl<T: EtlValueType> EtlExpr<T> for &Vector<T> {
         self.size
     }
 
+    #[inline(always)]
     fn at(&self, i: usize) -> T {
         self.data[i]
     }

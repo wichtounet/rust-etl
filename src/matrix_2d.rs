@@ -157,17 +157,18 @@ impl<T: EtlValueType> EtlExpr<T> for Matrix2d<T> {
         self.columns
     }
 
+    #[inline(always)]
     fn at(&self, i: usize) -> T {
         self.data[i]
     }
 
     fn at2(&self, row: usize, column: usize) -> T {
         if row >= self.rows {
-            panic!("Row {} is out of bounds!", row);
+            panic!("Row {row} is out of bounds!");
         }
 
         if column >= self.columns {
-            panic!("Column {} is out of bounds!", column);
+            panic!("Column {column} is out of bounds!");
         }
 
         self.data[row * self.columns + column]
@@ -195,6 +196,7 @@ impl<T: EtlValueType> EtlExpr<T> for &Matrix2d<T> {
         self.columns
     }
 
+    #[inline(always)]
     fn at(&self, i: usize) -> T {
         self.data[i]
     }
