@@ -46,45 +46,45 @@ where
         expr
     }
 
-    fn compute_bias_add(&self, output: &mut Vec<T>) {
+    fn compute_bias_add(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
         output[..self.temp.len()].copy_from_slice(&self.temp[..]);
     }
 
-    fn compute_bias_add_add(&self, output: &mut Vec<T>) {
+    fn compute_bias_add_add(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] += self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value += self.temp[n];
         }
     }
 
-    fn compute_bias_add_sub(&self, output: &mut Vec<T>) {
+    fn compute_bias_add_sub(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] -= self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value -= self.temp[n];
         }
     }
 
-    fn compute_bias_add_scale(&self, output: &mut Vec<T>) {
+    fn compute_bias_add_scale(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] *= self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value *= self.temp[n];
         }
     }
 
-    fn compute_bias_add_div(&self, output: &mut Vec<T>) {
+    fn compute_bias_add_div(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] /= self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value /= self.temp[n];
         }
     }
 
-    fn compute_kernel(m: usize, n: usize, out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>) {
+    fn compute_kernel(m: usize, n: usize, out: &mut [T], lhs: &[T], rhs: &[T]) {
         let lanes = 8;
 
         for row in 0..m {

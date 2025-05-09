@@ -29,8 +29,8 @@ impl<T: EtlValueType> Vector<T> {
             size: expr.size(),
         };
 
-        for i in 0..vec.size() {
-            vec.data[i] = expr.at(i);
+        for (i, value) in vec.data.iter_mut().enumerate() {
+            *value = expr.at(i);
         }
 
         vec
@@ -60,15 +60,11 @@ impl<T: EtlValueType> Vector<T> {
     }
 
     pub fn clear(&mut self) {
-        for value in self.data.iter_mut() {
-            *value = T::default();
-        }
+        self.data.fill(T::default());
     }
 
     pub fn fill(&mut self, constant: T) {
-        for value in self.data.iter_mut() {
-            *value = constant;
-        }
+        self.data.fill(constant);
     }
 
     pub fn rand_fill(&mut self)

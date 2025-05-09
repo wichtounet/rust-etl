@@ -43,41 +43,41 @@ where
         expr
     }
 
-    fn compute_batch_outer(&self, output: &mut Vec<T>) {
+    fn compute_batch_outer(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
         output[..self.temp.len()].copy_from_slice(&self.temp[..]);
     }
 
-    fn compute_batch_outer_add(&self, output: &mut Vec<T>) {
+    fn compute_batch_outer_add(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] += self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value += self.temp[n];
         }
     }
 
-    fn compute_batch_outer_sub(&self, output: &mut Vec<T>) {
+    fn compute_batch_outer_sub(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] -= self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value -= self.temp[n];
         }
     }
 
-    fn compute_batch_outer_scale(&self, output: &mut Vec<T>) {
+    fn compute_batch_outer_scale(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] *= self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value *= self.temp[n];
         }
     }
 
-    fn compute_batch_outer_div(&self, output: &mut Vec<T>) {
+    fn compute_batch_outer_div(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] /= self.temp[n];
+        for (n, value) in output.iter_mut().enumerate() {
+            *value /= self.temp[n];
         }
     }
 
@@ -88,7 +88,7 @@ where
 
     // For small matrices, it is not worth computing the transpose of lhs and rhs
     // Instead, we unroll the outer loop so that we can compute multiple elements together
-    fn small_kernel(m: usize, n: usize, b: usize, out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>) {
+    fn small_kernel(m: usize, n: usize, b: usize, out: &mut [T], lhs: &[T], rhs: &[T]) {
         for row in 0..m {
             let mut column = 0;
 

@@ -64,32 +64,28 @@ impl<T: EtlValueType> Matrix2d<T> {
 
     pub fn at_mut(&mut self, row: usize, column: usize) -> &mut T {
         if row >= self.rows {
-            panic!("Row {} is out of bounds!", row);
+            panic!("Row {row} is out of bounds!");
         }
 
         if column >= self.columns {
-            panic!("Column {} is out of bounds!", column);
+            panic!("Column {column} is out of bounds!");
         }
 
         &mut self.data[row * self.columns + column]
     }
 
     pub fn clear(&mut self) {
-        for i in 0..self.size() {
-            self.data[i] = T::default();
-        }
+        self.data.fill(T::default());
     }
 
     pub fn fill(&mut self, value: T) {
-        for i in 0..self.size() {
-            self.data[i] = value;
-        }
+        self.data.fill(value);
     }
 
     pub fn iota_fill(&mut self, value: T) {
         let mut acc = value;
-        for i in 0..self.size() {
-            self.data[i] = acc;
+        for value in self.data.iter_mut() {
+            *value = acc;
             acc += T::one();
         }
     }
@@ -100,8 +96,8 @@ impl<T: EtlValueType> Matrix2d<T> {
     {
         let mut rng = rand::rng();
 
-        for i in 0..self.size() {
-            self.data[i] = rng.random::<T>();
+        for value in self.data.iter_mut() {
+            *value = rng.random::<T>();
         }
     }
 
@@ -115,8 +111,8 @@ impl<T: EtlValueType> Matrix2d<T> {
         let p = <T as Constants>::one();
         let normal = Normal::new(n, p).unwrap();
 
-        for i in 0..self.size() {
-            self.data[i] = normal.sample(&mut rng);
+        for value in self.data.iter_mut() {
+            *value = normal.sample(&mut rng);
         }
     }
 
@@ -128,8 +124,8 @@ impl<T: EtlValueType> Matrix2d<T> {
         let mut rng = rand::rng();
         let normal = Normal::new(mean, stddev).unwrap();
 
-        for i in 0..self.size() {
-            self.data[i] = normal.sample(&mut rng);
+        for value in self.data.iter_mut() {
+            *value = normal.sample(&mut rng);
         }
     }
 }
