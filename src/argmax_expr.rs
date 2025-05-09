@@ -4,6 +4,7 @@ use crate::etl_expr::*;
 
 pub struct ArgMaxExpr<T: EtlValueType, Expr: WrappableExpr<T>> {
     expr: EtlWrapper<T, Expr::WrappedAs>,
+    pub temp: Vec<T>,
 }
 
 // The functions of ArgMaxExpr
@@ -14,24 +15,97 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> ArgMaxExpr<T, Expr> {
             panic!("argmax only works on 2D expression");
         }
 
-        Self { expr: expr.wrap() }
+        let mut expr = Self {
+            expr: expr.wrap(),
+            temp: Vec::<T>::new(),
+        };
+
+        let mut temp = vec![T::default(); padded_size(expr.size())];
+        expr.compute_argmax_impl(&mut temp);
+        expr.temp = temp;
+
+        expr
     }
-}
 
-pub struct ArgMaxExprIterator<'a, T: EtlValueType, Expr: EtlExpr<T> + 'a>
-where
-    T: 'a,
-{
-    sub_iter: Expr::Iter<'a>,
-}
+    fn compute_argmax(&self, output: &mut Vec<T>) {
+        assert!(!self.temp.is_empty());
 
-impl<'a, T: EtlValueType, Expr: EtlExpr<T>> Iterator for ArgMaxExprIterator<'a, T, Expr> {
-    type Item = T;
+        output[..self.temp.len()].copy_from_slice(&self.temp[..]);
+    }
 
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.sub_iter.next() {
-            Some(sub) => Some(sub),
-            _ => None,
+    fn compute_argmax_add(&self, output: &mut Vec<T>) {
+        assert!(!self.temp.is_empty());
+
+        for n in 0..self.temp.len() {
+            output[n] += self.temp[n];
+        }
+    }
+
+    fn compute_argmax_sub(&self, output: &mut Vec<T>) {
+        assert!(!self.temp.is_empty());
+
+        for n in 0..self.temp.len() {
+            output[n] -= self.temp[n];
+        }
+    }
+
+    fn compute_argmax_scale(&self, output: &mut Vec<T>) {
+        assert!(!self.temp.is_empty());
+
+        for n in 0..self.temp.len() {
+            output[n] *= self.temp[n];
+        }
+    }
+
+    fn compute_argmax_div(&self, output: &mut Vec<T>) {
+        assert!(!self.temp.is_empty());
+
+        for n in 0..self.temp.len() {
+            output[n] /= self.temp[n];
+        }
+    }
+
+    fn compute_argmax_impl(&self, output: &mut Vec<T>) {
+        if Expr::DIMENSIONS == 2 {
+            let rows = self.expr.value.rows();
+            let columns = self.expr.value.columns();
+
+            let functor = |out: &mut Vec<T>, expr: &Vec<T>| {
+                for row in 0..rows {
+                    let mut max_index = 0;
+                    let mut current_return_index = T::zero();
+                    let mut return_index = T::zero();
+
+                    for column in 1..columns {
+                        current_return_index += T::one();
+
+                        if expr[row * columns + column] > expr[row * columns + max_index] {
+                            max_index = column;
+                            return_index = current_return_index;
+                        }
+                    }
+
+                    out[row] = return_index
+                }
+            };
+
+            forward_data_unary(output, &self.expr.value, functor);
+        } else {
+            panic!("This code should be unreachable!");
+        }
+    }
+
+    fn validate_batch_softmax<OutputExpr: EtlExpr<T>>(&self, expr: &OutputExpr) {
+        if OutputExpr::DIMENSIONS != 1 {
+            panic!("The output of argmax must be a 1D Vector");
+        }
+
+        if Expr::DIMENSIONS == 2 {
+            if expr.size() != self.expr.value.rows() {
+                panic!("Invalid dimensions for assignment of batch_softmax result");
+            }
+        } else {
+            panic!("This code should be unreachable!");
         }
     }
 }
@@ -39,45 +113,65 @@ impl<'a, T: EtlValueType, Expr: EtlExpr<T>> Iterator for ArgMaxExprIterator<'a, 
 // ArgMaxExpr is an EtlExpr
 impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for ArgMaxExpr<T, Expr> {
     const DIMENSIONS: usize = 1;
-    const TYPE: EtlType = EtlType::Unaligned;
-    const THREAD_SAFE: bool = Expr::THREAD_SAFE;
+    const TYPE: EtlType = EtlType::Smart;
+    const THREAD_SAFE: bool = true;
 
     type Iter<'x>
-        = ArgMaxExprIterator<'x, T, Expr::WrappedAs>
+        = std::iter::Cloned<std::slice::Iter<'x, T>>
     where
         T: 'x,
         Self: 'x;
 
     fn iter(&self) -> Self::Iter<'_> {
-        todo!("ArgMax must be transformed into a smart expression");
-        /* ArgMaxExprIterator {
-            sub_iter: self.expr.value.iter(),
-        } */
+        self.temp.iter().cloned()
     }
 
     fn size(&self) -> usize {
-        self.expr.value.rows()
+        self.expr.value.size()
     }
 
     fn rows(&self) -> usize {
         self.expr.value.rows()
     }
 
+    fn columns(&self) -> usize {
+        self.expr.value.columns()
+    }
+
+    fn validate_assign<OutputExpr: EtlExpr<T>>(&self, expr: &OutputExpr) {
+        self.validate_batch_softmax(expr);
+    }
+
+    fn compute_into(&self, output: &mut Vec<T>) {
+        self.compute_argmax(output);
+    }
+
+    fn compute_into_add(&self, output: &mut Vec<T>) {
+        self.compute_argmax_add(output);
+    }
+
+    fn compute_into_sub(&self, output: &mut Vec<T>) {
+        self.compute_argmax_sub(output);
+    }
+
+    fn compute_into_scale(&self, output: &mut Vec<T>) {
+        self.compute_argmax_scale(output);
+    }
+
+    fn compute_into_div(&self, output: &mut Vec<T>) {
+        self.compute_argmax_div(output);
+    }
+
     fn at(&self, i: usize) -> T {
-        let mut max_index = 0;
-        let mut current_return_index = T::zero();
-        let mut return_index = T::zero();
+        self.temp[i]
+    }
 
-        for column in 1..self.expr.value.columns() {
-            current_return_index += T::one();
+    fn at2(&self, row: usize, column: usize) -> T {
+        self.temp[row * self.columns() + column]
+    }
 
-            if self.expr.value.at2(i, column) > self.expr.value.at2(i, max_index) {
-                max_index = column;
-                return_index = current_return_index;
-            }
-        }
-
-        return_index
+    fn get_data(&self) -> &Vec<T> {
+        &self.temp
     }
 }
 
@@ -97,9 +191,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlWrappable<T> for ArgMaxExpr<T, 
 // ArgMaxExpr computes as copy
 impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlComputable<T> for ArgMaxExpr<T, Expr> {
     fn to_data(&self) -> Vec<T> {
-        let mut vec = vec![T::default(); padded_size(self.size())];
-        assign_direct(&mut vec, self);
-        vec
+        self.temp.clone()
     }
 }
 
