@@ -134,6 +134,16 @@ impl<T: EtlValueType> Matrix2d<T> {
     }
 }
 
+impl<T: EtlValueType> Clone for Matrix2d<T> {
+    fn clone(&self) -> Self {
+        Self {
+            data: self.data.clone(),
+            rows: self.rows,
+            columns: self.columns,
+        }
+    }
+}
+
 impl<T: EtlValueType> EtlExpr<T> for Matrix2d<T> {
     const DIMENSIONS: usize = 2;
     const TYPE: EtlType = EtlType::Value;
@@ -334,7 +344,7 @@ mod tests {
         mat[4] = 6;
         mat[5] = 9;
 
-        println!("Display matrix: {}", mat);
+        println!("Display matrix: {mat}");
         let str = format!("{mat}");
         assert_eq!(str, "[[3,2]\n[1,5]\n[6,9]]");
     }
@@ -348,9 +358,29 @@ mod tests {
         mat[2] = 1.0;
         mat[3] = 5.0;
 
-        println!("Display matrix: {}", mat);
+        println!("Display matrix: {mat}");
         let str = format!("{mat}");
         assert_eq!(str, "[[3.000000,2.000000]\n[1.000000,5.000000]]");
+    }
+
+    #[test]
+    fn clone() {
+        let mut vec = Matrix2d::<i32>::new(2, 2);
+
+        vec[0] = 3;
+        vec[1] = 2;
+        vec[2] = 1;
+        vec[3] = 9;
+
+        let copy = vec.clone();
+
+        assert_eq!(copy.size(), 4);
+        assert_eq!(copy.rows(), 2);
+        assert_eq!(copy.columns(), 2);
+        assert_eq!(copy.at(0), 3);
+        assert_eq!(copy.at(1), 2);
+        assert_eq!(copy.at(2), 1);
+        assert_eq!(copy.at(3), 9);
     }
 
     #[test]

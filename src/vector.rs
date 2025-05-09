@@ -107,6 +107,15 @@ impl<T: EtlValueType> Vector<T> {
     }
 }
 
+impl<T: EtlValueType> Clone for Vector<T> {
+    fn clone(&self) -> Self {
+        Self {
+            data: self.data.clone(),
+            size: self.size,
+        }
+    }
+}
+
 impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
     const DIMENSIONS: usize = 1;
     const TYPE: EtlType = EtlType::Value;
@@ -281,9 +290,25 @@ mod tests {
         vec[1] = 2;
         vec[2] = 1;
 
-        println!("Display vector: {}", vec);
+        println!("Display vector: {vec}");
         let str = format!("{vec}");
         assert_eq!(str, "[3,2,1]")
+    }
+
+    #[test]
+    fn clone() {
+        let mut vec = Vector::<i32>::new(3);
+
+        vec[0] = 3;
+        vec[1] = 2;
+        vec[2] = 1;
+
+        let copy = vec.clone();
+
+        assert_eq!(copy.size(), 3);
+        assert_eq!(copy.at(0), 3);
+        assert_eq!(copy.at(1), 2);
+        assert_eq!(copy.at(2), 1);
     }
 
     #[test]
