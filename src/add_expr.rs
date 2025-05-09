@@ -54,6 +54,8 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
         Self: 'x;
 
     fn iter(&self) -> Self::Iter<'_> {
+        // TODO In theory, this should be much simpler using zip and map, but then how do we get
+        // the type?
         AddExprIterator {
             lhs_iter: self.lhs.value.iter(),
             rhs_iter: self.rhs.value.iter(),
