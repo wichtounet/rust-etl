@@ -93,12 +93,11 @@ impl<T: EtlValueType> Vector<T> {
         }
     }
 
-    pub fn iter(&self) -> VectorIterator<T> {
-        VectorIterator::<T> { vector: self, index: 0 }
+    pub fn direct_iter(&self) -> std::slice::Iter<'_, T> {
+        self.data.iter()
     }
 
-    // Writing my own mutable iterator requires unsafe code (which I should do later)
-    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, T> {
+    pub fn direct_iter_mut(&mut self) -> std::slice::IterMut<'_, T> {
         self.data.iter_mut()
     }
 }
@@ -213,29 +212,6 @@ impl<T: EtlValueType, RightExpr: EtlExpr<T>> BitOrAssign<RightExpr> for Vector<T
     fn bitor_assign(&mut self, rhs: RightExpr) {
         validate_assign(self, &rhs);
         assign_direct(&mut self.data, &rhs);
-    }
-}
-
-// The declaration of VectorIterator<T>
-
-pub struct VectorIterator<'a, T: EtlValueType> {
-    vector: &'a Vector<T>,
-    index: usize,
-}
-
-// The implementation of VectorIterator<T>
-
-impl<'a, T: EtlValueType> Iterator for VectorIterator<'a, T> {
-    type Item = &'a T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.index < self.vector.size() {
-            let result = Some(&self.vector[self.index]);
-            self.index += 1;
-            result
-        } else {
-            None
-        }
     }
 }
 
