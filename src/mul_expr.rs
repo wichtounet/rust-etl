@@ -139,10 +139,10 @@ where
                     v4 += l2 * r2;
                 }
 
-                out[row1 * k + column1..row1 * k + column1 + lanes].copy_from_slice(&v1.to_array());
-                out[row1 * k + column2..row1 * k + column2 + lanes].copy_from_slice(&v2.to_array());
-                out[row2 * k + column1..row2 * k + column1 + lanes].copy_from_slice(&v3.to_array());
-                out[row2 * k + column2..row2 * k + column2 + lanes].copy_from_slice(&v4.to_array());
+                v1.copy_to_slice(&mut out[row1 * k + column1..row1 * k + column1 + lanes]);
+                v2.copy_to_slice(&mut out[row1 * k + column2..row1 * k + column2 + lanes]);
+                v3.copy_to_slice(&mut out[row2 * k + column1..row2 * k + column1 + lanes]);
+                v4.copy_to_slice(&mut out[row2 * k + column2..row2 * k + column2 + lanes]);
 
                 row += 2;
             }
@@ -167,8 +167,8 @@ where
                     v2 += l1 * r2;
                 }
 
-                out[row * k + column1..row * k + column1 + lanes].copy_from_slice(&v1.to_array());
-                out[row * k + column2..row * k + column2 + lanes].copy_from_slice(&v2.to_array());
+                v1.copy_to_slice(&mut out[row * k + column1..row * k + column1 + lanes]);
+                v2.copy_to_slice(&mut out[row * k + column2..row * k + column2 + lanes]);
             }
 
             column += 2 * lanes;
@@ -201,8 +201,8 @@ where
                     v2 += l2 * r1;
                 }
 
-                out[row1 * k + column..row1 * k + column + lanes].copy_from_slice(&v1.to_array());
-                out[row2 * k + column..row2 * k + column + lanes].copy_from_slice(&v2.to_array());
+                v1.copy_to_slice(&mut out[row1 * k + column..row1 * k + column + lanes]);
+                v2.copy_to_slice(&mut out[row2 * k + column..row2 * k + column + lanes]);
 
                 row += 2;
             }
@@ -219,7 +219,7 @@ where
                     v1 += l1 * r1;
                 }
 
-                out[row * k + column..row * k + column + lanes].copy_from_slice(&v1.to_array());
+                v1.copy_to_slice(&mut out[row * k + column..row * k + column + lanes]);
             }
 
             column += lanes;
@@ -544,14 +544,14 @@ where
                             v8 += l4 * r2;
                         }
 
-                        out[row1 * columns + column1 + column_block_index] += Self::sum(&v1.to_array());
-                        out[row2 * columns + column1 + column_block_index] += Self::sum(&v2.to_array());
-                        out[row3 * columns + column1 + column_block_index] += Self::sum(&v3.to_array());
-                        out[row4 * columns + column1 + column_block_index] += Self::sum(&v4.to_array());
-                        out[row1 * columns + column2 + column_block_index] += Self::sum(&v5.to_array());
-                        out[row2 * columns + column2 + column_block_index] += Self::sum(&v6.to_array());
-                        out[row3 * columns + column2 + column_block_index] += Self::sum(&v7.to_array());
-                        out[row4 * columns + column2 + column_block_index] += Self::sum(&v8.to_array());
+                        out[row1 * columns + column1 + column_block_index] += Self::sum(v1.as_array());
+                        out[row2 * columns + column1 + column_block_index] += Self::sum(v2.as_array());
+                        out[row3 * columns + column1 + column_block_index] += Self::sum(v3.as_array());
+                        out[row4 * columns + column1 + column_block_index] += Self::sum(v4.as_array());
+                        out[row1 * columns + column2 + column_block_index] += Self::sum(v5.as_array());
+                        out[row2 * columns + column2 + column_block_index] += Self::sum(v6.as_array());
+                        out[row3 * columns + column2 + column_block_index] += Self::sum(v7.as_array());
+                        out[row4 * columns + column2 + column_block_index] += Self::sum(v8.as_array());
 
                         column += 2;
                     }
@@ -584,10 +584,10 @@ where
                             v4 += l4 * r1;
                         }
 
-                        out[row1 * columns + column + column_block_index] += Self::sum(&v1.to_array());
-                        out[row2 * columns + column + column_block_index] += Self::sum(&v2.to_array());
-                        out[row3 * columns + column + column_block_index] += Self::sum(&v3.to_array());
-                        out[row4 * columns + column + column_block_index] += Self::sum(&v4.to_array());
+                        out[row1 * columns + column + column_block_index] += Self::sum(v1.as_array());
+                        out[row2 * columns + column + column_block_index] += Self::sum(v2.as_array());
+                        out[row3 * columns + column + column_block_index] += Self::sum(v3.as_array());
+                        out[row4 * columns + column + column_block_index] += Self::sum(v4.as_array());
                     }
 
                     row += 4;
@@ -628,10 +628,10 @@ where
                             v4 += l2 * r2;
                         }
 
-                        out[row1 * columns + column1 + column_block_index] += Self::sum(&v1.to_array());
-                        out[row2 * columns + column1 + column_block_index] += Self::sum(&v2.to_array());
-                        out[row1 * columns + column2 + column_block_index] += Self::sum(&v3.to_array());
-                        out[row2 * columns + column2 + column_block_index] += Self::sum(&v4.to_array());
+                        out[row1 * columns + column1 + column_block_index] += Self::sum(v1.as_array());
+                        out[row2 * columns + column1 + column_block_index] += Self::sum(v2.as_array());
+                        out[row1 * columns + column2 + column_block_index] += Self::sum(v3.as_array());
+                        out[row2 * columns + column2 + column_block_index] += Self::sum(v4.as_array());
 
                         column += 2;
                     }
@@ -656,8 +656,8 @@ where
                             v2 += l2 * r1;
                         }
 
-                        out[row1 * columns + column + column_block_index] += Self::sum(&v1.to_array());
-                        out[row2 * columns + column + column_block_index] += Self::sum(&v2.to_array());
+                        out[row1 * columns + column + column_block_index] += Self::sum(v1.as_array());
+                        out[row2 * columns + column + column_block_index] += Self::sum(v2.as_array());
                     }
 
                     row += 2;
@@ -689,8 +689,8 @@ where
                             v2 += l1 * r2;
                         }
 
-                        out[row * columns + column1 + column_block_index] += Self::sum(&v1.to_array());
-                        out[row * columns + column2 + column_block_index] += Self::sum(&v2.to_array());
+                        out[row * columns + column1 + column_block_index] += Self::sum(v1.as_array());
+                        out[row * columns + column2 + column_block_index] += Self::sum(v2.as_array());
 
                         column += 2;
                     }
@@ -707,7 +707,7 @@ where
                             v1 += l1 * r1;
                         }
 
-                        out[row * columns + column + column_block_index] += Self::sum(&v1.to_array());
+                        out[row * columns + column + column_block_index] += Self::sum(v1.as_array());
                     }
 
                     row += 1;
