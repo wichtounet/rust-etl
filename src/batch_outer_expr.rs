@@ -201,15 +201,15 @@ where
                     batch += lanes;
                 }
 
-                let mut v11 = Self::sum(&xmm1.to_array());
-                let mut v12 = Self::sum(&xmm2.to_array());
-                let mut v13 = Self::sum(&xmm3.to_array());
-                let mut v14 = Self::sum(&xmm4.to_array());
+                let mut v11 = Self::sum(xmm1.as_array());
+                let mut v12 = Self::sum(xmm2.as_array());
+                let mut v13 = Self::sum(xmm3.as_array());
+                let mut v14 = Self::sum(xmm4.as_array());
 
-                let mut v21 = Self::sum(&xmm5.to_array());
-                let mut v22 = Self::sum(&xmm6.to_array());
-                let mut v23 = Self::sum(&xmm7.to_array());
-                let mut v24 = Self::sum(&xmm8.to_array());
+                let mut v21 = Self::sum(xmm5.as_array());
+                let mut v22 = Self::sum(xmm6.as_array());
+                let mut v23 = Self::sum(xmm7.as_array());
+                let mut v24 = Self::sum(xmm8.as_array());
 
                 while batch < b {
                     v11 += lhs_opp[r1 * b + batch] * rhs_opp[c1 * b + batch];
@@ -265,11 +265,11 @@ where
                     batch += lanes;
                 }
 
-                let mut v11 = Self::sum(&xmm1.to_array());
-                let mut v12 = Self::sum(&xmm2.to_array());
+                let mut v11 = Self::sum(xmm1.as_array());
+                let mut v12 = Self::sum(xmm2.as_array());
 
-                let mut v21 = Self::sum(&xmm3.to_array());
-                let mut v22 = Self::sum(&xmm4.to_array());
+                let mut v21 = Self::sum(xmm3.as_array());
+                let mut v22 = Self::sum(xmm4.as_array());
 
                 while batch < b {
                     v11 += lhs_opp[r1 * b + batch] * rhs_opp[c1 * b + batch];
@@ -335,15 +335,15 @@ where
                 let mut transpose_first_kernel = |_out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
                     lhs_opp = lhs.clone();
                     for lhs_row in 0..b {
-                        for lhs_column in 0..m {
-                            lhs_opp[lhs_column * b + lhs_row] = lhs[lhs_row * m + lhs_column];
+                        for (lhs_column, lhs_iter) in lhs[lhs_row * m..lhs_row * m + m].iter().enumerate() {
+                            lhs_opp[lhs_column * b + lhs_row] = *lhs_iter;
                         }
                     }
 
                     rhs_opp = rhs.clone();
                     for rhs_row in 0..b {
-                        for rhs_column in 0..n {
-                            rhs_opp[rhs_column * b + rhs_row] = rhs[rhs_row * n + rhs_column];
+                        for (rhs_column, rhs_iter) in rhs[rhs_row * n..rhs_row * n + n].iter().enumerate() {
+                            rhs_opp[rhs_column * b + rhs_row] = *rhs_iter;
                         }
                     }
                 };
