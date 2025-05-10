@@ -347,6 +347,23 @@ mod tests {
     }
 
     #[test]
+    fn basic_iterator_range() {
+        let mut a = Matrix2d::<i64>::new(2, 4);
+        let mut b = Matrix2d::<i64>::new(4, 2);
+
+        a.iota_fill(1);
+        b.iota_fill(2);
+
+        let expr = &a + &b;
+
+        for (n, value) in expr.iter_range(1..3).enumerate() {
+            assert!(n + 1 >= 1);
+            assert!(n + 1 < 3);
+            assert_eq!(value, ((n + 1 + 1) + (n + 1 + 2)).try_into().unwrap());
+        }
+    }
+
+    #[test]
     fn basic_iterator_deep() {
         let mut a = Matrix2d::<i64>::new(2, 4);
         let mut b = Matrix2d::<i64>::new(4, 2);
