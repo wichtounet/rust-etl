@@ -283,8 +283,8 @@ pub fn add_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
                 }
             });
         } else {
-            for (i, lhs) in &mut data[0..size].iter_mut().enumerate() {
-                *lhs += rhs.at(i);
+            for (lhs, rhs) in data[0..size].iter_mut().zip(rhs.iter()) {
+                *lhs += rhs;
             }
         }
     }
@@ -323,8 +323,8 @@ pub fn sub_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
                 }
             });
         } else {
-            for (i, lhs) in &mut data[0..size].iter_mut().enumerate() {
-                *lhs -= rhs.at(i);
+            for (lhs, rhs) in data[0..size].iter_mut().zip(rhs.iter()) {
+                *lhs -= rhs;
             }
         }
     }
@@ -363,8 +363,8 @@ pub fn div_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Vec<
                 }
             });
         } else {
-            for (i, lhs) in &mut data[0..size].iter_mut().enumerate() {
-                *lhs /= rhs.at(i);
+            for (lhs, rhs) in data[0..size].iter_mut().zip(rhs.iter()) {
+                *lhs /= rhs;
             }
         }
     }
@@ -403,8 +403,8 @@ pub fn scale_assign_direct<T: EtlValueType, RightExpr: EtlExpr<T>>(data: &mut Ve
                 }
             });
         } else {
-            for (i, lhs) in &mut data[0..size].iter_mut().enumerate() {
-                *lhs *= rhs.at(i);
+            for (lhs, rhs) in data[0..size].iter_mut().zip(rhs.iter()) {
+                *lhs *= rhs;
             }
         }
     }
