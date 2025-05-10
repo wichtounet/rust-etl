@@ -370,7 +370,7 @@ mod tests {
 
     #[test]
     fn basic_parallel() {
-        let n = 32768 * 3 + 41;
+        let n = 256 * 1024 * 3 + 41;
         let mut a = Vector::<i64>::new(n);
         let mut b = Vector::<i64>::new(n);
         let mut c = Vector::<i64>::new(n);
