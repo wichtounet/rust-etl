@@ -38,32 +38,32 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> BatchStableSoftmaxExpr<T, 
     fn compute_batch_stable_softmax_add(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for (n, value) in output.iter_mut().enumerate() {
-            *value += self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs += *rhs;
         }
     }
 
     fn compute_batch_stable_softmax_sub(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for (n, value) in output.iter_mut().enumerate() {
-            *value -= self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs -= *rhs;
         }
     }
 
     fn compute_batch_stable_softmax_scale(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for (n, value) in output.iter_mut().enumerate() {
-            *value *= self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs *= *rhs;
         }
     }
 
     fn compute_batch_stable_softmax_div(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for (n, value) in output.iter_mut().enumerate() {
-            *value /= self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs /= *rhs;
         }
     }
 

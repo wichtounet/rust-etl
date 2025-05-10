@@ -29,41 +29,41 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> BatchSoftmaxExpr<T, Expr> 
         expr
     }
 
-    fn compute_batch_softmax(&self, output: &mut Vec<T>) {
+    fn compute_batch_softmax(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
         output[..self.temp.len()].copy_from_slice(&self.temp[..]);
     }
 
-    fn compute_batch_softmax_add(&self, output: &mut Vec<T>) {
+    fn compute_batch_softmax_add(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] += self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs += *rhs;
         }
     }
 
-    fn compute_batch_softmax_sub(&self, output: &mut Vec<T>) {
+    fn compute_batch_softmax_sub(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] -= self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs -= *rhs;
         }
     }
 
-    fn compute_batch_softmax_scale(&self, output: &mut Vec<T>) {
+    fn compute_batch_softmax_scale(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] *= self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs *= *rhs;
         }
     }
 
-    fn compute_batch_softmax_div(&self, output: &mut Vec<T>) {
+    fn compute_batch_softmax_div(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] /= self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs /= *rhs;
         }
     }
 

@@ -36,32 +36,32 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> ArgMaxExpr<T, Expr> {
     fn compute_argmax_add(&self, output: &mut Vec<T>) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] += self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs += *rhs;
         }
     }
 
     fn compute_argmax_sub(&self, output: &mut Vec<T>) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] -= self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs -= *rhs;
         }
     }
 
     fn compute_argmax_scale(&self, output: &mut Vec<T>) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] *= self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs *= *rhs;
         }
     }
 
     fn compute_argmax_div(&self, output: &mut Vec<T>) {
         assert!(!self.temp.is_empty());
 
-        for n in 0..self.temp.len() {
-            output[n] /= self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs /= *rhs;
         }
     }
 
