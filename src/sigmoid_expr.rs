@@ -50,8 +50,14 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SigmoidExpr
         Expr: 'x;
 
     fn iter(&self) -> Self::Iter<'_> {
-        SigmoidExprIterator {
+        Self::Iter {
             sub_iter: self.expr.value.iter(),
+        }
+    }
+
+    fn iter_range(&self, range: std::ops::Range<usize>) -> Self::Iter<'_> {
+        Self::Iter {
+            sub_iter: self.expr.value.iter_range(range),
         }
     }
 

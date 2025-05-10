@@ -129,6 +129,10 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for BatchStable
         self.temp.iter().cloned()
     }
 
+    fn iter_range(&self, range: std::ops::Range<usize>) -> Self::Iter<'_> {
+        self.temp[range].iter().cloned()
+    }
+
     fn size(&self) -> usize {
         self.expr.value.size()
     }

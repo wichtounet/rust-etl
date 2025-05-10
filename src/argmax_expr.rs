@@ -27,13 +27,13 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> ArgMaxExpr<T, Expr> {
         expr
     }
 
-    fn compute_argmax(&self, output: &mut Vec<T>) {
+    fn compute_argmax(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
         output[..self.temp.len()].copy_from_slice(&self.temp[..]);
     }
 
-    fn compute_argmax_add(&self, output: &mut Vec<T>) {
+    fn compute_argmax_add(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
         for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
@@ -41,7 +41,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> ArgMaxExpr<T, Expr> {
         }
     }
 
-    fn compute_argmax_sub(&self, output: &mut Vec<T>) {
+    fn compute_argmax_sub(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
         for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
@@ -49,7 +49,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> ArgMaxExpr<T, Expr> {
         }
     }
 
-    fn compute_argmax_scale(&self, output: &mut Vec<T>) {
+    fn compute_argmax_scale(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
         for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
@@ -57,7 +57,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> ArgMaxExpr<T, Expr> {
         }
     }
 
-    fn compute_argmax_div(&self, output: &mut Vec<T>) {
+    fn compute_argmax_div(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
         for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
@@ -124,6 +124,10 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for ArgMaxExpr<T, Expr>
 
     fn iter(&self) -> Self::Iter<'_> {
         self.temp.iter().cloned()
+    }
+
+    fn iter_range(&self, range: std::ops::Range<usize>) -> Self::Iter<'_> {
+        self.temp[range].iter().cloned()
     }
 
     fn size(&self) -> usize {

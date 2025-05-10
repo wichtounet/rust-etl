@@ -62,9 +62,16 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
         Self: 'x;
 
     fn iter(&self) -> Self::Iter<'_> {
-        MinExprIterator {
+        Self::Iter {
             lhs_iter: self.lhs.value.iter(),
             rhs_iter: self.rhs.value.iter(),
+        }
+    }
+
+    fn iter_range(&self, range: std::ops::Range<usize>) -> Self::Iter<'_> {
+        Self::Iter {
+            lhs_iter: self.lhs.value.iter_range(range.clone()),
+            rhs_iter: self.rhs.value.iter_range(range.clone()),
         }
     }
 

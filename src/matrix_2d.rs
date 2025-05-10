@@ -148,11 +148,14 @@ impl<T: EtlValueType> EtlExpr<T> for Matrix2d<T> {
     type Iter<'x>
         = std::iter::Cloned<std::slice::Iter<'x, T>>
     where
-        T: 'x,
-        Self: 'x;
+        T: 'x;
 
     fn iter(&self) -> Self::Iter<'_> {
         self.data.iter().cloned()
+    }
+
+    fn iter_range(&self, range: std::ops::Range<usize>) -> Self::Iter<'_> {
+        self.data[range].iter().cloned()
     }
 
     fn size(&self) -> usize {
@@ -202,6 +205,10 @@ impl<T: EtlValueType> EtlExpr<T> for &Matrix2d<T> {
 
     fn iter(&self) -> Self::Iter<'_> {
         self.data.iter().cloned()
+    }
+
+    fn iter_range(&self, range: std::ops::Range<usize>) -> Self::Iter<'_> {
+        self.data[range].iter().cloned()
     }
 
     fn size(&self) -> usize {

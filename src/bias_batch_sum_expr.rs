@@ -116,6 +116,10 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for BiasBatchSumExpr<T,
         self.temp.iter().cloned()
     }
 
+    fn iter_range(&self, range: std::ops::Range<usize>) -> Self::Iter<'_> {
+        self.temp[range].iter().cloned()
+    }
+
     fn size(&self) -> usize {
         self.lhs.value.columns()
     }

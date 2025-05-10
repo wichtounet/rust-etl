@@ -63,7 +63,11 @@ impl<T: EtlValueType + RandFloat> EtlExpr<T> for InvDropoutMask<T> {
         T: 'x;
 
     fn iter(&self) -> Self::Iter<'_> {
-        InvDropoutMaskIterator { expr: self }
+        Self::Iter { expr: self }
+    }
+
+    fn iter_range(&self, _range: std::ops::Range<usize>) -> Self::Iter<'_> {
+        Self::Iter { expr: self }
     }
 
     fn size(&self) -> usize {

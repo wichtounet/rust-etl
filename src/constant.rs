@@ -44,6 +44,10 @@ impl<T: EtlValueType> EtlExpr<T> for Constant<T> {
         ConstantIterator { value: self.value }
     }
 
+    fn iter_range(&self, _range: std::ops::Range<usize>) -> Self::Iter<'_> {
+        ConstantIterator { value: self.value }
+    }
+
     fn size(&self) -> usize {
         0
     }

@@ -126,6 +126,10 @@ impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
         self.data.iter().cloned()
     }
 
+    fn iter_range(&self, range: std::ops::Range<usize>) -> Self::Iter<'_> {
+        self.data[range].iter().cloned()
+    }
+
     fn size(&self) -> usize {
         self.size
     }
@@ -157,6 +161,10 @@ impl<T: EtlValueType> EtlExpr<T> for &Vector<T> {
 
     fn iter(&self) -> Self::Iter<'_> {
         self.data.iter().cloned()
+    }
+
+    fn iter_range(&self, range: std::ops::Range<usize>) -> Self::Iter<'_> {
+        self.data[range].iter().cloned()
     }
 
     fn size(&self) -> usize {

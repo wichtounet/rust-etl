@@ -866,6 +866,10 @@ where
         self.temp.iter().cloned()
     }
 
+    fn iter_range(&self, range: std::ops::Range<usize>) -> Self::Iter<'_> {
+        self.temp[range].iter().cloned()
+    }
+
     fn size(&self) -> usize {
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
             self.rhs.value.columns()

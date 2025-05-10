@@ -104,6 +104,7 @@ pub trait EtlExpr<T: EtlValueType>: std::marker::Sync {
         Self: 'x;
 
     fn iter(&self) -> Self::Iter<'_>;
+    fn iter_range(&self, range: std::ops::Range<usize>) -> Self::Iter<'_>;
 
     /// Return the size of the Expressions.
     ///

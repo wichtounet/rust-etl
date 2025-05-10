@@ -56,8 +56,15 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SoftmaxExpr
         Self: 'x;
 
     fn iter(&self) -> Self::Iter<'_> {
-        SoftmaxExprIterator {
+        Self::Iter {
             sub_iter: self.expr.value.iter(),
+            s: self.s,
+        }
+    }
+
+    fn iter_range(&self, range: std::ops::Range<usize>) -> Self::Iter<'_> {
+        Self::Iter {
+            sub_iter: self.expr.value.iter_range(range),
             s: self.s,
         }
     }

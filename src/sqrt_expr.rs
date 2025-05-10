@@ -46,8 +46,14 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SqrtExprj<T
         Self: 'x;
 
     fn iter(&self) -> Self::Iter<'_> {
-        SqrtExprIterator {
+        Self::Iter {
             sub_iter: self.expr.value.iter(),
+        }
+    }
+
+    fn iter_range(&self, range: std::ops::Range<usize>) -> Self::Iter<'_> {
+        Self::Iter {
+            sub_iter: self.expr.value.iter_range(range),
         }
     }
 
