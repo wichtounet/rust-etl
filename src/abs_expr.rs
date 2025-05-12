@@ -26,10 +26,7 @@ impl<'a, T: EtlValueType + Abs, Expr: EtlExpr<T>> Iterator for AbsExprIterator<'
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.sub_iter.next() {
-            Some(sub) => Some(sub.abs()),
-            _ => None,
-        }
+        self.sub_iter.next().map(|sub| sub.abs())
     }
 }
 

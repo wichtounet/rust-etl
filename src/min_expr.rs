@@ -42,10 +42,7 @@ impl<'a, T: EtlValueType, LeftExpr: EtlExpr<T>, RightExpr: EtlExpr<T>> Iterator 
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match (self.lhs_iter.next(), self.rhs_iter.next()) {
-            (Some(lhs), Some(rhs)) => Some(min_impl(lhs, rhs)),
-            _ => None,
-        }
+        self.lhs_iter.next().zip(self.rhs_iter.next()).map(|(lhs, rhs)| min_impl(lhs, rhs))
     }
 }
 

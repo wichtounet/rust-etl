@@ -26,10 +26,7 @@ impl<'a, T: EtlValueType + Float, Expr: EtlExpr<T>> Iterator for LogExprIterator
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.sub_iter.next() {
-            Some(sub) => Some(sub.ln()),
-            _ => None,
-        }
+        self.sub_iter.next().map(|sub| sub.ln())
     }
 }
 

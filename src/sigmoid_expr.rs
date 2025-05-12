@@ -30,10 +30,7 @@ impl<'a, T: EtlValueType + Float, Expr: EtlExpr<T>> Iterator for SigmoidExprIter
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.sub_iter.next() {
-            Some(sub) => Some(sigmoid_impl(sub)),
-            _ => None,
-        }
+        self.sub_iter.next().map(sigmoid_impl)
     }
 }
 

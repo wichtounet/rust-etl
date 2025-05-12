@@ -36,10 +36,7 @@ impl<'a, T: EtlValueType + Float, Expr: EtlExpr<T>> Iterator for SoftmaxExprIter
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.sub_iter.next() {
-            Some(sub) => Some(softmax_impl(sub, self.s)),
-            _ => None,
-        }
+        self.sub_iter.next().map(|sub| softmax_impl(sub, self.s))
     }
 }
 

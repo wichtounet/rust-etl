@@ -40,10 +40,7 @@ impl<'a, T: EtlValueType + Float, Expr: EtlExpr<T>> Iterator for StableSoftmaxEx
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.sub_iter.next() {
-            Some(sub) => Some(stable_softmax_impl(sub, self.m, self.s)),
-            _ => None,
-        }
+        self.sub_iter.next().map(|sub| stable_softmax_impl(sub, self.m, self.s))
     }
 }
 

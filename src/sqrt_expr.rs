@@ -26,10 +26,7 @@ impl<'a, T: EtlValueType + Float, Expr: EtlExpr<T>> Iterator for SqrtExprIterato
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.sub_iter.next() {
-            Some(sub) => Some(sub.sqrt()),
-            _ => None,
-        }
+        self.sub_iter.next().map(|sub| sub.sqrt())
     }
 }
 
