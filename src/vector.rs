@@ -93,6 +93,11 @@ impl<T: EtlValueType> Vector<T> {
         }
     }
 
+    pub fn inplace_axpy<RightExpr: EtlExpr<T>>(&mut self, alpha: T, beta: T, y: RightExpr) {
+        validate_assign(self, &y);
+        axpy_direct(&mut self.data, alpha, beta, &y);
+    }
+
     pub fn direct_iter(&self) -> std::slice::Iter<'_, T> {
         self.data.iter()
     }

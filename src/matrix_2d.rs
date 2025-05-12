@@ -128,6 +128,11 @@ impl<T: EtlValueType> Matrix2d<T> {
             *value = normal.sample(&mut rng);
         }
     }
+
+    pub fn inplace_axpy<RightExpr: EtlExpr<T>>(&mut self, alpha: T, beta: T, y: RightExpr) {
+        validate_assign(self, &y);
+        axpy_direct(&mut self.data, alpha, beta, &y);
+    }
 }
 
 impl<T: EtlValueType> Clone for Matrix2d<T> {
@@ -475,6 +480,29 @@ mod tests {
         assert_eq!(a[1], 13);
         assert_eq!(a[2], 43);
         assert_eq!(a[3], 84);
+    }
+
+    #[test]
+    fn inplace_axpy() {
+        let mut a = Matrix2d::<i64>::new(2, 2);
+        let mut b = Matrix2d::<i64>::new(2, 2);
+
+        a[0] = 3;
+        a[1] = 9;
+        a[2] = 27;
+        a[3] = 42;
+
+        b[0] = 2;
+        b[1] = 4;
+        b[2] = 16;
+        b[3] = 42;
+
+        a.inplace_axpy(3, 5, b);
+
+        assert_eq!(a.at2(0, 0), 19);
+        assert_eq!(a.at2(0, 1), 47);
+        assert_eq!(a.at2(1, 0), 161);
+        assert_eq!(a.at2(1, 1), 336);
     }
 
     #[test]
