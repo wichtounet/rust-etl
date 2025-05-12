@@ -25,3 +25,13 @@ I could potentially use a custom trait for that and return a `Box<dyn MySimdType
 The `reduce_sum` issue was worked around with a custom sum function. 
 
 Currently, this also prevents me from using FMA since the `mul_add` function is hidden behind StdFloat and the rust-etl code is generic for integers and floats.
+
+### Parallel overhead
+
+Currently, the implementation of threads in this library is based on `rayon`and this has much more overhead than the implementation in `etl`.
+
+## Performance
+
+This library is mostly made to be used by `rust-dll`. A simple MLP is **currently about 40% slower than the version in C++**.
+
+One of the major improvements was achieved by switching to iterators whenever possible to speed up operations. When using iterators, the compiler can elide many bounds checks. This help performance on small vectors and matrices a lot.
