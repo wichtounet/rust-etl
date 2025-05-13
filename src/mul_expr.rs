@@ -508,13 +508,13 @@ where
                         let column2 = column + 1;
 
                         // inner = 0
-                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size + 0..]);
-                        let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size + 0..]);
-                        let l3 = Simd::<T, 8>::from_slice(&lhs2[row3 * inner_block_size + 0..]);
-                        let l4 = Simd::<T, 8>::from_slice(&lhs2[row4 * inner_block_size + 0..]);
+                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size..]);
+                        let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size..]);
+                        let l3 = Simd::<T, 8>::from_slice(&lhs2[row3 * inner_block_size..]);
+                        let l4 = Simd::<T, 8>::from_slice(&lhs2[row4 * inner_block_size..]);
 
-                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column1 * inner_block_size + 0..]);
-                        let r2 = Simd::<T, 8>::from_slice(&rhs2[column2 * inner_block_size + 0..]);
+                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column1 * inner_block_size..]);
+                        let r2 = Simd::<T, 8>::from_slice(&rhs2[column2 * inner_block_size..]);
 
                         let mut v1 = l1 * r1;
                         let mut v2 = l2 * r1;
@@ -558,12 +558,12 @@ where
 
                     if column < column_block {
                         // inner = 0
-                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size + 0..]);
-                        let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size + 0..]);
-                        let l3 = Simd::<T, 8>::from_slice(&lhs2[row3 * inner_block_size + 0..]);
-                        let l4 = Simd::<T, 8>::from_slice(&lhs2[row4 * inner_block_size + 0..]);
+                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size..]);
+                        let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size..]);
+                        let l3 = Simd::<T, 8>::from_slice(&lhs2[row3 * inner_block_size..]);
+                        let l4 = Simd::<T, 8>::from_slice(&lhs2[row4 * inner_block_size..]);
 
-                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column * inner_block_size + 0..]);
+                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column * inner_block_size..]);
 
                         let mut v1 = l1 * r1;
                         let mut v2 = l2 * r1;
@@ -604,11 +604,11 @@ where
                         let column2 = column + 1;
 
                         // inner = 0
-                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size + 0..]);
-                        let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size + 0..]);
+                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size..]);
+                        let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size..]);
 
-                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column1 * inner_block_size + 0..]);
-                        let r2 = Simd::<T, 8>::from_slice(&rhs2[column2 * inner_block_size + 0..]);
+                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column1 * inner_block_size..]);
+                        let r2 = Simd::<T, 8>::from_slice(&rhs2[column2 * inner_block_size..]);
 
                         let mut v1 = l1 * r1;
                         let mut v2 = l2 * r1;
@@ -638,10 +638,10 @@ where
 
                     if column < column_block {
                         // inner = 0
-                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size + 0..]);
-                        let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size + 0..]);
+                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row1 * inner_block_size..]);
+                        let l2 = Simd::<T, 8>::from_slice(&lhs2[row2 * inner_block_size..]);
 
-                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column * inner_block_size + 0..]);
+                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column * inner_block_size..]);
 
                         let mut v1 = l1 * r1;
                         let mut v2 = l2 * r1;
@@ -671,10 +671,10 @@ where
                         let column2 = column + 1;
 
                         // inner = 0
-                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row * inner_block_size + 0..]);
+                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row * inner_block_size..]);
 
-                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column1 * inner_block_size + 0..]);
-                        let r2 = Simd::<T, 8>::from_slice(&rhs2[column2 * inner_block_size + 0..]);
+                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column1 * inner_block_size..]);
+                        let r2 = Simd::<T, 8>::from_slice(&rhs2[column2 * inner_block_size..]);
 
                         let mut v1 = l1 * r1;
                         let mut v2 = l1 * r2;
@@ -697,8 +697,8 @@ where
 
                     if column < column_block {
                         // inner = 0
-                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row * inner_block_size + 0..]);
-                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column * inner_block_size + 0..]);
+                        let l1 = Simd::<T, 8>::from_slice(&lhs2[row * inner_block_size..]);
+                        let r1 = Simd::<T, 8>::from_slice(&rhs2[column * inner_block_size..]);
                         let mut v1 = l1 * r1;
 
                         for inner in (lanes..inner_block).step_by(lanes) {

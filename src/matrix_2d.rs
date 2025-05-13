@@ -235,11 +235,11 @@ impl<T: EtlValueType> EtlExpr<T> for &Matrix2d<T> {
 
     fn at2(&self, row: usize, column: usize) -> T {
         if row >= self.rows {
-            panic!("Row {} is out of bounds!", row);
+            panic!("Row {row} is out of bounds!");
         }
 
         if column >= self.columns {
-            panic!("Column {} is out of bounds!", column);
+            panic!("Column {column} is out of bounds!");
         }
 
         self.data[row * self.columns + column]
@@ -263,7 +263,7 @@ impl<'a, T: EtlValueType> EtlWrappable<T> for &'a Matrix2d<T> {
 }
 
 // Matrix2d<T> computes as itself
-impl<'a, T: EtlValueType> EtlComputable<T> for &'a Matrix2d<T> {
+impl<T: EtlValueType> EtlComputable<T> for &Matrix2d<T> {
     fn to_data(&self) -> Vec<T> {
         self.data.clone()
     }

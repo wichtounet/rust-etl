@@ -28,7 +28,7 @@ fn choose_repeat<F: FnMut()>(mut closure: F) -> i64 {
 }
 
 fn bench_closure<F: FnMut()>(mut closure: F) -> (f64, f64) {
-    let rep = choose_repeat(|| closure());
+    let rep = choose_repeat(&mut closure);
 
     let now = SystemTime::now();
 
@@ -48,9 +48,9 @@ fn choose_time(times: (f64, f64)) -> String {
     let (millis, micros) = times;
 
     if millis <= 0.01 {
-        format!("{}us", micros)
+        format!("{micros}us")
     } else {
-        format!("{}ms", millis)
+        format!("{millis}ms")
     }
 }
 
@@ -72,7 +72,7 @@ fn bench_basic_b(n: usize) {
 
     let mut d = Vector::<f64>::new_rand(n);
 
-    let func = || d |= &a >> &b + &c >> &a;
+    let func = || d |= (&a >> &b) + (&c >> &a);
 
     let times = bench_closure(func);
     println!("d = a >> b + c >> a ({}) took {}", n, choose_time(times));

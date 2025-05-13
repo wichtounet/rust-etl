@@ -203,7 +203,7 @@ impl<'a, T: EtlValueType> EtlWrappable<T> for &'a Vector<T> {
 }
 
 // Vector<T> computes as itself
-impl<'a, T: EtlValueType> EtlComputable<T> for &'a Vector<T> {
+impl<T: EtlValueType> EtlComputable<T> for &Vector<T> {
     fn to_data(&self) -> Vec<T> {
         self.data.clone()
     }

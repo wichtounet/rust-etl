@@ -52,32 +52,32 @@ where
     fn compute_batch_outer_add(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for (n, value) in output.iter_mut().enumerate() {
-            *value += self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs += *rhs;
         }
     }
 
     fn compute_batch_outer_sub(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for (n, value) in output.iter_mut().enumerate() {
-            *value -= self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs -= *rhs;
         }
     }
 
     fn compute_batch_outer_scale(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for (n, value) in output.iter_mut().enumerate() {
-            *value *= self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs *= *rhs;
         }
     }
 
     fn compute_batch_outer_div(&self, output: &mut [T]) {
         assert!(!self.temp.is_empty());
 
-        for (n, value) in output.iter_mut().enumerate() {
-            *value /= self.temp[n];
+        for (lhs, rhs) in output.iter_mut().zip(self.temp.iter()) {
+            *lhs /= *rhs;
         }
     }
 
@@ -150,7 +150,7 @@ where
 
     // For medium-to-large matrices, we can transpose lhs and rhs and then we can vectorize the
     // inner loop properly
-    fn transposed_kernel(m_start: usize, m_end: usize, n: usize, b: usize, out: &mut [T], lhs_opp: &Vec<T>, rhs_opp: &Vec<T>) {
+    fn transposed_kernel(m_start: usize, m_end: usize, n: usize, b: usize, out: &mut [T], lhs_opp: &[T], rhs_opp: &[T]) {
         let lanes = 8;
 
         let mut row = m_start;
