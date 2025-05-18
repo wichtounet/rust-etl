@@ -334,6 +334,8 @@ mod tests {
         assert_eq!(mat.size(), 8);
         assert_eq!(mat.rows(), 4);
         assert_eq!(mat.columns(), 2);
+        assert_eq!(mat.dim(0), 4);
+        assert_eq!(mat.dim(1), 2);
     }
 
     #[test]
