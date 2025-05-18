@@ -31,6 +31,7 @@ pub mod transpose_expr;
 
 // The containers
 pub mod matrix_2d;
+pub mod matrix_3d;
 pub mod vector;
 
 // The pseudo containers
