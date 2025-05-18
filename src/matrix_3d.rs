@@ -307,8 +307,6 @@ impl<T: EtlValueType> fmt::Display for Matrix3d<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "[")?;
 
-        // TODO
-
         for row in 0..self.m {
             if row > 0 {
                 writeln!(f)?;
@@ -316,9 +314,17 @@ impl<T: EtlValueType> fmt::Display for Matrix3d<T> {
             write!(f, "[")?;
             for column in 0..self.n {
                 if column > 0 {
-                    write!(f, ",")?;
+                    writeln!(f)?;
                 }
-                write!(f, "{:.6}", self.at2(row, column))?;
+                write!(f, "[")?;
+                for inner in 0..self.k {
+                    if inner > 0 {
+                        write!(f, ",")?;
+                    }
+
+                    write!(f, "{:.6}", self.at3(row, column, inner))?;
+                }
+                write!(f, "]")?
             }
 
             write!(f, "]")?
@@ -406,30 +412,25 @@ mod tests {
     fn print() {
         let mut mat = Matrix3d::<i32>::new(3, 2, 2);
 
-        mat[0] = 3;
-        mat[1] = 2;
-        mat[2] = 1;
-        mat[3] = 5;
-        mat[4] = 6;
-        mat[5] = 9;
+        mat.iota_fill(1);
 
         println!("Display matrix: {mat}");
         let str = format!("{mat}");
-        assert_eq!(str, "[[3,2]\n[1,5]\n[6,9]]");
+        assert_eq!(str, "[[[1,2]\n[3,4]]\n[[5,6]\n[7,8]]\n[[9,10]\n[11,12]]]");
     }
 
     #[test]
     fn print_float() {
-        let mut mat = Matrix3d::<f32>::new(2, 2, 3);
+        let mut mat = Matrix3d::<f32>::new(3, 2, 2);
 
-        mat[0] = 3.0;
-        mat[1] = 2.0;
-        mat[2] = 1.0;
-        mat[3] = 5.0;
+        mat.iota_fill(1.0);
 
         println!("Display matrix: {mat}");
         let str = format!("{mat}");
-        assert_eq!(str, "[[3.000000,2.000000]\n[1.000000,5.000000]]");
+        assert_eq!(
+            str,
+            "[[[1.000000,2.000000]\n[3.000000,4.000000]]\n[[5.000000,6.000000]\n[7.000000,8.000000]]\n[[9.000000,10.000000]\n[11.000000,12.000000]]]"
+        );
     }
 
     #[test]
