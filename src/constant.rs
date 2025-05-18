@@ -63,10 +63,6 @@ impl<T: EtlValueType> EtlExpr<T> for Constant<T> {
     fn at(&self, _i: usize) -> T {
         self.value
     }
-
-    fn at2(&self, _row: usize, _column: usize) -> T {
-        self.value
-    }
 }
 
 // Constant<T> computes as itself

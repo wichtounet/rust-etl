@@ -69,10 +69,6 @@ impl<T: EtlValueType + Abs, Expr: WrappableExpr<T>> EtlExpr<T> for AbsExpr<T, Ex
     fn at(&self, i: usize) -> T {
         self.expr.value.at(i).abs()
     }
-
-    fn at2(&self, row: usize, column: usize) -> T {
-        self.expr.value.at2(row, column).abs()
-    }
 }
 
 // AbsExpr is an EtlWrappable

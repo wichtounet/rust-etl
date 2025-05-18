@@ -85,10 +85,6 @@ impl<T: EtlValueType + RandFloat> EtlExpr<T> for InvDropoutMask<T> {
     fn at(&self, _i: usize) -> T {
         self.next_value()
     }
-
-    fn at2(&self, _row: usize, _column: usize) -> T {
-        self.next_value()
-    }
 }
 
 // InvDropoutMask<T> computes as itself

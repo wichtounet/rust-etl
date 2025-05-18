@@ -69,10 +69,6 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for LogExpr<T, 
     fn at(&self, i: usize) -> T {
         self.expr.value.at(i).ln()
     }
-
-    fn at2(&self, row: usize, column: usize) -> T {
-        self.expr.value.at2(row, column).ln()
-    }
 }
 
 // LogExpr is an EtlWrappable

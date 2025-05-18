@@ -92,10 +92,6 @@ impl<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> E
     fn at(&self, i: usize) -> T {
         self.lhs.value.at(i) * self.rhs.value.at(i)
     }
-
-    fn at2(&self, row: usize, column: usize) -> T {
-        self.lhs.value.at2(row, column) * self.rhs.value.at2(row, column)
-    }
 }
 
 // ScaleExpr is an EtlWrappable

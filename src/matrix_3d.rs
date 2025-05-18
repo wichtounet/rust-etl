@@ -184,10 +184,6 @@ impl<T: EtlValueType> EtlExpr<T> for Matrix3d<T> {
         self.data[i]
     }
 
-    fn at2(&self, _row: usize, _column: usize) -> T {
-        panic!("Cannot use at2 on a 3D matrix");
-    }
-
     fn get_data(&self) -> &Vec<T> {
         &self.data
     }
@@ -227,10 +223,6 @@ impl<T: EtlValueType> EtlExpr<T> for &Matrix3d<T> {
     #[inline(always)]
     fn at(&self, i: usize) -> T {
         self.data[i]
-    }
-
-    fn at2(&self, _row: usize, _column: usize) -> T {
-        panic!("Cannot use at2 on a 3D matrix");
     }
 
     fn get_data(&self) -> &Vec<T> {

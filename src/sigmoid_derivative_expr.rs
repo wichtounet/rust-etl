@@ -73,10 +73,6 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for SigmoidDeri
     fn at(&self, i: usize) -> T {
         sigmoid_derivative_impl(self.expr.value.at(i))
     }
-
-    fn at2(&self, row: usize, column: usize) -> T {
-        sigmoid_derivative_impl(self.expr.value.at2(row, column))
-    }
 }
 
 // SigmoidDerivativeExpr is an EtlWrappable

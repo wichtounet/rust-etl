@@ -77,10 +77,6 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for ReluExpr<T,
     fn at(&self, i: usize) -> T {
         relu_impl(self.expr.value.at(i))
     }
-
-    fn at2(&self, row: usize, column: usize) -> T {
-        relu_impl(self.expr.value.at2(row, column))
-    }
 }
 
 // ReluExpr is an EtlWrappable
