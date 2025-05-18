@@ -179,6 +179,15 @@ impl<T: EtlValueType> EtlExpr<T> for Matrix3d<T> {
         self.n
     }
 
+    fn dim(&self, i: usize) -> usize {
+        match i {
+            0 => self.m,
+            1 => self.n,
+            2 => self.k,
+            _ => panic!("Invalid dimension access"),
+        }
+    }
+
     #[inline(always)]
     fn at(&self, i: usize) -> T {
         self.data[i]
@@ -316,7 +325,9 @@ mod tests {
         assert_eq!(mat.size(), 24);
         assert_eq!(mat.rows(), 4);
         assert_eq!(mat.columns(), 2);
-        // TODO DIM 3
+        assert_eq!(mat.dim(0), 4);
+        assert_eq!(mat.dim(1), 2);
+        assert_eq!(mat.dim(2), 3);
     }
 
     #[test]
