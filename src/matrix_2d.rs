@@ -28,8 +28,8 @@ impl<T: EtlValueType> Matrix2d<T> {
     pub fn new_copy(rhs: &Matrix2d<T>) -> Self {
         Self {
             data: rhs.data.clone(),
-            rows: rhs.rows(),
-            columns: rhs.columns(),
+            rows: rhs.rows,
+            columns: rhs.columns,
         }
     }
 

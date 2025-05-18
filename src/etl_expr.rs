@@ -117,14 +117,16 @@ pub trait EtlExpr<T: EtlValueType>: std::marker::Sync {
     fn at(&self, i: usize) -> T;
 
     fn dim(&self, i: usize) -> usize {
-        assert!(i < 2, "dim is only implicitly define for dim(0) and dim(1)");
-
-        if i == 0 {
-            assert!(Self::DIMENSIONS >= 1 && Self::DIMENSIONS <= 2, "dim is only implicitly defined for 1D/2D EtlExpr");
-            self.rows()
-        } else {
-            assert!(Self::DIMENSIONS == 2, "dim is only implicitly defined for 1D/2D EtlExpr");
-            self.columns()
+        match i {
+            0 => {
+                assert!(Self::DIMENSIONS >= 1 && Self::DIMENSIONS <= 2, "dim is only implicitly defined for 1D/2D EtlExpr");
+                self.rows()
+            }
+            1 => {
+                assert!(Self::DIMENSIONS == 2, "dim is only implicitly defined for 1D/2D EtlExpr");
+                self.columns()
+            }
+            _ => panic!("dim is only implicitly define for dim(0) and dim(1)"),
         }
     }
 
