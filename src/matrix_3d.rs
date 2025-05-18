@@ -65,16 +65,20 @@ impl<T: EtlValueType> Matrix3d<T> {
         mat
     }
 
-    pub fn at_mut(&mut self, row: usize, column: usize) -> &mut T {
-        if row >= self.m {
-            panic!("Row {row} is out of bounds!");
+    pub fn at3_mut(&mut self, m: usize, n: usize, k: usize) -> &mut T {
+        if m >= self.m {
+            panic!("Row {m} is out of bounds!");
         }
 
-        if column >= self.n {
-            panic!("Column {column} is out of bounds!");
+        if n >= self.n {
+            panic!("Column {n} is out of bounds!");
         }
 
-        &mut self.data[row * self.n + column]
+        if k >= self.k {
+            panic!("Third dimension {k} is out of bounds!");
+        }
+
+        &mut self.data[m * self.n * self.k + n * self.k + k]
     }
 
     pub fn clear(&mut self) {
@@ -193,6 +197,22 @@ impl<T: EtlValueType> EtlExpr<T> for Matrix3d<T> {
         self.data[i]
     }
 
+    fn at3(&self, m: usize, n: usize, k: usize) -> T {
+        if m >= self.m {
+            panic!("Row {m} is out of bounds!");
+        }
+
+        if n >= self.n {
+            panic!("Column {n} is out of bounds!");
+        }
+
+        if k >= self.k {
+            panic!("Third dimension {k} is out of bounds!");
+        }
+
+        self.data[m * self.n * self.k + n * self.k + k]
+    }
+
     fn get_data(&self) -> &Vec<T> {
         &self.data
     }
@@ -229,9 +249,34 @@ impl<T: EtlValueType> EtlExpr<T> for &Matrix3d<T> {
         self.n
     }
 
+    fn dim(&self, i: usize) -> usize {
+        match i {
+            0 => self.m,
+            1 => self.n,
+            2 => self.k,
+            _ => panic!("Invalid dimension access"),
+        }
+    }
+
     #[inline(always)]
     fn at(&self, i: usize) -> T {
         self.data[i]
+    }
+
+    fn at3(&self, m: usize, n: usize, k: usize) -> T {
+        if m >= self.m {
+            panic!("Row {m} is out of bounds!");
+        }
+
+        if n >= self.n {
+            panic!("Column {n} is out of bounds!");
+        }
+
+        if k >= self.k {
+            panic!("Third dimension {k} is out of bounds!");
+        }
+
+        self.data[m * self.n * self.k + n * self.k + k]
     }
 
     fn get_data(&self) -> &Vec<T> {
@@ -340,21 +385,21 @@ mod tests {
     fn default_value() {
         let mat = Matrix3d::<f64>::new(8, 12, 3);
 
-        assert_eq!(mat.at2(0, 0), 0.0);
-        assert_eq!(mat.at2(1, 1), 0.0);
-        assert_eq!(mat.at2(2, 1), 0.0);
+        assert_eq!(mat.at3(0, 0, 0), 0.0);
+        assert_eq!(mat.at3(1, 1, 2), 0.0);
+        assert_eq!(mat.at3(2, 1, 1), 0.0);
     }
 
     #[test]
     fn at2() {
         let mut mat = Matrix3d::<i64>::new(4, 2, 4);
 
-        *mat.at_mut(0, 0) = 9;
-        *mat.at_mut(1, 1) = 3;
+        *mat.at3_mut(0, 0, 0) = 9;
+        *mat.at3_mut(1, 1, 1) = 3;
 
-        assert_eq!(mat.at2(0, 0), 9);
-        assert_eq!(mat.at2(1, 1), 3);
-        assert_eq!(mat.at2(2, 1), 0);
+        assert_eq!(mat.at3(0, 0, 0), 9);
+        assert_eq!(mat.at3(1, 1, 1), 3);
+        assert_eq!(mat.at3(2, 1, 1), 0);
     }
 
     #[test]
@@ -412,9 +457,9 @@ mod tests {
         let mut mat = Matrix3d::<i64>::new(4, 2, 3);
         mat.fill(9);
 
-        assert_eq!(mat.at2(0, 0), 9);
-        assert_eq!(mat.at2(1, 1), 9);
-        assert_eq!(mat.at2(2, 1), 9);
+        assert_eq!(mat.at3(0, 0, 1), 9);
+        assert_eq!(mat.at3(1, 1, 1), 9);
+        assert_eq!(mat.at3(2, 1, 1), 9);
     }
 
     #[test]
@@ -422,30 +467,34 @@ mod tests {
         let mut mat = Matrix3d::<i64>::new(4, 2, 3);
         mat.fill(9);
 
-        assert_eq!(mat.at2(0, 0), 9);
-        assert_eq!(mat.at2(1, 1), 9);
-        assert_eq!(mat.at2(2, 1), 9);
+        assert_eq!(mat.at3(0, 0, 0), 9);
+        assert_eq!(mat.at3(1, 1, 0), 9);
+        assert_eq!(mat.at3(2, 1, 2), 9);
 
         mat.clear();
 
-        assert_eq!(mat.at2(0, 0), 0);
-        assert_eq!(mat.at2(1, 1), 0);
-        assert_eq!(mat.at2(2, 1), 0);
+        assert_eq!(mat.at3(0, 0, 0), 0);
+        assert_eq!(mat.at3(1, 1, 1), 0);
+        assert_eq!(mat.at3(2, 1, 2), 0);
     }
 
     #[test]
     fn row_major() {
         let mut mat = Matrix3d::<i64>::new(2, 2, 3);
+        mat.iota_fill(1);
 
-        mat[0] = 1;
-        mat[1] = 2;
-        mat[2] = 3;
-        mat[3] = 4;
-
-        assert_eq!(mat.at2(0, 0), 1);
-        assert_eq!(mat.at2(0, 1), 2);
-        assert_eq!(mat.at2(1, 0), 3);
-        assert_eq!(mat.at2(1, 1), 4);
+        assert_eq!(mat.at3(0, 0, 0), 1);
+        assert_eq!(mat.at3(0, 0, 1), 2);
+        assert_eq!(mat.at3(0, 0, 2), 3);
+        assert_eq!(mat.at3(0, 1, 0), 4);
+        assert_eq!(mat.at3(0, 1, 1), 5);
+        assert_eq!(mat.at3(0, 1, 2), 6);
+        assert_eq!(mat.at3(1, 0, 0), 7);
+        assert_eq!(mat.at3(1, 0, 1), 8);
+        assert_eq!(mat.at3(1, 0, 2), 9);
+        assert_eq!(mat.at3(1, 1, 0), 10);
+        assert_eq!(mat.at3(1, 1, 1), 11);
+        assert_eq!(mat.at3(1, 1, 2), 12);
     }
 
     #[test]
@@ -453,27 +502,23 @@ mod tests {
         let mut a = Matrix3d::<i64>::new(2, 2, 3);
         let mut b = Matrix3d::<i64>::new(2, 2, 3);
 
-        a[0] = 3;
-        a[1] = 9;
-        a[2] = 27;
-        a[3] = 42;
-
-        b[0] = 2;
-        b[1] = 4;
-        b[2] = 16;
-        b[3] = 42;
+        a.iota_fill(1);
+        b.iota_fill(2);
 
         a += b;
 
-        assert_eq!(a.at2(0, 0), 5);
-        assert_eq!(a.at2(0, 1), 13);
-        assert_eq!(a.at2(1, 0), 43);
-        assert_eq!(a.at2(1, 1), 84);
-
-        assert_eq!(a[0], 5);
-        assert_eq!(a[1], 13);
-        assert_eq!(a[2], 43);
-        assert_eq!(a[3], 84);
+        assert_eq!(a.at3(0, 0, 0), 1 + 2);
+        assert_eq!(a.at3(0, 0, 1), 2 + 3);
+        assert_eq!(a.at3(0, 0, 2), 3 + 4);
+        assert_eq!(a.at3(0, 1, 0), 4 + 5);
+        assert_eq!(a.at3(0, 1, 1), 5 + 6);
+        assert_eq!(a.at3(0, 1, 2), 6 + 7);
+        assert_eq!(a.at3(1, 0, 0), 7 + 8);
+        assert_eq!(a.at3(1, 0, 1), 8 + 9);
+        assert_eq!(a.at3(1, 0, 2), 9 + 10);
+        assert_eq!(a.at3(1, 1, 0), 10 + 11);
+        assert_eq!(a.at3(1, 1, 1), 11 + 12);
+        assert_eq!(a.at3(1, 1, 2), 12 + 13);
     }
 
     #[test]
@@ -481,22 +526,14 @@ mod tests {
         let mut a = Matrix3d::<i64>::new(2, 2, 3);
         let mut b = Matrix3d::<i64>::new(2, 2, 3);
 
-        a[0] = 3;
-        a[1] = 9;
-        a[2] = 27;
-        a[3] = 42;
-
-        b[0] = 2;
-        b[1] = 4;
-        b[2] = 16;
-        b[3] = 42;
+        a.iota_fill(1);
+        b.iota_fill(2);
 
         a.inplace_axpy(3, 5, b);
 
-        assert_eq!(a.at2(0, 0), 19);
-        assert_eq!(a.at2(0, 1), 47);
-        assert_eq!(a.at2(1, 0), 161);
-        assert_eq!(a.at2(1, 1), 336);
+        for (n, it) in a.iter().enumerate() {
+            assert_eq!(it, (3 * (n + 1) + 5 * (n + 2)).try_into().unwrap());
+        }
     }
 
     #[test]
@@ -510,9 +547,9 @@ mod tests {
 
         let b = Matrix3d::<i64>::new_copy(&a);
 
-        assert_eq!(b.at2(0, 0), 3);
-        assert_eq!(b.at2(0, 1), 9);
-        assert_eq!(b.at2(1, 0), 27);
-        assert_eq!(b.at2(1, 1), 42);
+        assert_eq!(b.at3(0, 0, 0), 3);
+        assert_eq!(b.at3(0, 0, 1), 9);
+        assert_eq!(b.at3(0, 0, 2), 27);
+        assert_eq!(b.at3(0, 1, 0), 42);
     }
 }

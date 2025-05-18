@@ -140,6 +140,10 @@ pub trait EtlExpr<T: EtlValueType>: std::marker::Sync {
         panic!("This function is only implemented for 2D containers");
     }
 
+    fn at3(&self, _i1: usize, _i2: usize, _i3: usize) -> T {
+        panic!("This function is only implemented for 3D containers");
+    }
+
     fn compute_into(&self, _lhs: &mut Vec<T>) {
         panic!("This function is only implemented for smart expression");
     }
