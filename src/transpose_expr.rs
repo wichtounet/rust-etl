@@ -65,7 +65,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> TransposeExpr<T, Expr> {
         }
     }
 
-    fn compute_transpose_impl(&self, output: &mut Vec<T>) {
+    fn compute_transpose_impl(&self, output: &mut [T]) {
         if Expr::DIMENSIONS == 2 {
             let m = self.expr.value.rows();
             let n = self.expr.value.columns();
