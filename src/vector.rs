@@ -29,8 +29,8 @@ impl<T: EtlValueType> Vector<T> {
             size: expr.size(),
         };
 
-        for (i, value) in vec.data.iter_mut().enumerate() {
-            *value = expr.at(i);
+        for (lhs, rhs) in vec.data.iter_mut().zip(expr.iter()) {
+            *lhs = rhs;
         }
 
         vec
@@ -299,6 +299,21 @@ mod tests {
         assert_eq!(vec.at(0), 0.0);
         assert_eq!(vec.at(1), 0.0);
         assert_eq!(vec.at(2), 0.0);
+    }
+
+    #[test]
+    fn construct_from_expr() {
+        let a = Vector::<i64>::new_iota(5, 1);
+        let b = Vector::<i64>::new_iota(5, 2);
+
+        let c = Vector::<i64>::new_from_expr(&(&a + &b));
+
+        assert_eq!(c.size(), 5);
+        assert_eq!(c.at(0), 3);
+        assert_eq!(c.at(1), 5);
+        assert_eq!(c.at(2), 7);
+        assert_eq!(c.at(3), 9);
+        assert_eq!(c.at(4), 11);
     }
 
     #[test]
