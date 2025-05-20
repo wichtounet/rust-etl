@@ -113,15 +113,13 @@ crate::impl_scale_op_unary_expr!(SubView<T, Expr>);
 mod tests {
     use crate::etl_expr::EtlExpr;
     use crate::matrix_2d::Matrix2d;
+    use crate::matrix_3d::Matrix3d;
     use crate::sub_view::sub;
     use crate::vector::Vector;
 
     #[test]
     fn basic_sub_2d() {
-        let mut a = Matrix2d::<i64>::new(2, 5);
-        let mut b = Vector::<i64>::new(5);
-
-        a.iota_fill(1);
+        let a = Matrix2d::<i64>::new_iota(2, 5, 1);
 
         let expr = sub(&a, 1);
 
@@ -129,6 +127,7 @@ mod tests {
         assert_eq!(expr.dim(0), 5);
         assert_eq!(expr.rows(), 5);
 
+        let mut b = Vector::<i64>::new(5);
         b |= sub(&a, 1);
 
         assert_eq!(b.at(0), 6);
@@ -140,8 +139,7 @@ mod tests {
 
     #[test]
     fn basic_sub_2d_iter() {
-        let mut a = Matrix2d::<i64>::new(2, 5);
-        a.iota_fill(1);
+        let a = Matrix2d::<i64>::new_iota(2, 5, 1);
 
         let expr = sub(&a, 1);
         for (n, value) in expr.iter().enumerate() {
@@ -153,4 +151,43 @@ mod tests {
             assert!(n < 3);
         }
     }
+
+    #[test]
+    fn basic_sub_3d() {
+        let a = Matrix3d::<i64>::new_iota(2, 4, 3, 1);
+
+        let expr = sub(&a, 1);
+
+        assert_eq!(expr.size(), 12);
+        assert_eq!(expr.dim(0), 4);
+        assert_eq!(expr.rows(), 4);
+        assert_eq!(expr.dim(1), 3);
+        assert_eq!(expr.columns(), 3);
+
+        let mut b = Matrix2d::<i64>::new(4, 3);
+        b |= sub(&a, 1);
+
+        assert_eq!(b.at(0), 13);
+        assert_eq!(b.at(1), 14);
+        assert_eq!(b.at(2), 15);
+        assert_eq!(b.at(3), 16);
+        assert_eq!(b.at(4), 17);
+    }
+
+    #[test]
+    fn basic_sub_3d_iter() {
+        let a = Matrix3d::<i64>::new_iota(2, 4, 3, 1);
+
+        let expr = sub(&a, 1);
+        for (n, value) in expr.iter().enumerate() {
+            assert_eq!(value, (n + 13).try_into().unwrap());
+        }
+
+        for (n, value) in expr.iter_range(1..4).enumerate() {
+            assert_eq!(value, (n + 14).try_into().unwrap());
+            assert!(n < 3);
+        }
+    }
+
+    // TODO Add test for a sub(sub(3d))
 }
