@@ -36,6 +36,15 @@ impl<T: EtlValueType> Vector<T> {
         vec
     }
 
+    pub fn new_iota(size: usize, value: T) -> Self {
+        let mut vec = Self {
+            data: vec![T::default(); padded_size(size)],
+            size,
+        };
+        vec.iota_fill(value);
+        vec
+    }
+
     pub fn new_rand(size: usize) -> Self
     where
         rand::distr::StandardUniform: rand::distr::Distribution<T>,
@@ -65,6 +74,14 @@ impl<T: EtlValueType> Vector<T> {
 
     pub fn fill(&mut self, constant: T) {
         self.data.fill(constant);
+    }
+
+    pub fn iota_fill(&mut self, value: T) {
+        let mut acc = value;
+        for value in self.data.iter_mut() {
+            *value = acc;
+            acc += T::one();
+        }
     }
 
     pub fn rand_fill(&mut self)

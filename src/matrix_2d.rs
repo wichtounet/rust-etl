@@ -33,6 +33,16 @@ impl<T: EtlValueType> Matrix2d<T> {
         }
     }
 
+    pub fn new_iota(rows: usize, columns: usize, value: T) -> Self {
+        let mut mat = Self {
+            data: vec![T::default(); padded_size(rows * columns)],
+            rows,
+            columns,
+        };
+        mat.iota_fill(value);
+        mat
+    }
+
     pub fn new_rand(rows: usize, columns: usize) -> Self
     where
         rand::distr::StandardUniform: rand::distr::Distribution<T>,

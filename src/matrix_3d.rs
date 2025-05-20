@@ -36,6 +36,17 @@ impl<T: EtlValueType> Matrix3d<T> {
         }
     }
 
+    pub fn new_iota(m: usize, n: usize, k: usize, value: T) -> Self {
+        let mut mat = Self {
+            data: vec![T::default(); padded_size(m * n * k)],
+            m,
+            n,
+            k,
+        };
+        mat.iota_fill(value);
+        mat
+    }
+
     pub fn new_rand(m: usize, n: usize, k: usize) -> Self
     where
         rand::distr::StandardUniform: rand::distr::Distribution<T>,
