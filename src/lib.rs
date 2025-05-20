@@ -27,6 +27,7 @@ pub mod softmax_expr;
 pub mod sqrt_expr;
 pub mod stable_softmax_expr;
 pub mod sub_expr;
+pub mod sub_view;
 pub mod transpose_expr;
 
 // The containers
