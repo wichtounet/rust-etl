@@ -70,7 +70,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> TransposeExpr<T, Expr> {
             let m = self.expr.value.rows();
             let n = self.expr.value.columns();
 
-            let functor = |out: &mut Vec<T>, expr: &Vec<T>| {
+            let functor = |out: &mut [T], expr: &[T]| {
                 for row in 0..m {
                     for column in 0..n {
                         out[column * m + row] = expr[row * n + column];

@@ -70,7 +70,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> ArgMaxExpr<T, Expr> {
             let rows = self.expr.value.rows();
             let columns = self.expr.value.columns();
 
-            let functor = |out: &mut Vec<T>, expr: &Vec<T>| {
+            let functor = |out: &mut [T], expr: &[T]| {
                 for row in 0..rows {
                     let mut max_index = 0;
                     let mut current_return_index = T::zero();

@@ -594,7 +594,7 @@ pub fn forward_data_binary_mut<
     }
 }
 
-pub fn forward_data_unary<T: EtlValueType, F: Fn(&mut Vec<T>, &Vec<T>), Expr: EtlComputable<T> + EtlExpr<T>>(output: &mut Vec<T>, expr: &Expr, functor: F) {
+pub fn forward_data_unary<T: EtlValueType, F: Fn(&mut [T], &[T]), Expr: EtlComputable<T> + EtlExpr<T>>(output: &mut Vec<T>, expr: &Expr, functor: F) {
     if Expr::TYPE.direct() {
         functor(output, expr.get_data());
     } else {

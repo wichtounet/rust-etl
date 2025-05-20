@@ -72,7 +72,7 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> BatchStableSoftmaxExpr<T, 
             let b = self.expr.value.rows();
             let m = self.expr.value.columns();
 
-            let functor = |out: &mut Vec<T>, expr: &Vec<T>| {
+            let functor = |out: &mut [T], expr: &[T]| {
                 for batch in 0..b {
                     let mut max = expr[batch * m];
 
