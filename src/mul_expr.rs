@@ -776,7 +776,7 @@ where
             let m = self.rhs.value.rows();
             let n = self.rhs.value.columns();
 
-            let functor = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+            let functor = |out: &mut [T], lhs: &[T], rhs: &[T]| {
                 for row in 0..m {
                     for column in 0..n {
                         out[column] += lhs[row] * rhs[row * n + column];
@@ -791,7 +791,7 @@ where
             let m = self.lhs.value.rows();
             let n = self.lhs.value.columns();
 
-            let functor = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+            let functor = |out: &mut [T], lhs: &[T], rhs: &[T]| {
                 for row in 0..m {
                     for column in 0..n {
                         out[row] += rhs[column] * lhs[row * n + column];
@@ -808,14 +808,14 @@ where
             let k = self.rhs.value.columns();
 
             if n * m < 100 * 100 {
-                let small_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::small_gemm_kernel(m, n, k, out, lhs, rhs);
+                let small_gemm_kernel = |out: &mut [T], lhs: &[T], rhs: &[T]| Self::small_gemm_kernel(m, n, k, out, lhs, rhs);
                 forward_data_binary(output, &self.lhs.value, &self.rhs.value, small_gemm_kernel);
             } else if n * m < 200 * 200 {
-                let medium_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::medium_gemm_kernel(m, n, k, out, lhs, rhs);
+                let medium_gemm_kernel = |out: &mut [T], lhs: &[T], rhs: &[T]| Self::medium_gemm_kernel(m, n, k, out, lhs, rhs);
                 forward_data_binary(output, &self.lhs.value, &self.rhs.value, medium_gemm_kernel);
             } else {
                 // the forwarding kernel
-                let large_gemm_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+                let large_gemm_kernel = |out: &mut [T], lhs: &[T], rhs: &[T]| {
                     // The kernel for a single thread
                     let large_gemm_kernel_thread =
                         |par_out: &mut [T], first: usize, last: usize| Self::large_gemm_kernel(first, last, m, n, k, par_out, lhs, rhs);

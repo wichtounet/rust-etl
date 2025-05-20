@@ -114,7 +114,7 @@ where
             let m = self.lhs.value.rows();
             let n = self.lhs.value.columns();
 
-            let functor = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
+            let functor = |out: &mut [T], lhs: &[T], rhs: &[T]| {
                 Self::compute_kernel(m, n, out, lhs, rhs);
             };
 

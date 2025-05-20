@@ -503,7 +503,7 @@ pub fn dispatch_parallel_2d<T: EtlValueType, F: Fn(&mut [T], usize, usize) + Syn
     }
 }
 
-pub fn dispatch_parallel_block<T: EtlValueType, F: Fn(&mut [T], usize, usize) + Sync + Send + Clone>(data: &mut Vec<T>, size: usize, block: usize, functor: F) {
+pub fn dispatch_parallel_block<T: EtlValueType, F: Fn(&mut [T], usize, usize) + Sync + Send + Clone>(data: &mut [T], size: usize, block: usize, functor: F) {
     if size >= block * 2 {
         rayon::scope(|s| {
             let mut n = rayon::current_num_threads();
@@ -536,13 +536,8 @@ pub fn dispatch_parallel_block<T: EtlValueType, F: Fn(&mut [T], usize, usize) + 
 
 // Helpers
 
-pub fn forward_data_binary<
-    T: EtlValueType,
-    F: Fn(&mut Vec<T>, &Vec<T>, &Vec<T>),
-    LeftExpr: EtlComputable<T> + EtlExpr<T>,
-    RightExpr: EtlComputable<T> + EtlExpr<T>,
->(
-    output: &mut Vec<T>,
+pub fn forward_data_binary<T: EtlValueType, F: Fn(&mut [T], &[T], &[T]), LeftExpr: EtlComputable<T> + EtlExpr<T>, RightExpr: EtlComputable<T> + EtlExpr<T>>(
+    output: &mut [T],
     lhs: &LeftExpr,
     rhs: &RightExpr,
     functor: F,
@@ -567,11 +562,11 @@ pub fn forward_data_binary<
 
 pub fn forward_data_binary_mut<
     T: EtlValueType,
-    F: FnMut(&mut Vec<T>, &Vec<T>, &Vec<T>),
+    F: FnMut(&mut [T], &[T], &[T]),
     LeftExpr: EtlComputable<T> + EtlExpr<T>,
     RightExpr: EtlComputable<T> + EtlExpr<T>,
 >(
-    output: &mut Vec<T>,
+    output: &mut [T],
     lhs: &LeftExpr,
     rhs: &RightExpr,
     functor: &mut F,
@@ -594,7 +589,7 @@ pub fn forward_data_binary_mut<
     }
 }
 
-pub fn forward_data_unary<T: EtlValueType, F: Fn(&mut [T], &[T]), Expr: EtlComputable<T> + EtlExpr<T>>(output: &mut Vec<T>, expr: &Expr, functor: F) {
+pub fn forward_data_unary<T: EtlValueType, F: Fn(&mut [T], &[T]), Expr: EtlComputable<T> + EtlExpr<T>>(output: &mut [T], expr: &Expr, functor: F) {
     if Expr::TYPE.direct() {
         functor(output, expr.get_data());
     } else {
@@ -603,11 +598,7 @@ pub fn forward_data_unary<T: EtlValueType, F: Fn(&mut [T], &[T]), Expr: EtlCompu
     }
 }
 
-pub fn forward_data_unary_mut<T: EtlValueType, F: FnMut(&mut Vec<T>, &Vec<T>), Expr: EtlComputable<T> + EtlExpr<T>>(
-    output: &mut Vec<T>,
-    expr: &Expr,
-    functor: &mut F,
-) {
+pub fn forward_data_unary_mut<T: EtlValueType, F: FnMut(&mut [T], &[T]), Expr: EtlComputable<T> + EtlExpr<T>>(output: &mut [T], expr: &Expr, functor: &mut F) {
     if Expr::TYPE.direct() {
         functor(output, expr.get_data());
     } else {

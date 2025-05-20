@@ -326,21 +326,21 @@ where
             let b = self.lhs.value.rows();
 
             if m * n <= 16384 {
-                let small_kernel = |out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| Self::small_kernel(m, n, b, out, lhs, rhs);
+                let small_kernel = |out: &mut [T], lhs: &[T], rhs: &[T]| Self::small_kernel(m, n, b, out, lhs, rhs);
                 forward_data_binary(output, &self.lhs.value, &self.rhs.value, small_kernel);
             } else {
                 let mut rhs_opp = Vec::<T>::new();
                 let mut lhs_opp = Vec::<T>::new();
 
-                let mut transpose_first_kernel = |_out: &mut Vec<T>, lhs: &Vec<T>, rhs: &Vec<T>| {
-                    lhs_opp = lhs.clone();
+                let mut transpose_first_kernel = |_out: &mut [T], lhs: &[T], rhs: &[T]| {
+                    lhs_opp = lhs.to_vec();
                     for lhs_row in 0..b {
                         for (lhs_column, lhs_iter) in lhs[lhs_row * m..lhs_row * m + m].iter().enumerate() {
                             lhs_opp[lhs_column * b + lhs_row] = *lhs_iter;
                         }
                     }
 
-                    rhs_opp = rhs.clone();
+                    rhs_opp = rhs.to_vec();
                     for rhs_row in 0..b {
                         for (rhs_column, rhs_iter) in rhs[rhs_row * n..rhs_row * n + n].iter().enumerate() {
                             rhs_opp[rhs_column * b + rhs_row] = *rhs_iter;
