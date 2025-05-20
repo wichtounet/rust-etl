@@ -27,6 +27,24 @@ impl<T: EtlValueType> Matrix3d<T> {
         }
     }
 
+    // TODO: Once we can clone an expression, we can pass by value here
+    pub fn new_from_expr<Expr: EtlExpr<T>>(expr: &Expr) -> Self {
+        assert_eq!(Expr::DIMENSIONS, 3);
+
+        let mut vec = Self {
+            data: vec![T::default(); padded_size(expr.size())],
+            m: expr.dim(0),
+            n: expr.dim(1),
+            k: expr.dim(2),
+        };
+
+        for (lhs, rhs) in vec.data.iter_mut().zip(expr.iter()) {
+            *lhs = rhs;
+        }
+
+        vec
+    }
+
     pub fn new_copy(rhs: &Matrix3d<T>) -> Self {
         Self {
             data: rhs.data.clone(),

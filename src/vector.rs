@@ -23,7 +23,10 @@ impl<T: EtlValueType> Vector<T> {
         }
     }
 
+    // TODO: Once we can clone an expression, we can pass by value here
     pub fn new_from_expr<Expr: EtlExpr<T>>(expr: &Expr) -> Self {
+        assert_eq!(Expr::DIMENSIONS, 1);
+
         let mut vec = Self {
             data: vec![T::default(); padded_size(expr.size())],
             size: expr.size(),

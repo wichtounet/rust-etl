@@ -25,6 +25,23 @@ impl<T: EtlValueType> Matrix2d<T> {
         }
     }
 
+    // TODO: Once we can clone an expression, we can pass by value here
+    pub fn new_from_expr<Expr: EtlExpr<T>>(expr: &Expr) -> Self {
+        assert_eq!(Expr::DIMENSIONS, 2);
+
+        let mut vec = Self {
+            data: vec![T::default(); padded_size(expr.size())],
+            rows: expr.rows(),
+            columns: expr.columns(),
+        };
+
+        for (lhs, rhs) in vec.data.iter_mut().zip(expr.iter()) {
+            *lhs = rhs;
+        }
+
+        vec
+    }
+
     pub fn new_copy(rhs: &Matrix2d<T>) -> Self {
         Self {
             data: rhs.data.clone(),
