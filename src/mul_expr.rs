@@ -769,7 +769,7 @@ where
         }
     }
 
-    fn compute_gemm_impl(&self, output: &mut Vec<T>) {
+    fn compute_gemm_impl(&self, output: &mut [T]) {
         if LeftExpr::DIMENSIONS == 1 && RightExpr::DIMENSIONS == 2 {
             // No need to zero the vector since we did that a construction
 
