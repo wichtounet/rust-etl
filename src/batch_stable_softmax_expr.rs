@@ -173,7 +173,7 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlExpr<T> for BatchStable
         self.temp[i]
     }
 
-    fn get_data(&self) -> &Vec<T> {
+    fn get_data(&self) -> &[T] {
         &self.temp
     }
 }

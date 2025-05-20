@@ -192,7 +192,7 @@ impl<T: EtlValueType> EtlExpr<T> for Matrix2d<T> {
         self.data[row * self.columns + column]
     }
 
-    fn get_data(&self) -> &Vec<T> {
+    fn get_data(&self) -> &[T] {
         &self.data
     }
 }
@@ -245,7 +245,7 @@ impl<T: EtlValueType> EtlExpr<T> for &Matrix2d<T> {
         self.data[row * self.columns + column]
     }
 
-    fn get_data(&self) -> &Vec<T> {
+    fn get_data(&self) -> &[T] {
         &self.data
     }
 }

@@ -202,7 +202,7 @@ where
         self.temp[i]
     }
 
-    fn get_data(&self) -> &Vec<T> {
+    fn get_data(&self) -> &[T] {
         &self.temp
     }
 }

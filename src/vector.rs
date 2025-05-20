@@ -148,7 +148,7 @@ impl<T: EtlValueType> EtlExpr<T> for Vector<T> {
         self.data[i]
     }
 
-    fn get_data(&self) -> &Vec<T> {
+    fn get_data(&self) -> &[T] {
         &self.data
     }
 }
@@ -185,7 +185,7 @@ impl<T: EtlValueType> EtlExpr<T> for &Vector<T> {
         self.data[i]
     }
 
-    fn get_data(&self) -> &Vec<T> {
+    fn get_data(&self) -> &[T] {
         &self.data
     }
 }

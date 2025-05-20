@@ -213,7 +213,7 @@ impl<T: EtlValueType> EtlExpr<T> for Matrix3d<T> {
         self.data[m * self.n * self.k + n * self.k + k]
     }
 
-    fn get_data(&self) -> &Vec<T> {
+    fn get_data(&self) -> &[T] {
         &self.data
     }
 }
@@ -279,7 +279,7 @@ impl<T: EtlValueType> EtlExpr<T> for &Matrix3d<T> {
         self.data[m * self.n * self.k + n * self.k + k]
     }
 
-    fn get_data(&self) -> &Vec<T> {
+    fn get_data(&self) -> &[T] {
         &self.data
     }
 }

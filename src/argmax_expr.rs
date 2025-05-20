@@ -170,7 +170,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for ArgMaxExpr<T, Expr>
         self.temp[i]
     }
 
-    fn get_data(&self) -> &Vec<T> {
+    fn get_data(&self) -> &[T] {
         &self.temp
     }
 }

@@ -155,7 +155,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for TransposeExpr<T, Ex
         self.temp[i]
     }
 
-    fn get_data(&self) -> &Vec<T> {
+    fn get_data(&self) -> &[T] {
         &self.temp
     }
 }

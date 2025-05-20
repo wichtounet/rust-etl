@@ -170,7 +170,7 @@ pub trait EtlExpr<T: EtlValueType>: std::marker::Sync {
         panic!("This function is only implemented for smart expression");
     }
 
-    fn get_data(&self) -> &Vec<T> {
+    fn get_data(&self) -> &[T] {
         panic!("This function is only implemented for direct expression");
     }
 }
