@@ -26,8 +26,7 @@ impl<T: EtlValueType> Matrix2d<T> {
         }
     }
 
-    // TODO: Once we can clone an expression, we can pass by value here
-    pub fn new_from_expr<Expr: EtlExpr<T>>(expr: &Expr) -> Self {
+    pub fn new_from_expr<Expr: EtlExpr<T>>(expr: Expr) -> Self {
         assert_eq!(Expr::DIMENSIONS, 2);
 
         let mut vec = Self {

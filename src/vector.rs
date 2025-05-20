@@ -24,8 +24,7 @@ impl<T: EtlValueType> Vector<T> {
         }
     }
 
-    // TODO: Once we can clone an expression, we can pass by value here
-    pub fn new_from_expr<Expr: EtlExpr<T>>(expr: &Expr) -> Self {
+    pub fn new_from_expr<Expr: EtlExpr<T>>(expr: Expr) -> Self {
         assert_eq!(Expr::DIMENSIONS, 1);
 
         let mut vec = Self {
@@ -301,7 +300,7 @@ mod tests {
         let a = Vector::<i64>::new_iota(5, 1);
         let b = Vector::<i64>::new_iota(5, 2);
 
-        let c = Vector::<i64>::new_from_expr(&(&a + &b));
+        let c = Vector::<i64>::new_from_expr(&a + &b);
 
         assert_eq!(c.size(), 5);
         assert_eq!(c.at(0), 3);

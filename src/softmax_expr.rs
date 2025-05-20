@@ -114,7 +114,7 @@ impl<T: EtlValueType + Float, Expr: WrappableExpr<T>> EtlComputable<T> for Softm
 pub fn softmax<T: EtlValueType + Float, Expr: WrappableExpr<T>>(expr: Expr) -> SoftmaxExpr<T, Expr> {
     // We need a  concrete type because we have no traits implementing X - constant
 
-    let vec = Vector::<T>::new_from_expr(&expr);
+    let vec = Vector::<T>::new_from_expr(expr.clone());
     let s = sum(&exp(&vec));
 
     SoftmaxExpr::<T, Expr>::new(expr, s)
