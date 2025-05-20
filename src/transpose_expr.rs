@@ -2,6 +2,7 @@ use crate::etl_expr::*;
 
 // The declaration of TransposeExpr
 
+#[derive(Clone)]
 pub struct TransposeExpr<T: EtlValueType, Expr: WrappableExpr<T>> {
     expr: EtlWrapper<T, Expr::WrappedAs>,
     pub temp: Vec<T>,

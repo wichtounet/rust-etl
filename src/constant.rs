@@ -2,6 +2,7 @@ use crate::etl_expr::*;
 
 // The declaration of Constant<T>
 
+#[derive(Clone)]
 pub struct Constant<T: EtlValueType> {
     value: T,
 }

@@ -9,6 +9,7 @@ use std::simd::*;
 /// LeftExpr is a vector expression
 /// RightExpr is a matrix expression
 /// MulExpr is a vector expression
+#[derive(Clone)]
 pub struct MulExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>>
 where
     Simd<T, 8>: SimdHelper,

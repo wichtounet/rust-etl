@@ -2,6 +2,7 @@ use crate::etl_expr::*;
 
 // The declaration of ScaleExpr
 
+#[derive(Clone)]
 pub struct ScaleExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
     lhs: EtlWrapper<T, LeftExpr::WrappedAs>,
     rhs: EtlWrapper<T, RightExpr::WrappedAs>,

@@ -6,6 +6,7 @@ use std::simd::*;
 // The declaration of BatchOuterExpr
 
 /// Expression representing the batched addition of biases to a matrix
+#[derive(Clone)]
 pub struct BatchOuterExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>>
 where
     Simd<T, 8>: SimdHelper,

@@ -3,6 +3,7 @@ use crate::etl_expr::*;
 
 // The declaration of ReluDerivativeExpr
 
+#[derive(Clone)]
 pub struct ReluDerivativeExpr<T: EtlValueType + Float, Expr: WrappableExpr<T>> {
     expr: EtlWrapper<T, Expr::WrappedAs>,
 }

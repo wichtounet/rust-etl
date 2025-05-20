@@ -8,6 +8,7 @@ use rand_distr::*;
 
 // The declaration of Matrix2d<T>
 
+#[derive(Clone)]
 pub struct Matrix2d<T: EtlValueType> {
     pub data: Vec<T>,
     rows: usize,
@@ -159,16 +160,6 @@ impl<T: EtlValueType> Matrix2d<T> {
     pub fn inplace_axpy<RightExpr: EtlExpr<T>>(&mut self, alpha: T, beta: T, y: RightExpr) {
         validate_assign(self, &y);
         axpy_direct(&mut self.data, alpha, beta, &y);
-    }
-}
-
-impl<T: EtlValueType> Clone for Matrix2d<T> {
-    fn clone(&self) -> Self {
-        Self {
-            data: self.data.clone(),
-            rows: self.rows,
-            columns: self.columns,
-        }
     }
 }
 

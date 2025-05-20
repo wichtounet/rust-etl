@@ -21,6 +21,15 @@ pub struct InvDropoutMask<T: EtlValueType + RandFloat> {
     engine: Mutex<SmallRng>,
 }
 
+impl<T: EtlValueType + RandFloat> Clone for InvDropoutMask<T> {
+    fn clone(&self) -> Self {
+        Self {
+            probability: self.probability,
+            engine: Mutex::<SmallRng>::new(SmallRng::from_rng(&mut rand::rng())),
+        }
+    }
+}
+
 // The functions of InvDropoutMask<T>
 
 impl<T: EtlValueType + RandFloat> InvDropoutMask<T> {

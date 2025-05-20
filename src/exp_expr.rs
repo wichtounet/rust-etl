@@ -3,6 +3,7 @@ use crate::etl_expr::*;
 
 // The declaration of ExpExpr
 
+#[derive(Clone)]
 pub struct ExpExpr<T: EtlValueType + Float, Expr: WrappableExpr<T>> {
     expr: EtlWrapper<T, Expr::WrappedAs>,
 }

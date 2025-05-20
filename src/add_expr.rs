@@ -2,6 +2,7 @@ use crate::etl_expr::*;
 
 // The declaration of AddExpr
 
+#[derive(Clone)]
 pub struct AddExpr<T: EtlValueType, LeftExpr: WrappableExpr<T>, RightExpr: WrappableExpr<T>> {
     lhs: EtlWrapper<T, LeftExpr::WrappedAs>,
     rhs: EtlWrapper<T, RightExpr::WrappedAs>,

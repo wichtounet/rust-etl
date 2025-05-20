@@ -4,6 +4,7 @@ use crate::etl_expr::*;
 // The declaration of BatchSoftmaxExpr
 
 /// Expression representing the batched addition of biases to a matrix
+#[derive(Clone)]
 pub struct BatchSoftmaxExpr<T: EtlValueType + Float, Expr: WrappableExpr<T>> {
     expr: EtlWrapper<T, Expr::WrappedAs>,
     pub temp: Vec<T>,

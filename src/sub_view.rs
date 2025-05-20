@@ -2,6 +2,7 @@ use crate::etl_expr::*;
 
 // The declaration of SubView
 
+#[derive(Clone)]
 pub struct SubView<T: EtlValueType, Expr: WrappableExpr<T>> {
     expr: EtlWrapper<T, Expr::WrappedAs>,
     index: usize,

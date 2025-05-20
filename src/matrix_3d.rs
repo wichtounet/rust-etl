@@ -8,6 +8,7 @@ use rand_distr::*;
 
 // The declaration of Matrix3d<T>
 
+#[derive(Clone)]
 pub struct Matrix3d<T: EtlValueType> {
     pub data: Vec<T>,
     m: usize,
@@ -168,17 +169,6 @@ impl<T: EtlValueType> Matrix3d<T> {
     pub fn inplace_axpy<RightExpr: EtlExpr<T>>(&mut self, alpha: T, beta: T, y: RightExpr) {
         validate_assign(self, &y);
         axpy_direct(&mut self.data, alpha, beta, &y);
-    }
-}
-
-impl<T: EtlValueType> Clone for Matrix3d<T> {
-    fn clone(&self) -> Self {
-        Self {
-            data: self.data.clone(),
-            m: self.m,
-            n: self.n,
-            k: self.k,
-        }
     }
 }
 

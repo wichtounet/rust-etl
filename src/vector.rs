@@ -8,6 +8,7 @@ use rand_distr::*;
 
 // The declaration of Vector<T>
 
+#[derive(Clone)]
 pub struct Vector<T: EtlValueType> {
     pub data: Vec<T>,
     size: usize,
@@ -124,15 +125,6 @@ impl<T: EtlValueType> Vector<T> {
 
     pub fn direct_iter_mut(&mut self) -> std::slice::IterMut<'_, T> {
         self.data.iter_mut()
-    }
-}
-
-impl<T: EtlValueType> Clone for Vector<T> {
-    fn clone(&self) -> Self {
-        Self {
-            data: self.data.clone(),
-            size: self.size,
-        }
     }
 }
 

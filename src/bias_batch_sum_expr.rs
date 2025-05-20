@@ -3,6 +3,7 @@ use crate::etl_expr::*;
 // The declaration of BiasBatchSumExpr
 
 /// Expression representing the batched addition of biases to a matrix
+#[derive(Clone)]
 pub struct BiasBatchSumExpr<T: EtlValueType, Expr: WrappableExpr<T>> {
     lhs: EtlWrapper<T, Expr::WrappedAs>,
     pub temp: Vec<T>,

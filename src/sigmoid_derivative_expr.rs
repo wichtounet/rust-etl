@@ -3,6 +3,7 @@ use crate::etl_expr::*;
 
 // The declaration of SigmoidDerivativeExpr
 
+#[derive(Clone)]
 pub struct SigmoidDerivativeExpr<T: EtlValueType + Float, Expr: WrappableExpr<T>> {
     expr: EtlWrapper<T, Expr::WrappedAs>,
 }

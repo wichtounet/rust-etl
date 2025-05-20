@@ -2,6 +2,7 @@ use crate::etl_expr::*;
 
 // The declaration of ArgMaxExpr
 
+#[derive(Clone)]
 pub struct ArgMaxExpr<T: EtlValueType, Expr: WrappableExpr<T>> {
     expr: EtlWrapper<T, Expr::WrappedAs>,
     pub temp: Vec<T>,

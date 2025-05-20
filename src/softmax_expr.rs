@@ -7,6 +7,7 @@ use crate::exp_expr::exp;
 
 // The declaration of SoftmaxExpr
 
+#[derive(Clone)]
 pub struct SoftmaxExpr<T: EtlValueType + Float, Expr: WrappableExpr<T>> {
     expr: EtlWrapper<T, Expr::WrappedAs>,
     s: T,
