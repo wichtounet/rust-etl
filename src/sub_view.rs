@@ -19,7 +19,7 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> SubView<T, Expr> {
 // SubView is an EtlExpr
 impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for SubView<T, Expr> {
     const DIMENSIONS: usize = Expr::DIMENSIONS - 1;
-    const TYPE: EtlType = simple_unary_type(Expr::TYPE);
+    const TYPE: EtlType = EtlType::Value;
     const THREAD_SAFE: bool = Expr::THREAD_SAFE;
 
     type Iter<'x>
@@ -64,7 +64,9 @@ impl<T: EtlValueType, Expr: WrappableExpr<T>> EtlExpr<T> for SubView<T, Expr> {
         self.expr.value.at3(self.index, i, j)
     }
 
-    // TODO get data
+    fn get_data(&self) -> &[T] {
+        &self.expr.value.get_data()[self.index * self.size()..(self.index + 1) * self.size()]
+    }
 }
 
 // SubView is an EtlWrappable
@@ -190,5 +192,21 @@ mod tests {
         }
     }
 
-    // TODO Add test for a sub(sub(3d))
+    #[test]
+    fn basic_sub_sub_3d() {
+        let a = Matrix3d::<i64>::new_iota(2, 4, 3, 1);
+
+        let expr = sub(sub(&a, 1), 1);
+
+        assert_eq!(expr.size(), 3);
+        assert_eq!(expr.dim(0), 3);
+        assert_eq!(expr.rows(), 3);
+
+        let mut b = Vector::<i64>::new(3);
+        b |= sub(sub(&a, 1), 1);
+
+        assert_eq!(b.at(0), 16);
+        assert_eq!(b.at(1), 17);
+        assert_eq!(b.at(2), 18);
+    }
 }
