@@ -117,6 +117,7 @@ mod tests {
     use crate::etl_expr::EtlExpr;
     use crate::matrix_2d::Matrix2d;
     use crate::matrix_3d::Matrix3d;
+    use crate::matrix_4d::Matrix4d;
     use crate::sub_view::sub;
     use crate::vector::Vector;
 
@@ -208,5 +209,70 @@ mod tests {
         assert_eq!(b.at(0), 16);
         assert_eq!(b.at(1), 17);
         assert_eq!(b.at(2), 18);
+    }
+
+    #[test]
+    fn basic_sub_4d() {
+        let a = Matrix4d::<i64>::new_iota(2, 4, 3, 2, 1);
+
+        let expr = sub(&a, 1);
+
+        assert_eq!(expr.size(), 24);
+        assert_eq!(expr.dim(0), 4);
+        assert_eq!(expr.dim(1), 3);
+        assert_eq!(expr.dim(2), 2);
+
+        assert_eq!(expr.rows(), 4);
+        assert_eq!(expr.columns(), 3);
+
+        let mut b = Matrix3d::<i64>::new(4, 3, 2);
+        b |= sub(&a, 1);
+
+        assert_eq!(b.at(0), 25);
+        assert_eq!(b.at(1), 26);
+        assert_eq!(b.at(2), 27);
+        assert_eq!(b.at(3), 28);
+        assert_eq!(b.at(4), 29);
+    }
+
+    #[test]
+    fn basic_sub_sub_4d() {
+        let a = Matrix4d::<i64>::new_iota(2, 4, 3, 2, 1);
+
+        let expr = sub(sub(&a, 1), 0);
+
+        assert_eq!(expr.size(), 6);
+        assert_eq!(expr.dim(0), 3);
+        assert_eq!(expr.dim(1), 2);
+
+        assert_eq!(expr.rows(), 3);
+        assert_eq!(expr.columns(), 2);
+
+        let mut b = Matrix2d::<i64>::new(3, 2);
+        b |= sub(sub(&a, 1), 0);
+
+        assert_eq!(b.at(0), 25);
+        assert_eq!(b.at(1), 26);
+        assert_eq!(b.at(2), 27);
+        assert_eq!(b.at(3), 28);
+        assert_eq!(b.at(4), 29);
+        assert_eq!(b.at(5), 30);
+    }
+
+    #[test]
+    fn basic_sub_sub_sub_4d() {
+        let a = Matrix4d::<i64>::new_iota(2, 4, 3, 2, 1);
+
+        let expr = sub(sub(sub(&a, 1), 0), 1);
+
+        assert_eq!(expr.size(), 2);
+        assert_eq!(expr.dim(0), 2);
+        assert_eq!(expr.rows(), 2);
+
+        let mut b = Vector::<i64>::new(2);
+        b |= sub(sub(sub(&a, 1), 0), 1);
+
+        assert_eq!(b.at(0), 27);
+        assert_eq!(b.at(1), 28);
     }
 }

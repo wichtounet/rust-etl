@@ -31,7 +31,7 @@ impl<T: EtlValueType> Matrix4d<T> {
     }
 
     pub fn new_from_expr<Expr: EtlExpr<T>>(expr: Expr) -> Self {
-        assert_eq!(Expr::DIMENSIONS, 3);
+        assert_eq!(Expr::DIMENSIONS, 4);
 
         let mut vec = Self {
             data: vec![T::default(); padded_size(expr.size())],
@@ -251,7 +251,7 @@ impl<T: EtlValueType> EtlExpr<T> for Matrix4d<T> {
 }
 
 impl<T: EtlValueType> EtlExpr<T> for &Matrix4d<T> {
-    const DIMENSIONS: usize = 3;
+    const DIMENSIONS: usize = 4;
     const TYPE: EtlType = EtlType::Value;
     const THREAD_SAFE: bool = true;
 
