@@ -146,6 +146,10 @@ pub trait EtlExpr<T: EtlValueType>: std::marker::Sync + Clone {
         panic!("This function is only implemented for 3D containers");
     }
 
+    fn at4(&self, _i1: usize, _i2: usize, _i3: usize, _i4: usize) -> T {
+        panic!("This function is only implemented for 4D containers");
+    }
+
     fn compute_into(&self, _lhs: &mut Vec<T>) {
         panic!("This function is only implemented for smart expression");
     }
